@@ -1,0 +1,270 @@
+# 📄 CAHIER DES CHARGES — ScanAR (Voro) (version v0)
+
+---
+
+# 🧠 1. Vision produit
+
+## 🎯 Objectif
+
+Créer une plateforme SaaS permettant de :
+
+* transformer une image en modèle 3D (IA)
+* visualiser ce modèle en réalité augmentée (AR)
+* partager via lien ou QR code
+* démocratiser l’AR pour tous les objets du quotidien
+
+---
+
+## 🌍 Positionnement
+
+Produit universel AR :
+
+* e-commerce (produits)
+* restauration (plats)
+* particuliers (objets perso)
+* entreprises (catalogues interactifs)
+* marketing (QR code AR publicitaire)
+
+👉 Concept clé :
+
+> “Tout objet peut devenir une expérience AR accessible via un simple scan”
+
+---
+
+# 🤖 2. IA / génération 3D
+
+## 🔹 Pipeline IA (Hunyuan3D v1)
+
+### Étapes backend :
+
+1. Upload image utilisateur
+2. Envoi vers worker Python (GPU)
+3. Hunyuan3D génère :
+
+   * mesh 3D
+   * textures
+4. Post-processing automatique :
+
+   * clean mesh
+   * optimisation topology
+   * compression GLB
+5. Export :
+
+   * `.glb` (web + Android)
+   * `.usdz` (Apple AR QuickLook)
+
+---
+
+## ⚙️ Post-processing
+
+* automatique par défaut
+* option “amélioration qualité” côté user
+* objectif : fidélité maximale à l’image
+
+👉 IMPORTANT :
+
+* simplification mesh (decimation)
+* texture baking optimisé
+* compression Draco
+
+---
+
+# 🧱 3. Architecture technique
+
+## 🏗 Stack globale
+
+### Frontend
+
+* Next.js (App Router)
+* Three.js / model-viewer
+
+### Backend
+
+* Next.js API routes (léger)
+* FastAPI (Python GPU service)
+
+### IA Worker
+
+* Python + Hunyuan3D
+* Docker container GPU
+
+### Communication
+
+* Redis Queue (jobs async)
+* WebSocket (progress génération en temps réel)
+
+---
+
+# 📦 4. Architecture Docker
+
+```text
+frontend (Next.js)
+backend (FastAPI / API gateway)
+worker-ai (Hunyuan3D GPU)
+redis (queue)
+supabase (DB + auth + storage)
+```
+
+---
+
+# ☁️ 5. Infra / dev initial
+
+## 🧪 Phase MVP
+
+* Cloudflare Tunnel
+* Docker Compose local
+* GPU local ou PC dev
+
+## 🚀 Phase scale
+
+* RunPod / Modal (GPU serverless)
+* CDN modèles 3D
+* autoscaling workers
+
+---
+
+# 🔐 6. Auth / Supabase
+
+## Auth
+
+* email + password simple
+* pas de confirmation mail (MVP)
+
+## Structure user
+
+* id
+* email
+* password
+* credits (future)
+* models list
+* scan analytics
+
+---
+
+# 📊 7. Dashboard
+
+## Sidebar
+
+### 📁 Models
+
+* upload image
+* génération 3D
+* historique
+
+### 📁 AR links / QR codes
+
+* génération QR code
+* lien AR public
+* tracking scans
+
+### 📁 Analytics
+
+* nombre de scans
+* device type
+
+### 📁 Catalogs (future)
+
+* catalogue AR
+* menu restaurant AR
+* scroll 3D interactif
+
+### 📁 Settings
+
+* profil
+* billing (future)
+
+---
+
+# 🧩 8. AR System
+
+## Tech AR
+
+* model-viewer (base)
+* QuickLook (.usdz iOS)
+* Scene Viewer (Android)
+* WebXR fallback
+
+## Positionnement
+
+* table
+* sol
+* surfaces
+* murs (future)
+
+## Flow
+
+1. scan QR
+2. ouverture camera
+3. chargement modèle
+4. placement AR
+5. interaction
+
+---
+
+# 💾 9. Storage
+
+* Supabase Storage
+* /images
+* /models/glb
+* /models/usdz
+
+---
+
+# 💰 10. Business model
+
+* crédits (future)
+* Stripe (euro → crédits)
+* freemium
+
+---
+
+# 🌐 11. Landing page
+
+* ultra simple
+* hero : “Turn any image into AR reality”
+* CTA upload image
+* demo 3D
+
+---
+
+# ⚠️ Points critiques
+
+## Next.js seul insuffisant
+
+→ FastAPI obligatoire pour GPU
+
+## Hunyuan3D lourd
+
+→ queue obligatoire
+
+## iOS AR
+
+→ USDZ obligatoire
+
+## QR code system
+
+→ core product feature
+
+---
+
+# 🚀 Architecture finale
+
+```text
+Next.js (UI)
+↓
+FastAPI (API gateway)
+↓
+Redis Queue
+↓
+GPU Worker (Hunyuan3D)
+↓
+Supabase (DB + storage)
+↓
+AR Viewer (model-viewer + QuickLook)
+```
+
+---
+
+# 🧠 Vision finale
+
+> “The AR layer of the internet for physical objects”
