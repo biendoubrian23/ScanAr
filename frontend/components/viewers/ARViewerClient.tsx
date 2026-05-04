@@ -28,6 +28,12 @@ export function ARViewerClient({
   const analyticsLogged = useRef(false);
   const [shared, setShared] = useState(false);
   const [arPlacement, setArPlacement] = useState<ARPlacement>(placement);
+  const [mvLoaded, setMvLoaded] = useState(false);
+
+  // Load model-viewer custom element (browser-only, side-effect import)
+  useEffect(() => {
+    import('@google/model-viewer').then(() => setMvLoaded(true));
+  }, []);
 
   useEffect(() => {
     if (analyticsLogged.current) return;
@@ -58,9 +64,9 @@ export function ARViewerClient({
   };
 
   return (
-    <div className="min-h-screen bg-dark-950 flex flex-col">
+    <div className="min-h-screen bg-zinc-950 flex flex-col">
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-dark-950/90 backdrop-blur-md">
+      <header className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-zinc-950/90 backdrop-blur-md">
         <div className="flex items-center gap-2.5">
           <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-brand-600 to-brand-500 shadow-md shadow-brand-600/25">
             <ScanLine className="w-4 h-4 text-white" />
@@ -118,62 +124,86 @@ export function ARViewerClient({
       </header>
 
       {/* 3D Viewer */}
-      <div className="flex-1 relative">
-        <model-viewer
-          src={glbUrl}
-          ios-src={usdzUrl}
-          poster={posterUrl}
-          alt={title}
-          ar
-          ar-modes="webxr scene-viewer quick-look"
-          ar-placement={arPlacement}
-          ar-scale="auto"
-          camera-controls
-          touch-action="pan-y"
-          auto-rotate
-          shadow-intensity="1"
-          shadow-softness="0.5"
-          environment-image="neutral"
-          exposure="1"
-          interaction-prompt="auto"
-          style={{ width: '100%', height: '100%', position: 'absolute', inset: 0 }}
-        >
-          {/* AR button */}
-          <button
-            type="button"
-            slot="ar-button"
-            className={cn(
-              'absolute bottom-6 left-1/2 -translate-x-1/2 z-10',
-              'flex items-center gap-2 px-6 py-3 rounded-xl',
-              'bg-gradient-to-r from-brand-600 to-brand-500 text-white',
-              'shadow-xl shadow-brand-600/40',
-              'text-sm font-semibold',
-              'hover:from-brand-500 hover:to-brand-400 transition-all',
-            )}
-          >
-            <Smartphone className="w-4 h-4" />
-            View in your space
-          </button>
-
-          {/* Loading state */}
-          <div slot="poster" className="absolute inset-0 flex flex-col items-center justify-center bg-dark-950">
+      <div className="flex-1 relative bg-zinc-950" style={{ minHeight: 0 }}>
+        {/* Loading overlay — visible until model-viewer script + GLB are ready */}
+        {!mvLoaded && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-950 z-10">
             {posterUrl ? (
-              <img src={posterUrl} alt="" className="w-full h-full object-contain opacity-50" />
+              <img src={posterUrl} alt={title} className="w-full h-full object-contain opacity-40" />
             ) : (
               <Box className="w-16 h-16 text-zinc-700 animate-pulse" />
             )}
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
               <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 backdrop-blur border border-white/10">
                 <div className="w-2 h-2 rounded-full bg-brand-400 animate-pulse" />
-                <span className="text-xs text-zinc-400">Loading 3D model...</span>
+                <span className="text-xs text-zinc-400">Loading 3D model…</span>
               </div>
             </div>
           </div>
-        </model-viewer>
+        )}
+
+        {/* model-viewer — always in DOM once mvLoaded, hidden before */}
+        {mvLoaded && (
+          // @ts-ignore — model-viewer custom element registered at runtime
+          <model-viewer
+            src={glbUrl}
+            ios-src={usdzUrl ?? undefined}
+            poster={posterUrl ?? undefined}
+            alt={title}
+            ar
+            ar-modes="webxr scene-viewer quick-look"
+            ar-placement={arPlacement}
+            ar-scale="auto"
+            camera-controls
+            touch-action="pan-y"
+            auto-rotate
+            shadow-intensity="1"
+            shadow-softness="0.5"
+            environment-image="neutral"
+            exposure="1"
+            interaction-prompt="auto"
+            style={{
+              width: '100%',
+              height: '100%',
+              position: 'absolute',
+              inset: 0,
+              backgroundColor: '#09090b',
+            }}
+          >
+            {/* AR launch button — slotted into model-viewer's shadow DOM */}
+            <button
+              type="button"
+              slot="ar-button"
+              style={{
+                position: 'absolute',
+                bottom: '24px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 10,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '12px 24px',
+                borderRadius: '12px',
+                background: 'linear-gradient(to right, #4e58b8, #5e6ad2)',
+                color: '#fff',
+                fontSize: '14px',
+                fontWeight: 600,
+                border: 'none',
+                cursor: 'pointer',
+                boxShadow: '0 20px 25px -5px rgb(94 106 210 / 0.4)',
+              }}
+            >
+              <Smartphone style={{ width: 16, height: 16 }} />
+              View in your space
+            </button>
+            {/* @ts-ignore */}
+          </model-viewer>
+        )}
       </div>
 
       {/* Footer */}
-      <footer className="flex items-center justify-center gap-2 px-4 py-3 border-t border-white/10 bg-dark-950/90">
+      <footer className="flex items-center justify-center gap-2 px-4 py-3 border-t border-white/10 bg-zinc-950/90">
         <ScanLine className="w-3 h-3 text-brand-500" />
         <span className="text-[10px] text-zinc-600">
           Powered by <span className="text-brand-400 font-medium">ScanAR</span>

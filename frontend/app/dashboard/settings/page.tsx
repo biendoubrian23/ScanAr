@@ -121,10 +121,10 @@ export default function SettingsPage() {
 
       <div className="space-y-8 max-w-3xl">
         {/* Profile Section */}
-        <section className="glass rounded-2xl overflow-hidden">
-          <div className="flex items-center gap-2.5 px-6 py-4 border-b border-white/6">
+        <section className="bg-white border border-gray-200 shadow-sm rounded-2xl overflow-hidden">
+          <div className="flex items-center gap-2.5 px-6 py-4 border-b border-gray-100">
             <User className="w-4 h-4 text-brand-400" />
-            <h2 className="text-sm font-semibold text-zinc-200">Profile</h2>
+            <h2 className="text-sm font-semibold text-gray-900">Profile</h2>
           </div>
 
           <div className="p-6 space-y-4">
@@ -157,10 +157,10 @@ export default function SettingsPage() {
         </section>
 
         {/* Security Section */}
-        <section className="glass rounded-2xl overflow-hidden">
-          <div className="flex items-center gap-2.5 px-6 py-4 border-b border-white/6">
+        <section className="bg-white border border-gray-200 shadow-sm rounded-2xl overflow-hidden">
+          <div className="flex items-center gap-2.5 px-6 py-4 border-b border-gray-100">
             <Shield className="w-4 h-4 text-brand-400" />
-            <h2 className="text-sm font-semibold text-zinc-200">Security</h2>
+            <h2 className="text-sm font-semibold text-gray-900">Security</h2>
           </div>
 
           <div className="p-6 space-y-4">
@@ -198,24 +198,24 @@ export default function SettingsPage() {
         </section>
 
         {/* Plan Section */}
-        <section className="glass rounded-2xl overflow-hidden">
-          <div className="flex items-center gap-2.5 px-6 py-4 border-b border-white/6">
+        <section className="bg-white border border-gray-200 shadow-sm rounded-2xl overflow-hidden">
+          <div className="flex items-center gap-2.5 px-6 py-4 border-b border-gray-100">
             <CreditCard className="w-4 h-4 text-brand-400" />
-            <h2 className="text-sm font-semibold text-zinc-200">Plan & Billing</h2>
+            <h2 className="text-sm font-semibold text-gray-900">Plan & Billing</h2>
           </div>
 
           <div className="p-6">
             <div className="flex items-center gap-3 mb-6">
-              <p className="text-sm text-zinc-400">
+              <p className="text-sm text-gray-500">
                 Current plan:{' '}
-                <span className="text-zinc-100 font-semibold capitalize">
+                <span className="text-gray-900 font-semibold capitalize">
                   {profile?.plan ?? 'free'}
                 </span>
               </p>
-              <span className="text-xs text-zinc-600">&middot;</span>
-              <p className="text-sm text-zinc-400">
+              <span className="text-xs text-gray-400">&middot;</span>
+              <p className="text-sm text-gray-500">
                 Credits:{' '}
-                <span className="text-zinc-100 font-semibold tabular-nums">
+                <span className="text-gray-900 font-semibold tabular-nums">
                   {profile?.credits ?? 0}
                 </span>
               </p>
@@ -231,12 +231,12 @@ export default function SettingsPage() {
                       'rounded-xl p-5 border transition-colors',
                       isCurrent
                         ? 'bg-brand-600/10 border-brand-500/30'
-                        : 'bg-white/[0.02] border-white/10 hover:border-white/20',
+                        : 'bg-white border-gray-200 hover:border-gray-300',
                       plan.popular && !isCurrent && 'ring-1 ring-brand-500/20',
                     )}
                   >
                     <div className="flex items-center gap-2 mb-3">
-                      <h3 className="text-sm font-semibold text-zinc-200">{plan.name}</h3>
+                      <h3 className="text-sm font-semibold text-gray-900">{plan.name}</h3>
                       {plan.popular && (
                         <span className="px-1.5 py-0.5 text-[10px] font-medium bg-brand-600/20 text-brand-300 border border-brand-500/30 rounded-full">
                           Popular
@@ -244,20 +244,20 @@ export default function SettingsPage() {
                       )}
                     </div>
 
-                    <p className="text-2xl font-bold text-zinc-100 mb-4">
+                    <p className="text-2xl font-bold text-gray-900 mb-4">
                       {plan.price === 'Custom' ? (
                         'Custom'
                       ) : (
                         <>
                           ${plan.price}
-                          <span className="text-sm text-zinc-500 font-normal">/mo</span>
+                          <span className="text-sm text-gray-500 font-normal">/mo</span>
                         </>
                       )}
                     </p>
 
                     <ul className="space-y-2 mb-5">
                       {plan.features.map((f) => (
-                        <li key={f} className="flex items-center gap-2 text-xs text-zinc-400">
+                        <li key={f} className="flex items-center gap-2 text-xs text-gray-500">
                           <CheckCircle2 className="w-3 h-3 text-green-400 shrink-0" />
                           {f}
                         </li>

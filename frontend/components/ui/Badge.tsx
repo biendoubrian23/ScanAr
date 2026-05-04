@@ -26,21 +26,17 @@ type BadgeProps = StatusBadgeProps | VariantBadgeProps;
 // ─── Style Maps ───────────────────────────────────────────────────────────────
 
 const statusStyles: Record<ModelStatus, string> = {
-  pending:
-    'bg-yellow-500/15 text-yellow-300 border-yellow-500/30 ring-yellow-500/20',
-  processing:
-    'bg-blue-500/15 text-blue-300 border-blue-500/30 ring-blue-500/20 animate-pulse',
-  completed:
-    'bg-green-500/15 text-green-300 border-green-500/30 ring-green-500/20',
-  failed:
-    'bg-red-500/15 text-red-300 border-red-500/30 ring-red-500/20',
+  pending:    'bg-amber-50 text-amber-700 border-amber-200',
+  processing: 'bg-sky-50 text-sky-700 border-sky-200',
+  completed:  'bg-emerald-50 text-emerald-700 border-emerald-200',
+  failed:     'bg-red-50 text-red-700 border-red-200',
 };
 
 const statusDotStyles: Record<ModelStatus, string> = {
-  pending: 'bg-yellow-400',
-  processing: 'bg-blue-400 animate-pulse',
-  completed: 'bg-green-400',
-  failed: 'bg-red-400',
+  pending:    'bg-amber-500',
+  processing: 'bg-sky-500 animate-pulse',
+  completed:  'bg-emerald-500',
+  failed:     'bg-red-500',
 };
 
 const statusLabels: Record<ModelStatus, string> = {
@@ -51,11 +47,11 @@ const statusLabels: Record<ModelStatus, string> = {
 };
 
 const variantStyles: Record<BadgeVariant, string> = {
-  default: 'bg-white/10 text-zinc-300 border-white/15',
-  info: 'bg-blue-500/15 text-blue-300 border-blue-500/30',
-  success: 'bg-green-500/15 text-green-300 border-green-500/30',
-  warning: 'bg-yellow-500/15 text-yellow-300 border-yellow-500/30',
-  error: 'bg-red-500/15 text-red-300 border-red-500/30',
+  default: 'bg-gray-100 text-gray-700 border-gray-200',
+  info:    'bg-sky-50 text-sky-700 border-sky-200',
+  success: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  warning: 'bg-amber-50 text-amber-700 border-amber-200',
+  error:   'bg-red-50 text-red-700 border-red-200',
 };
 
 const baseStyles =

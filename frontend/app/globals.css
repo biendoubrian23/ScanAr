@@ -5,15 +5,13 @@
 /* ─── CSS Variables ──────────────────────────────────────────────────────────── */
 
 :root {
-  --color-brand-600: #6d3aef;
-  --color-brand-500: #7c5bfa;
-  --color-brand-400: #8b7bff;
-  --color-dark-950: #0d0d12;
-  --color-dark-900: #111118;
+  --color-brand-600: #5e6ad2;
+  --color-brand-500: #7b89e8;
+  --color-brand-400: #9ba6f0;
   --scrollbar-width: 6px;
-  --scrollbar-track: #1a1a22;
-  --scrollbar-thumb: #2e2e3a;
-  --scrollbar-thumb-hover: #3e3e50;
+  --scrollbar-track: #f1f5f9;
+  --scrollbar-thumb: #cbd5e1;
+  --scrollbar-thumb-hover: #94a3b8;
 }
 
 /* ─── Base ───────────────────────────────────────────────────────────────────── */
@@ -33,13 +31,13 @@
   }
 
   body {
-    @apply bg-dark-950 text-zinc-100;
+    @apply bg-surface text-gray-900;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   }
 
   ::selection {
-    background-color: rgba(109, 58, 239, 0.35);
-    color: #fff;
+    background-color: rgba(94, 106, 210, 0.18);
+    color: #1e1e2e;
   }
 }
 
@@ -66,7 +64,6 @@
   background: var(--scrollbar-thumb-hover);
 }
 
-/* Firefox */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
@@ -75,29 +72,14 @@
 /* ─── Component Classes ──────────────────────────────────────────────────────── */
 
 @layer components {
-  /* Glassmorphism card */
-  .glass {
-    @apply backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl;
-  }
-
-  /* Stronger glass */
-  .glass-dark {
-    @apply backdrop-blur-xl bg-dark-900/80 border rounded-2xl;
-    border-color: rgba(255, 255, 255, 0.08);
+  /* Light card — style Linear */
+  .card {
+    @apply bg-white border border-gray-200 rounded-xl shadow-sm;
   }
 
   /* Brand gradient text */
   .gradient-text {
-    @apply bg-gradient-to-r from-brand-400 to-brand-600 bg-clip-text text-transparent;
-  }
-
-  /* Hero glow */
-  .hero-glow {
-    background: radial-gradient(
-      ellipse 80% 60% at 50% -20%,
-      rgba(109, 58, 239, 0.35) 0%,
-      transparent 70%
-    );
+    @apply bg-gradient-to-r from-brand-600 to-brand-500 bg-clip-text text-transparent;
   }
 
   /* Thin scrollbar utility */
@@ -106,37 +88,9 @@
     scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   }
 
-  .scrollbar-thin::-webkit-scrollbar {
-    width: var(--scrollbar-width);
-  }
-
-  .scrollbar-thin::-webkit-scrollbar-track {
-    background: var(--scrollbar-track);
-    border-radius: 999px;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: var(--scrollbar-thumb);
-    border-radius: 999px;
-  }
-
-  /* Dashed animated connector line */
-  .connector-line {
-    background-image: repeating-linear-gradient(
-      90deg,
-      rgba(109, 58, 239, 0.4) 0,
-      rgba(109, 58, 239, 0.4) 6px,
-      transparent 6px,
-      transparent 14px
-    );
-    height: 2px;
-    animation: dash-move 2s linear infinite;
-  }
-
-  @keyframes dash-move {
-    0% { background-position: 0 0; }
-    100% { background-position: 28px 0; }
-  }
+  .scrollbar-thin::-webkit-scrollbar { width: var(--scrollbar-width); }
+  .scrollbar-thin::-webkit-scrollbar-track { background: var(--scrollbar-track); border-radius: 999px; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 999px; }
 }
 
 /* ─── model-viewer AR Page ───────────────────────────────────────────────────── */
@@ -155,7 +109,7 @@ model-viewer {
   width: 100%;
   height: 100%;
   min-height: 400px;
-  background-color: var(--color-dark-950);
+  background-color: #f8fafc;
   border-radius: 1rem;
   overflow: hidden;
 }
@@ -173,66 +127,6 @@ model-viewer {
 }
 
 @keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes glow-pulse {
-  0%, 100% { opacity: 0.5; }
-  50%       { opacity: 1; }
-}
-
-/* ─── Particle Float Animations ─────────────────────────────────────────────── */
-
-@keyframes particle-1 {
-  0%   { transform: translate(0, 0) scale(1); opacity: 0.3; }
-  33%  { transform: translate(12px, -20px) scale(1.1); opacity: 0.6; }
-  66%  { transform: translate(-8px, -35px) scale(0.9); opacity: 0.4; }
-  100% { transform: translate(4px, -60px) scale(0.8); opacity: 0; }
-}
-
-@keyframes particle-2 {
-  0%   { transform: translate(0, 0) scale(1); opacity: 0.4; }
-  50%  { transform: translate(-15px, -25px) scale(1.05); opacity: 0.7; }
-  100% { transform: translate(-5px, -55px) scale(0.85); opacity: 0; }
-}
-
-@keyframes particle-3 {
-  0%   { transform: translate(0, 0) rotate(0deg); opacity: 0.25; }
-  40%  { transform: translate(18px, -18px) rotate(90deg); opacity: 0.55; }
-  100% { transform: translate(10px, -50px) rotate(180deg); opacity: 0; }
-}
-
-.particle {
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-}
-
-.particle-1 {
-  width: 6px;
-  height: 6px;
-  background: rgba(109, 58, 239, 0.7);
-  animation: particle-1 4s ease-out infinite;
-}
-
-.particle-2 {
-  width: 4px;
-  height: 4px;
-  background: rgba(139, 123, 255, 0.6);
-  animation: particle-2 3.5s ease-out infinite 1s;
-}
-
-.particle-3 {
-  width: 8px;
-  height: 8px;
-  background: rgba(124, 91, 250, 0.5);
-  border-radius: 2px;
-  animation: particle-3 5s ease-out infinite 2s;
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
 }

@@ -1,8 +1,8 @@
 import asyncio
 import json
-import os
 import time
 import traceback
+from datetime import datetime, timezone
 
 import httpx
 import redis
@@ -18,12 +18,37 @@ load_dotenv()
 config = get_config()
 
 
-async def update_model_progress(model_id: str, progress: int, status: str = "processing"):
+async def update_step(model_id: str, step: str, progress: int, status: str = "started", message: str = None):
+    """
+    Update the model row with the current pipeline step + append to steps_log.
+    Frontend listens via Supabase Realtime and updates the floating widget live.
+    """
     supabase = get_admin_client()
-    supabase.table("models_3d").update({
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    # Read existing log so we can append (Supabase has no native array_append in update)
+    existing = supabase.table("models_3d").select("steps_log").eq("id", model_id).single().execute()
+    log = (existing.data or {}).get("steps_log") or []
+    entry = {"step": step, "status": status, "at": now_iso}
+    if message:
+        entry["message"] = message
+    log.append(entry)
+
+    update_payload = {
+        "current_step": step,
         "progress": progress,
-        "status": status,
-    }).eq("id", model_id).execute()
+        "status": "processing",
+        "steps_log": log,
+    }
+    supabase.table("models_3d").update(update_payload).eq("id", model_id).execute()
+
+
+async def update_model_status(model_id: str, status: str, progress: int = None):
+    supabase = get_admin_client()
+    payload = {"status": status}
+    if progress is not None:
+        payload["progress"] = progress
+    supabase.table("models_3d").update(payload).eq("id", model_id).execute()
 
 
 async def notify_webhook(payload: dict):
@@ -57,17 +82,30 @@ async def process_job(job_data: dict):
     logger.info(f"Processing job {model_id} for user {user_id}")
     start_time = time.time()
 
+    # Reset steps_log for this run + mark as processing
+    supabase = get_admin_client()
+    supabase.table("models_3d").update({
+        "status": "processing",
+        "progress": 5,
+        "current_step": "queued",
+        "steps_log": [{
+            "step": "queued",
+            "status": "done",
+            "at": datetime.now(timezone.utc).isoformat(),
+        }],
+        "error_message": None,
+    }).eq("id", model_id).execute()
+
     try:
-        await update_model_progress(model_id, 10, "processing")
+        async def step_cb(step, progress, status, message):
+            await update_step(model_id, step, progress, status, message)
 
         result = await process_image_to_3d(
             model_id=model_id,
             user_id=user_id,
             image_url=image_url,
             image_path=image_path,
-            progress_callback=lambda p: asyncio.ensure_future(
-                update_model_progress(model_id, p)
-            ),
+            step_callback=step_cb,
         )
 
         processing_time_ms = int((time.time() - start_time) * 1000)
@@ -88,12 +126,21 @@ async def process_job(job_data: dict):
         logger.error(f"Job {model_id} failed: {e}")
         traceback.print_exc()
 
-        await update_model_progress(model_id, 0, "failed")
+        # Capture which step failed
+        failed_step = "unknown"
+        try:
+            existing = supabase.table("models_3d").select("current_step").eq("id", model_id).single().execute()
+            failed_step = (existing.data or {}).get("current_step") or "unknown"
+        except Exception:
+            pass
+
+        await update_step(model_id, failed_step, 0, "failed", str(e)[:500])
+        await update_model_status(model_id, "failed", 0)
 
         await notify_webhook({
             "jobId": model_id,
             "status": "failed",
-            "errorMessage": str(e),
+            "errorMessage": f"[{failed_step}] {e}",
         })
 
 

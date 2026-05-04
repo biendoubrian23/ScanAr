@@ -48,7 +48,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           <label
             htmlFor={id}
             className={cn(
-              'text-sm font-medium text-zinc-300',
+              'text-sm font-medium text-gray-700',
               disabled && 'opacity-50 cursor-not-allowed',
               labelClassName,
             )}
@@ -64,7 +64,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             <div
               className={cn(
                 'absolute left-3 top-1/2 -translate-y-1/2',
-                'text-zinc-500 pointer-events-none',
+                'text-gray-400 pointer-events-none',
                 'flex items-center justify-center w-4 h-4',
               )}
               aria-hidden="true"
@@ -83,18 +83,18 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             }
             className={cn(
               // Base
-              'w-full h-10 rounded-xl text-sm',
-              'bg-white/5 text-zinc-100 placeholder:text-zinc-600',
-              'border border-white/10',
-              'transition-all duration-200',
+              'w-full h-9 rounded-lg text-sm',
+              'bg-white text-gray-900 placeholder:text-gray-400',
+              'border border-gray-200',
+              'transition-all duration-150',
               // Focus
-              'focus:outline-none focus:border-brand-500/60 focus:ring-2 focus:ring-brand-500/20',
+              'focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20',
               // Hover
-              'hover:border-white/20 hover:bg-white/[0.07]',
+              'hover:border-gray-300',
               // Disabled
-              'disabled:opacity-50 disabled:cursor-not-allowed',
+              'disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-50',
               // Error
-              hasError && 'border-red-500/50 focus:border-red-500/70 focus:ring-red-500/20',
+              hasError && 'border-red-400 focus:border-red-500 focus:ring-red-500/20',
               // Icon padding
               icon ? 'pl-9 pr-4' : 'px-4',
               inputClassName,
@@ -108,16 +108,16 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           <p
             id={errorId}
             role="alert"
-            className="flex items-center gap-1.5 text-xs text-red-400"
+            className="flex items-center gap-1.5 text-xs text-red-600"
           >
-            <span className="w-1 h-1 rounded-full bg-red-400 shrink-0" aria-hidden="true" />
+            <span className="w-1 h-1 rounded-full bg-red-500 shrink-0" aria-hidden="true" />
             {error}
           </p>
         )}
 
         {/* Helper text */}
         {!hasError && helperText && (
-          <p id={helperId} className="text-xs text-zinc-500">
+          <p id={helperId} className="text-xs text-gray-500">
             {helperText}
           </p>
         )}

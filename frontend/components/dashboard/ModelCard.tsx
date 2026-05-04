@@ -22,60 +22,45 @@ export function ModelCard({
   creatingLink,
 }: ModelCardProps) {
   const isProcessing = model.status === 'processing' || model.status === 'pending';
-  const isCompleted = model.status === 'completed';
+  const isCompleted  = model.status === 'completed';
 
   return (
-    <div
-      className={cn(
-        'glass rounded-2xl overflow-hidden',
-        'transition-shadow duration-200',
-        'hover:shadow-lg hover:shadow-black/30',
-      )}
-    >
+    <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
       {/* Image preview */}
-      <div className="relative h-44 bg-dark-900 overflow-hidden">
+      <div className="relative h-44 bg-gray-100 overflow-hidden">
         {model.image_url ? (
-          <img
-            src={model.image_url}
-            alt={model.name}
-            className="w-full h-full object-cover"
-          />
+          <img src={model.image_url} alt={model.name} className="w-full h-full object-cover" />
         ) : (
           <div className="flex items-center justify-center h-full">
-            <Box className="w-10 h-10 text-zinc-700" />
+            <Box className="w-10 h-10 text-gray-300" />
           </div>
         )}
 
-        {/* Status overlay */}
-        <div className="absolute top-3 right-3">
+        <div className="absolute top-2 right-2">
           <Badge status={model.status} />
         </div>
 
-        {/* Processing overlay */}
         {isProcessing && (
-          <div className="absolute inset-0 bg-dark-950/60 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
-            <Loader2 className="w-8 h-8 text-brand-400 animate-spin" />
-            <div className="w-3/4">
+          <div className="absolute inset-0 bg-white/85 backdrop-blur-sm flex flex-col items-center justify-center gap-2 px-4">
+            <Loader2 className="w-7 h-7 text-brand-500 animate-spin" />
+            <div className="w-full max-w-[180px]">
               <ProgressBar value={model.progress} showPercent color="brand" />
             </div>
-            <p className="text-xs text-zinc-400">
-              {model.status === 'pending' ? 'Queued...' : 'Processing...'}
+            <p className="text-xs text-gray-600">
+              {model.status === 'pending' ? 'Queued…' : 'Processing…'}
             </p>
           </div>
         )}
       </div>
 
-      {/* Info */}
-      <div className="p-4 space-y-3">
+      <div className="p-3 space-y-2">
         <div>
-          <h3 className="text-sm font-semibold text-zinc-200 truncate">
-            {model.name}
-          </h3>
-          <div className="flex items-center gap-2 mt-1 text-xs text-zinc-500">
+          <h3 className="text-sm font-semibold text-gray-900 truncate">{model.name}</h3>
+          <div className="flex items-center gap-1.5 mt-0.5 text-xs text-gray-500">
             <span>{formatDate(model.created_at)}</span>
             {model.file_size_bytes && (
               <>
-                <span className="text-zinc-700">&middot;</span>
+                <span className="text-gray-300">·</span>
                 <span>{formatBytes(model.file_size_bytes)}</span>
               </>
             )}
@@ -83,10 +68,9 @@ export function ModelCard({
         </div>
 
         {model.error_message && (
-          <p className="text-xs text-red-400 line-clamp-2">{model.error_message}</p>
+          <p className="text-xs text-red-600 line-clamp-2">{model.error_message}</p>
         )}
 
-        {/* Actions */}
         <div className="flex items-center gap-2 pt-1">
           {isCompleted && (
             <>
@@ -94,17 +78,13 @@ export function ModelCard({
                 onClick={onCreateARLink}
                 disabled={creatingLink}
                 className={cn(
-                  'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium',
-                  'bg-brand-600/20 text-brand-300 border border-brand-500/30',
-                  'hover:bg-brand-600/30 transition-colors',
+                  'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium',
+                  'bg-brand-50 text-brand-700 border border-brand-100',
+                  'hover:bg-brand-100 transition-colors',
                   'disabled:opacity-50 disabled:cursor-not-allowed',
                 )}
               >
-                {creatingLink ? (
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                ) : (
-                  <Link2 className="w-3 h-3" />
-                )}
+                {creatingLink ? <Loader2 className="w-3 h-3 animate-spin" /> : <Link2 className="w-3 h-3" />}
                 AR Link
               </button>
 
@@ -113,11 +93,7 @@ export function ModelCard({
                   href={model.glb_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={cn(
-                    'flex items-center justify-center w-8 h-8 rounded-lg',
-                    'text-zinc-500 hover:text-zinc-200',
-                    'hover:bg-white/8 transition-colors',
-                  )}
+                  className="flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
                   title="Preview 3D model"
                 >
                   <Eye className="w-3.5 h-3.5" />
@@ -130,18 +106,13 @@ export function ModelCard({
             onClick={onDelete}
             disabled={deleting}
             className={cn(
-              'flex items-center justify-center w-8 h-8 rounded-lg ml-auto',
-              'text-zinc-500 hover:text-red-400',
-              'hover:bg-red-500/10 transition-colors',
+              'flex items-center justify-center w-7 h-7 rounded-md ml-auto',
+              'text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors',
               'disabled:opacity-50 disabled:cursor-not-allowed',
             )}
             title="Delete model"
           >
-            {deleting ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            ) : (
-              <Trash2 className="w-3.5 h-3.5" />
-            )}
+            {deleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
           </button>
         </div>
       </div>

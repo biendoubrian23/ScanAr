@@ -38,21 +38,21 @@ function BarChart({ data }: { data: number[] }) {
             className="flex-1 flex flex-col items-center gap-1.5"
             title={`${days[i]}: ${count} scan${count !== 1 ? 's' : ''}`}
           >
-            <span className="text-[10px] text-zinc-600 tabular-nums">
+            <span className="text-[10px] text-gray-400 tabular-nums">
               {count > 0 ? count : ''}
             </span>
-            <div className="w-full rounded-t-md overflow-hidden bg-white/5 relative h-20">
+            <div className="w-full rounded-t-md overflow-hidden bg-gray-100 relative h-20">
               <div
                 className={cn(
                   'absolute bottom-0 left-0 right-0 rounded-t-md transition-all duration-500',
                   pct > 0
                     ? 'bg-gradient-to-t from-brand-600 to-brand-400'
-                    : 'bg-white/0',
+                    : 'bg-transparent',
                 )}
                 style={{ height: `${pct}%` }}
               />
             </div>
-            <span className="text-[10px] text-zinc-600">{days[i]}</span>
+            <span className="text-[10px] text-gray-400">{days[i]}</span>
           </div>
         );
       })}
@@ -143,25 +143,25 @@ export default function AnalyticsPage() {
         {
           label: 'iOS',
           count: summary.ios_count,
-          icon: <Smartphone className="w-4 h-4 text-blue-300" />,
+          icon: <Smartphone className="w-4 h-4 text-sky-500" />,
           color: 'blue' as const,
         },
         {
           label: 'Android',
           count: summary.android_count,
-          icon: <Smartphone className="w-4 h-4 text-green-300" />,
+          icon: <Smartphone className="w-4 h-4 text-emerald-500" />,
           color: 'green' as const,
         },
         {
           label: 'Desktop',
           count: summary.desktop_count,
-          icon: <Monitor className="w-4 h-4 text-yellow-300" />,
+          icon: <Monitor className="w-4 h-4 text-amber-500" />,
           color: 'yellow' as const,
         },
         {
           label: 'Other',
           count: summary.unknown_count,
-          icon: <Globe className="w-4 h-4 text-zinc-400" />,
+          icon: <Globe className="w-4 h-4 text-gray-400" />,
           color: 'brand' as const,
         },
       ]
@@ -185,7 +185,7 @@ export default function AnalyticsPage() {
 
         {/* Error state */}
         {error && (
-          <div className="flex items-center gap-2.5 rounded-xl px-4 py-3 bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+          <div className="flex items-center gap-2.5 rounded-xl px-4 py-3 bg-red-50 border border-red-200 text-red-700 text-sm">
             <AlertCircle className="w-4 h-4 shrink-0" />
             {error}
           </div>
@@ -194,19 +194,18 @@ export default function AnalyticsPage() {
         {/* ── Hero total scans ──────────────────────────────────────────────── */}
         <div
           className={cn(
-            'glass rounded-2xl px-6 py-7',
-            'bg-gradient-to-br from-brand-600/10 via-transparent to-transparent',
+            'bg-white border border-gray-200 shadow-sm rounded-2xl px-6 py-7',
           )}
         >
-          <p className="text-sm text-zinc-500 mb-1">Total AR scans</p>
+          <p className="text-sm text-gray-500 mb-1">Total AR scans</p>
           {loading ? (
-            <div className="h-12 w-32 bg-white/5 rounded-xl animate-pulse" />
+            <div className="h-12 w-32 bg-gray-100 rounded-xl animate-pulse" />
           ) : (
             <div className="flex items-end gap-3">
-              <p className="text-5xl font-bold text-zinc-100 tabular-nums leading-none">
+              <p className="text-5xl font-bold text-gray-900 tabular-nums leading-none">
                 {summary?.total_scans ?? 0}
               </p>
-              <div className="flex items-center gap-1 pb-1 text-green-400 text-sm">
+              <div className="flex items-center gap-1 pb-1 text-emerald-600 text-sm">
                 <TrendingUp className="w-4 h-4" />
                 <span>All time</span>
               </div>
@@ -218,17 +217,17 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
           {/* Scans last 7 days */}
-          <div className="glass rounded-2xl p-5">
+          <div className="bg-white border border-gray-200 shadow-sm rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-5">
-              <BarChart2 className="w-4 h-4 text-brand-400" />
-              <h2 className="text-sm font-semibold text-zinc-200">Scans — last 7 days</h2>
+              <BarChart2 className="w-4 h-4 text-brand-500" />
+              <h2 className="text-sm font-semibold text-gray-900">Scans — last 7 days</h2>
             </div>
             {loading ? (
               <div className="flex items-end gap-2 h-28">
                 {[...Array(7)].map((_, i) => (
                   <div
                     key={i}
-                    className="flex-1 bg-white/5 rounded-t-md animate-pulse"
+                    className="flex-1 bg-gray-100 rounded-t-md animate-pulse"
                     style={{ height: `${Math.random() * 60 + 20}%` }}
                   />
                 ))}
@@ -239,18 +238,18 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Device breakdown */}
-          <div className="glass rounded-2xl p-5">
+          <div className="bg-white border border-gray-200 shadow-sm rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-5">
-              <Smartphone className="w-4 h-4 text-brand-400" />
-              <h2 className="text-sm font-semibold text-zinc-200">Device breakdown</h2>
+              <Smartphone className="w-4 h-4 text-brand-500" />
+              <h2 className="text-sm font-semibold text-gray-900">Device breakdown</h2>
             </div>
 
             {loading ? (
               <div className="space-y-4">
                 {[...Array(4)].map((_, i) => (
                   <div key={i} className="space-y-1.5">
-                    <div className="h-3 w-20 bg-white/5 rounded animate-pulse" />
-                    <div className="h-2 bg-white/5 rounded-full animate-pulse" />
+                    <div className="h-3 w-20 bg-gray-100 rounded animate-pulse" />
+                    <div className="h-2 bg-gray-100 rounded-full animate-pulse" />
                   </div>
                 ))}
               </div>
@@ -261,13 +260,13 @@ export default function AnalyticsPage() {
                   return (
                     <div key={d.label} className="space-y-1.5">
                       <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-1.5 text-zinc-400">
+                        <div className="flex items-center gap-1.5 text-gray-500">
                           {d.icon}
                           {d.label}
                         </div>
-                        <span className="text-zinc-300 tabular-nums font-medium">
+                        <span className="text-gray-700 tabular-nums font-medium">
                           {d.count}{' '}
-                          <span className="text-zinc-600">({pct}%)</span>
+                          <span className="text-gray-400">({pct}%)</span>
                         </span>
                       </div>
                       <ProgressBar value={pct} color={d.color} />
@@ -283,23 +282,23 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
           {/* Recent scans */}
-          <div className="glass rounded-2xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-white/6">
-              <h2 className="text-sm font-semibold text-zinc-200">Recent scans</h2>
+          <div className="bg-white border border-gray-200 shadow-sm rounded-2xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100">
+              <h2 className="text-sm font-semibold text-gray-900">Recent scans</h2>
             </div>
 
             {loading ? (
               <div className="p-5 space-y-3">
                 {[...Array(4)].map((_, i) => (
-                  <div key={i} className="h-10 bg-white/5 rounded-lg animate-pulse" />
+                  <div key={i} className="h-10 bg-gray-100 rounded-lg animate-pulse" />
                 ))}
               </div>
             ) : recentScans.length === 0 ? (
-              <div className="flex items-center justify-center py-10 text-zinc-600 text-sm">
+              <div className="flex items-center justify-center py-10 text-gray-400 text-sm">
                 No scans recorded yet
               </div>
             ) : (
-              <div className="divide-y divide-white/5">
+              <div className="divide-y divide-gray-100">
                 {recentScans.map((scan) => (
                   <div key={scan.id} className="flex items-center gap-3 px-5 py-3">
                     <Badge variant={DEVICE_VARIANT[scan.device_type]}>
@@ -308,10 +307,10 @@ export default function AnalyticsPage() {
                         {scan.device_type.charAt(0).toUpperCase() + scan.device_type.slice(1)}
                       </span>
                     </Badge>
-                    <span className="text-sm text-zinc-400 flex-1 truncate min-w-0">
+                    <span className="text-sm text-gray-500 flex-1 truncate min-w-0">
                       {scan.link_title}
                     </span>
-                    <span className="text-xs text-zinc-600 shrink-0">
+                    <span className="text-xs text-gray-400 shrink-0">
                       {formatDate(scan.scanned_at)}
                     </span>
                   </div>
@@ -321,36 +320,36 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Top AR links */}
-          <div className="glass rounded-2xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-white/6">
-              <h2 className="text-sm font-semibold text-zinc-200">Top AR links</h2>
+          <div className="bg-white border border-gray-200 shadow-sm rounded-2xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100">
+              <h2 className="text-sm font-semibold text-gray-900">Top AR links</h2>
             </div>
 
             {loading ? (
               <div className="p-5 space-y-3">
                 {[...Array(4)].map((_, i) => (
-                  <div key={i} className="h-10 bg-white/5 rounded-lg animate-pulse" />
+                  <div key={i} className="h-10 bg-gray-100 rounded-lg animate-pulse" />
                 ))}
               </div>
             ) : topLinks.length === 0 ? (
-              <div className="flex items-center justify-center py-10 text-zinc-600 text-sm">
+              <div className="flex items-center justify-center py-10 text-gray-400 text-sm">
                 No AR links yet
               </div>
             ) : (
-              <div className="divide-y divide-white/5">
+              <div className="divide-y divide-gray-100">
                 {topLinks.map((link, i) => {
                   const maxScans = topLinks[0]?.scan_count || 1;
                   const pct = Math.round((link.scan_count / maxScans) * 100);
                   return (
                     <div key={link.id} className="px-5 py-3.5 space-y-1.5">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono text-zinc-600 w-4 shrink-0">
+                        <span className="text-xs font-mono text-gray-400 w-4 shrink-0">
                           #{i + 1}
                         </span>
-                        <span className="text-sm text-zinc-200 flex-1 truncate">
+                        <span className="text-sm text-gray-900 flex-1 truncate">
                           {link.title ?? link.slug}
                         </span>
-                        <span className="text-sm font-semibold text-zinc-100 tabular-nums shrink-0">
+                        <span className="text-sm font-semibold text-gray-900 tabular-nums shrink-0">
                           {link.scan_count}
                         </span>
                       </div>

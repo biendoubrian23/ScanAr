@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import { AuthProvider } from '@/lib/stores/authStore';
 
 // ─── Metadata ─────────────────────────────────────────────────────────────────
 
@@ -35,23 +36,17 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0d0d12',
+  themeColor: '#ffffff',
   width: 'device-width',
   initialScale: 1,
-  colorScheme: 'dark',
+  colorScheme: 'light',
 };
 
-// ─── Root Layout ──────────────────────────────────────────────────────────────
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
-      <body className="bg-dark-950 text-zinc-100 antialiased font-sans min-h-screen">
-        {children}
+    <html lang="en" suppressHydrationWarning>
+      <body className="bg-surface text-gray-900 antialiased font-sans min-h-screen">
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

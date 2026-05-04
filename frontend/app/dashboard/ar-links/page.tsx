@@ -21,13 +21,8 @@ import { formatDate, cn } from '@/lib/utils';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
-// ─── Toggle Switch ────────────────────────────────────────────────────────────
-
 function Toggle({
-  checked,
-  onChange,
-  disabled,
-  label,
+  checked, onChange, disabled, label,
 }: {
   checked: boolean;
   onChange: (v: boolean) => void;
@@ -43,32 +38,27 @@ function Toggle({
       onClick={() => onChange(!checked)}
       className={cn(
         'relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
-        checked ? 'bg-brand-600' : 'bg-white/15',
+        checked ? 'bg-brand-500' : 'bg-gray-200',
         disabled && 'opacity-50 cursor-not-allowed',
       )}
     >
       <span
-        className={cn(
-          'inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform duration-200',
-          checked ? 'translate-x-4.5' : 'translate-x-0.5',
-        )}
+        className="inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform duration-200"
         style={{ transform: checked ? 'translateX(18px)' : 'translateX(2px)' }}
       />
     </button>
   );
 }
 
-// ─── AR Link Card ─────────────────────────────────────────────────────────────
-
-interface ARLinkCardProps {
+function ARLinkCard({
+  link, onDelete, onToggleActive, toggling, deleting,
+}: {
   link: ARLink;
   onDelete: (id: string) => void;
   onToggleActive: (id: string, active: boolean) => void;
   toggling: boolean;
   deleting: boolean;
-}
-
-function ARLinkCard({ link, onDelete, onToggleActive, toggling, deleting }: ARLinkCardProps) {
+}) {
   const [copied, setCopied] = useState(false);
   const arUrl = `${APP_URL}/ar/${link.slug}`;
 
@@ -87,30 +77,24 @@ function ARLinkCard({ link, onDelete, onToggleActive, toggling, deleting }: ARLi
   };
 
   return (
-    <div
-      className={cn(
-        'glass rounded-2xl overflow-hidden transition-shadow duration-200',
-        'hover:shadow-lg hover:shadow-black/30',
-        !link.is_active && 'opacity-70',
-      )}
-    >
-      {/* QR code header */}
-      <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-white/6">
+    <div className={cn(
+      'bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow',
+      !link.is_active && 'opacity-70',
+    )}>
+      <div className="flex items-center justify-between px-4 pt-3 pb-2.5 border-b border-gray-100">
         <div className="flex items-center gap-3 min-w-0">
           {link.qr_url ? (
-            <div className="w-12 h-12 rounded-xl overflow-hidden bg-white p-1 shrink-0">
+            <div className="w-11 h-11 rounded-lg overflow-hidden bg-white p-0.5 border border-gray-200 shrink-0">
               <img src={link.qr_url} alt="QR code" className="w-full h-full object-contain" />
             </div>
           ) : (
-            <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
-              <QrCode className="w-6 h-6 text-zinc-600" />
+            <div className="w-11 h-11 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+              <QrCode className="w-5 h-5 text-gray-400" />
             </div>
           )}
           <div className="min-w-0">
-            <p className="text-sm font-medium text-zinc-200 truncate">
-              {link.title ?? link.slug}
-            </p>
-            <p className="text-xs text-zinc-600 font-mono truncate">/{link.slug}</p>
+            <p className="text-sm font-medium text-gray-900 truncate">{link.title ?? link.slug}</p>
+            <p className="text-xs text-gray-400 font-mono truncate">/{link.slug}</p>
           </div>
         </div>
 
@@ -122,47 +106,30 @@ function ARLinkCard({ link, onDelete, onToggleActive, toggling, deleting }: ARLi
         />
       </div>
 
-      {/* Stats row */}
-      <div className="flex items-center gap-4 px-5 py-3">
-        <div className="flex items-center gap-1.5 text-sm text-zinc-400">
+      <div className="flex items-center gap-3 px-4 py-2.5">
+        <div className="flex items-center gap-1.5 text-sm text-gray-500">
           <BarChart2 className="w-3.5 h-3.5" />
-          <span className="tabular-nums font-medium text-zinc-200">
-            {link.scan_count}
-          </span>
-          <span className="text-xs text-zinc-600">scans</span>
+          <span className="tabular-nums font-medium text-gray-900">{link.scan_count}</span>
+          <span className="text-xs text-gray-400">scans</span>
         </div>
 
         <Badge variant={link.is_active ? 'success' : 'default'}>
           {link.is_active ? 'Active' : 'Inactive'}
         </Badge>
 
-        <span className="ml-auto text-xs text-zinc-600">
-          {formatDate(link.created_at)}
-        </span>
+        <span className="ml-auto text-xs text-gray-400">{formatDate(link.created_at)}</span>
       </div>
 
-      {/* Action buttons */}
-      <div className="flex items-center gap-2 px-5 pb-4">
+      <div className="flex items-center gap-2 px-4 pb-3">
         <Button
           variant="secondary"
           size="sm"
           onClick={handleCopy}
-          className={cn(
-            'flex-1',
-            copied && 'border-green-500/30 text-green-400',
-          )}
+          className={cn('flex-1', copied && 'border-emerald-300 text-emerald-700')}
         >
-          {copied ? (
-            <>
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              Copied!
-            </>
-          ) : (
-            <>
-              <Copy className="w-3.5 h-3.5" />
-              Copy link
-            </>
-          )}
+          {copied
+            ? <><CheckCircle2 className="w-3.5 h-3.5" />Copied!</>
+            : <><Copy className="w-3.5 h-3.5" />Copy link</>}
         </Button>
 
         {link.qr_url && (
@@ -176,12 +143,7 @@ function ARLinkCard({ link, onDelete, onToggleActive, toggling, deleting }: ARLi
           target="_blank"
           rel="noopener noreferrer"
           title="Open AR viewer"
-          className={cn(
-            'inline-flex items-center justify-center',
-            'h-8 w-8 rounded-lg',
-            'text-zinc-500 hover:text-zinc-200',
-            'hover:bg-white/8 transition-colors duration-150',
-          )}
+          className="inline-flex items-center justify-center h-8 w-8 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
         >
           <ExternalLink className="w-3.5 h-3.5" />
         </a>
@@ -191,7 +153,7 @@ function ARLinkCard({ link, onDelete, onToggleActive, toggling, deleting }: ARLi
           size="sm"
           onClick={() => onDelete(link.id)}
           loading={deleting}
-          className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+          className="text-red-600 hover:text-red-700 hover:bg-red-50"
           title="Delete AR link"
         >
           <Trash2 className="w-3.5 h-3.5" />
@@ -201,18 +163,15 @@ function ARLinkCard({ link, onDelete, onToggleActive, toggling, deleting }: ARLi
   );
 }
 
-// ─── AR Links Page ────────────────────────────────────────────────────────────
-
 export default function ARLinksPage() {
-  const [links, setLinks]       = useState<ARLink[]>([]);
-  const [loading, setLoading]   = useState(true);
-  const [error, setError]       = useState<string | null>(null);
+  const [links, setLinks]     = useState<ARLink[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState<string | null>(null);
 
   const [deletingId, setDeletingId]       = useState<string | null>(null);
   const [togglingId, setTogglingId]       = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<ARLink | null>(null);
-
-  const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [toast, setToast]                 = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const showToast = (type: 'success' | 'error', text: string) => {
     setToast({ type, text });
@@ -256,10 +215,7 @@ export default function ARLinksPage() {
 
   const handleToggleActive = async (id: string, active: boolean) => {
     setTogglingId(id);
-    // Optimistic update
-    setLinks((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, is_active: active } : l)),
-    );
+    setLinks((prev) => prev.map((l) => (l.id === id ? { ...l, is_active: active } : l)));
     try {
       const res = await fetch(`/api/ar-links/${id}`, {
         method: 'PATCH',
@@ -267,10 +223,7 @@ export default function ARLinksPage() {
         body: JSON.stringify({ is_active: active }),
       });
       if (!res.ok) {
-        // Revert on failure
-        setLinks((prev) =>
-          prev.map((l) => (l.id === id ? { ...l, is_active: !active } : l)),
-        );
+        setLinks((prev) => prev.map((l) => (l.id === id ? { ...l, is_active: !active } : l)));
         showToast('error', 'Failed to update link status');
       }
     } finally {
@@ -283,86 +236,78 @@ export default function ARLinksPage() {
 
   return (
     <DashboardShell title="AR Links & QR Codes">
-      {/* Toast */}
       {toast && (
         <div
           role="status"
           aria-live="polite"
           className={cn(
-            'fixed bottom-6 right-6 z-50 flex items-center gap-2.5 rounded-xl px-4 py-3 text-sm shadow-2xl shadow-black/40 backdrop-blur-xl border',
+            'fixed top-20 right-6 z-50 flex items-center gap-2.5 rounded-xl px-4 py-3 text-sm shadow-lg border',
             toast.type === 'success'
-              ? 'bg-green-500/15 border-green-500/30 text-green-300'
-              : 'bg-red-500/15 border-red-500/30 text-red-300',
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+              : 'bg-red-50 border-red-200 text-red-700',
           )}
         >
-          {toast.type === 'error' && <AlertCircle className="w-4 h-4 shrink-0" />}
+          {toast.type === 'error'
+            ? <AlertCircle className="w-4 h-4 shrink-0" />
+            : <CheckCircle2 className="w-4 h-4 shrink-0" />}
           {toast.text}
         </div>
       )}
 
-      <div className="space-y-6 max-w-5xl">
-        {/* ── Quick stats ──────────────────────────────────────────────────── */}
+      <div className="space-y-5 max-w-5xl">
         {!loading && links.length > 0 && (
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-3">
             {[
-              { label: 'Total links', value: links.length, icon: <Link2 className="w-4 h-4 text-brand-300" />, color: 'bg-brand-600/15' },
-              { label: 'Active links', value: activeCount, icon: <CheckCircle2 className="w-4 h-4 text-green-300" />, color: 'bg-green-500/15' },
-              { label: 'Total scans', value: totalScans, icon: <BarChart2 className="w-4 h-4 text-blue-300" />, color: 'bg-blue-500/15' },
-            ].map((stat) => (
-              <div key={stat.label} className="glass rounded-xl p-4 flex items-center gap-3">
-                <div className={cn('flex items-center justify-center w-9 h-9 rounded-lg shrink-0', stat.color)}>
-                  {stat.icon}
+              { label: 'Total links',  value: links.length, icon: <Link2         className="w-4 h-4 text-brand-500" />,    bg: 'bg-brand-50' },
+              { label: 'Active links', value: activeCount,  icon: <CheckCircle2  className="w-4 h-4 text-emerald-500" />, bg: 'bg-emerald-50' },
+              { label: 'Total scans',  value: totalScans,   icon: <BarChart2     className="w-4 h-4 text-sky-500" />,     bg: 'bg-sky-50' },
+            ].map((s) => (
+              <div key={s.label} className="bg-white border border-gray-200 rounded-xl shadow-sm p-3 flex items-center gap-3">
+                <div className={cn('flex items-center justify-center w-9 h-9 rounded-lg shrink-0', s.bg)}>
+                  {s.icon}
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-zinc-100 tabular-nums leading-none">
-                    {stat.value}
-                  </p>
-                  <p className="text-xs text-zinc-500 mt-0.5">{stat.label}</p>
+                  <p className="text-lg font-semibold text-gray-900 tabular-nums leading-none">{s.value}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
                 </div>
               </div>
             ))}
           </div>
         )}
 
-        {/* ── Loading skeleton ──────────────────────────────────────────────── */}
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="glass rounded-2xl animate-pulse">
-                <div className="h-16 border-b border-white/5" />
-                <div className="p-5 space-y-3">
-                  <div className="h-3 w-1/2 bg-white/5 rounded-lg" />
-                  <div className="h-8 bg-white/5 rounded-lg" />
+              <div key={i} className="bg-white border border-gray-200 rounded-xl shadow-sm animate-pulse">
+                <div className="h-16 border-b border-gray-100" />
+                <div className="p-4 space-y-2">
+                  <div className="h-3 w-1/2 bg-gray-100 rounded" />
+                  <div className="h-7 bg-gray-100 rounded" />
                 </div>
               </div>
             ))}
           </div>
         ) : error ? (
-          <div className="flex items-center gap-2.5 rounded-xl px-4 py-3 bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+          <div className="flex items-center gap-2.5 rounded-xl px-4 py-3 bg-red-50 border border-red-200 text-red-700 text-sm">
             <AlertCircle className="w-4 h-4 shrink-0" />
             {error}
-            <Button variant="ghost" size="sm" onClick={fetchLinks} className="ml-auto text-red-400">
+            <Button variant="ghost" size="sm" onClick={fetchLinks} className="ml-auto text-red-700">
               Retry
             </Button>
           </div>
         ) : links.length === 0 ? (
-          /* ── Empty state ──────────────────────────────────────────────────── */
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="flex items-center justify-center w-20 h-20 rounded-3xl mb-6 bg-gradient-to-br from-brand-600/20 to-brand-500/10 border border-brand-500/20">
-              <QrCode className="w-9 h-9 text-brand-400" />
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="flex items-center justify-center w-16 h-16 rounded-2xl mb-4 bg-brand-50 border border-brand-100">
+              <QrCode className="w-7 h-7 text-brand-500" />
             </div>
-            <h3 className="text-lg font-semibold text-zinc-200 mb-2">No AR links yet</h3>
-            <p className="text-sm text-zinc-500 max-w-xs mb-8">
+            <h3 className="text-base font-semibold text-gray-900 mb-1">No AR links yet</h3>
+            <p className="text-sm text-gray-500 max-w-xs">
               Create your first AR link from a completed 3D model on the{' '}
-              <a href="/dashboard/models" className="text-brand-400 hover:text-brand-300">
-                Models page
-              </a>
-              .
+              <a href="/dashboard/models" className="text-brand-600 hover:text-brand-700">Models page</a>.
             </p>
           </div>
         ) : (
-          /* ── Links grid ───────────────────────────────────────────────────── */
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {links.map((link) => (
               <ARLinkCard
                 key={link.id}
@@ -377,7 +322,6 @@ export default function ARLinksPage() {
         )}
       </div>
 
-      {/* ── Confirm delete modal ─────────────────────────────────────────────── */}
       <Modal
         isOpen={Boolean(confirmDelete)}
         onClose={() => setConfirmDelete(null)}
@@ -385,19 +329,15 @@ export default function ARLinksPage() {
         size="sm"
       >
         <div className="space-y-4">
-          <p className="text-sm text-zinc-400">
+          <p className="text-sm text-gray-600">
             Are you sure you want to delete{' '}
-            <span className="text-zinc-200 font-medium">
+            <span className="text-gray-900 font-medium">
               &quot;{confirmDelete?.title ?? confirmDelete?.slug}&quot;
-            </span>
-            ? This action cannot be undone and the QR code will stop working.
+            </span>?
+            This action cannot be undone and the QR code will stop working.
           </p>
-          <div className="flex gap-3">
-            <Button
-              variant="secondary"
-              onClick={() => setConfirmDelete(null)}
-              className="flex-1"
-            >
+          <div className="flex gap-2">
+            <Button variant="secondary" onClick={() => setConfirmDelete(null)} className="flex-1">
               Cancel
             </Button>
             <Button

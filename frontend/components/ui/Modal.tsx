@@ -96,7 +96,7 @@ export function Modal({
             animate="visible"
             exit="exit"
             transition={{ duration: 0.2 }}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-gray-900/30 backdrop-blur-sm"
             onClick={onClose}
             aria-hidden="true"
           />
@@ -111,18 +111,18 @@ export function Modal({
             className={cn(
               'relative w-full',
               sizeStyles[size],
-              'bg-dark-900/90 backdrop-blur-xl',
-              'border border-white/10',
-              'rounded-2xl shadow-2xl shadow-black/50',
+              'bg-white',
+              'border border-gray-200',
+              'rounded-xl shadow-xl',
               className,
             )}
           >
             {/* Header */}
             {title && (
-              <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-white/8">
+              <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-gray-100">
                 <h2
                   id="modal-title"
-                  className="text-lg font-semibold text-zinc-100 leading-snug"
+                  className="text-base font-semibold text-gray-900 leading-snug"
                 >
                   {title}
                 </h2>
@@ -130,9 +130,9 @@ export function Modal({
                   onClick={onClose}
                   aria-label="Close modal"
                   className={cn(
-                    'flex items-center justify-center w-8 h-8 rounded-lg',
-                    'text-zinc-500 hover:text-zinc-200',
-                    'hover:bg-white/8',
+                    'flex items-center justify-center w-7 h-7 rounded-md',
+                    'text-gray-400 hover:text-gray-700',
+                    'hover:bg-gray-100',
                     'transition-colors duration-150',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
                   )}
@@ -148,10 +148,10 @@ export function Modal({
                 onClick={onClose}
                 aria-label="Close modal"
                 className={cn(
-                  'absolute top-4 right-4',
-                  'flex items-center justify-center w-8 h-8 rounded-lg',
-                  'text-zinc-500 hover:text-zinc-200',
-                  'hover:bg-white/8',
+                  'absolute top-3 right-3',
+                  'flex items-center justify-center w-7 h-7 rounded-md',
+                  'text-gray-400 hover:text-gray-700',
+                  'hover:bg-gray-100',
                   'transition-colors duration-150',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
                 )}
@@ -161,7 +161,7 @@ export function Modal({
             )}
 
             {/* Body */}
-            <div className="px-6 py-5">{children}</div>
+            <div className="px-5 py-4">{children}</div>
           </motion.div>
         </div>
       )}
