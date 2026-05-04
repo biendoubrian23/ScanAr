@@ -1,0 +1,16 @@
+# HTTP client
+httpx>=0.24,<0.26
+python-dotenv>=1.0
+
+# Queue
+redis>=5.0
+
+# Supabase storage/DB
+supabase>=2.3,<3
+
+# Image handling
+Pillow>=10.0
+numpy>=1.26,<2
+
+# Mesh processing (USDZ fallback, Draco)
+trimesh[easy]>=4.0

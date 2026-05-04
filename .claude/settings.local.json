@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker compose *)",
+      "Bash(nvidia-smi)",
+      "Bash(docker exec *)",
+      "Bash(docker stop *)",
+      "Bash(docker run *)",
+      "Bash(docker cp *)",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec scanar-hunyuan3d-1 cat /app/Hunyuan3D-2/hy3dgen/texgen/pipelines.py)",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec scanar-hunyuan3d-1 bash -c \"grep -n 'from_pretrained\\\\|trust_remote' /app/Hunyuan3D-2/hy3dgen/texgen/utils/multiview_utils.py\")",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec scanar-hunyuan3d-1 bash -c \"sed -n '25,55p' /app/Hunyuan3D-2/hy3dgen/texgen/utils/multiview_utils.py\")",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec scanar-hunyuan3d-1 bash -c \"sed -i 's/custom_pipeline=custom_pipeline_path, torch_dtype=torch.float16/custom_pipeline=custom_pipeline_path, torch_dtype=torch.float16, trust_remote_code=True/' /app/Hunyuan3D-2/hy3dgen/texgen/utils/multiview_utils.py && grep 'trust_remote_code' /app/Hunyuan3D-2/hy3dgen/texgen/utils/multiview_utils.py\")",
+      "Bash(docker restart *)",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec scanar-hunyuan3d-1 bash -c \"grep -n '@app\\\\.' /app/Hunyuan3D-2/api_server.py\")",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec scanar-hunyuan3d-1 bash -c \"sed -i 's/@app.post\\(\\\\\"\\\\/generate\\\\\"\\)/@app.get\\(\\\\\"\\\\/health\\\\\"\\)\\\\ndef health_check\\(\\):\\\\n    return {\\\\\"status\\\\\": \\\\\"ok\\\\\"}\\\\n\\\\n@app.post\\(\\\\\"\\\\/generate\\\\\"\\)/' /app/Hunyuan3D-2/api_server.py && grep -A2 'health' /app/Hunyuan3D-2/api_server.py | head -10\")",
+      "Bash(MSYS_NO_PATHCONV=1 docker exec scanar-hunyuan3d-1 bash -c \"grep -n 'health' /app/Hunyuan3D-2/api_server.py\")"
+    ]
+  }
+}

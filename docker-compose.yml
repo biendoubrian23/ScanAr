@@ -1,0 +1,117 @@
+services:
+  # ── Redis ──────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # ── Hunyuan3D API Server (GPU) ────────────────────────────────────────
+  hunyuan3d:
+    build:
+      context: .
+      dockerfile: docker/hunyuan3d.Dockerfile
+    restart: unless-stopped
+    environment:
+      - HF_HOME=/root/.cache/huggingface
+      - NVIDIA_VISIBLE_DEVICES=all
+      - REQUESTS_CA_BUNDLE=
+      - CURL_CA_BUNDLE=
+      - HF_HUB_DISABLE_TELEMETRY=1
+      - GIT_SSL_NO_VERIFY=true
+      - HF_HUB_DISABLE_XET=1
+      - PYTHONHTTPSVERIFY=0
+    volumes:
+      - hf_cache:/root/.cache/huggingface
+    deploy:
+      resources:
+        limits:
+          cpus: "8"
+          memory: 24G
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+          cpus: "4"
+          memory: 16G
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 30s
+      timeout: 15s
+      start_period: 180s
+      retries: 3
+
+  # ── Frontend (Next.js) ────────────────────────────────────────────────
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3050:3000"
+    env_file:
+      - .env
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=production
+    depends_on:
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "4"
+          memory: 4G
+
+  # ── Worker AI (lightweight Python, no GPU) ────────────────────────────
+  worker-ai:
+    build:
+      context: .
+      dockerfile: docker/worker-ai.Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - NEXT_PUBLIC_APP_URL=http://frontend:3000
+      - HUNYUAN3D_API_URL=http://hunyuan3d:8080
+      - HUNYUAN3D_ENABLED=true
+      - ENABLE_DRACO=true
+    depends_on:
+      redis:
+        condition: service_healthy
+      hunyuan3d:
+        condition: service_healthy
+      frontend:
+        condition: service_started
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2G
+
+  # ── Cloudflare Tunnel (optional) ──────────────────────────────────────
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      frontend:
+        condition: service_started
+    profiles:
+      - tunnel
+
+volumes:
+  redis_data:
+  hf_cache:
