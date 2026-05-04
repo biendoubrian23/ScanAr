@@ -170,7 +170,7 @@ export default function ModelsPage() {
         </div>
       )}
 
-      <div className="space-y-4 max-w-7xl">
+      <div className="space-y-4">
 
         {/* Search + filter */}
         <div className="flex items-center gap-3">

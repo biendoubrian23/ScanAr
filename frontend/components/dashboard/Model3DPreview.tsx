@@ -1,7 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Box, Loader2, Maximize2, Image as ImageIcon } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import {
+  Image as ImageIcon,
+  Loader2,
+  RotateCw,
+  MousePointer2,
+  Box,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Model3DPreviewProps {
@@ -13,12 +19,15 @@ interface Model3DPreviewProps {
 }
 
 /**
- * Two-state preview:
- *  - Default: shows the source image, with a "Voir en 3D" CTA overlay.
- *  - Active: lazy-loads model-viewer and renders the GLB with orbit controls.
+ * 3D-first model preview.
  *
- * Falls back to the image if no GLB is available, or if model-viewer fails to
- * load.
+ *  - Defaults to the model-viewer GLB rendering with orbit controls.
+ *  - A toggle pill (top-right) flips between 3D and the source image.
+ *  - The viewer sits on a soft studio backdrop (gradient floor) instead of a
+ *    flat black panel, with a contact shadow that adds depth.
+ *  - A small compass / axis gizmo in the bottom-left tracks the current
+ *    camera orientation so the user always knows which way is which.
+ *  - Image mode uses `object-contain` so the photo never overflows or crops.
  */
 export function Model3DPreview({
   glbUrl,
@@ -27,112 +36,216 @@ export function Model3DPreview({
   alt,
   className,
 }: Model3DPreviewProps) {
-  const [active, setActive] = useState(false);
-  const [mvLoaded, setMvLoaded] = useState(false);
+  const has3D = Boolean(glbUrl);
+  const viewerRef = useRef<HTMLElement | null>(null);
 
+  const [showImage, setShowImage]     = useState(!has3D);
+  const [mvLoaded, setMvLoaded]       = useState(false);
+  const [hintVisible, setHintVisible] = useState(true);
+  const [yaw, setYaw]                 = useState(0);     // degrees, 0 = facing camera
+
+  // Lazy-load model-viewer once, only if a GLB is available
   useEffect(() => {
-    if (!active || mvLoaded) return;
+    if (!has3D || mvLoaded) return;
     import('@google/model-viewer').then(() => setMvLoaded(true));
-  }, [active, mvLoaded]);
+  }, [has3D, mvLoaded]);
+
+  // Auto-hide the rotation hint after a few seconds
+  useEffect(() => {
+    if (!hintVisible || showImage) return;
+    const t = setTimeout(() => setHintVisible(false), 4500);
+    return () => clearTimeout(t);
+  }, [hintVisible, showImage]);
+
+  // Track camera yaw from model-viewer so the compass updates live.
+  useEffect(() => {
+    if (!mvLoaded || showImage) return;
+    const el = viewerRef.current as (HTMLElement & { getCameraOrbit?: () => { theta: number } }) | null;
+    if (!el) return;
+
+    let raf = 0;
+    const update = () => {
+      try {
+        const orbit = el.getCameraOrbit?.();
+        if (orbit) setYaw(((orbit.theta * 180) / Math.PI) % 360);
+      } catch { /* model-viewer not ready */ }
+      raf = requestAnimationFrame(update);
+    };
+    raf = requestAnimationFrame(update);
+    return () => cancelAnimationFrame(raf);
+  }, [mvLoaded, showImage]);
 
   return (
     <div
       className={cn(
-        'relative w-full aspect-square lg:aspect-[4/3] rounded-2xl overflow-hidden bg-zinc-950 border border-gray-200',
+        // Soft studio backdrop — a vertical gradient that fakes a horizon line
+        // gives depth without pulling focus away from the model.
+        'relative w-full mx-auto aspect-[4/3] lg:aspect-[16/10] max-h-[440px]',
+        'rounded-2xl overflow-hidden border border-gray-200',
+        'bg-gradient-to-b from-slate-50 via-slate-100 to-slate-200',
         className,
       )}
     >
-      {/* Background image (always there as poster / loading state) */}
+      {/* Subtle floor highlight — adds the "object on a table" feel */}
+      <div
+        className="absolute inset-x-0 bottom-0 h-1/3 pointer-events-none"
+        style={{
+          background:
+            'radial-gradient(ellipse at center bottom, rgba(15,23,42,0.18) 0%, rgba(15,23,42,0) 65%)',
+        }}
+        aria-hidden="true"
+      />
+
+      {/* Background poster — visible in image mode and as a 3D loading state */}
       {imageUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={imageUrl}
           alt={alt}
           className={cn(
-            'absolute inset-0 w-full h-full object-cover transition-opacity duration-300',
-            active && mvLoaded ? 'opacity-0' : 'opacity-100',
+            'absolute inset-0 w-full h-full object-contain p-4 transition-opacity duration-300',
+            !showImage && mvLoaded ? 'opacity-0' : 'opacity-100',
           )}
         />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center">
-          <ImageIcon className="w-10 h-10 text-zinc-700" />
+          <ImageIcon className="w-10 h-10 text-slate-400" />
         </div>
       )}
 
-      {/* 3D viewer */}
-      {active && mvLoaded && glbUrl && (
-        // @ts-ignore — model-viewer custom element loaded at runtime
+      {/* model-viewer — mounted as soon as the script loads */}
+      {has3D && mvLoaded && !showImage && (
+        // @ts-ignore — model-viewer is a custom element registered at runtime
         <model-viewer
-          src={glbUrl}
+          ref={viewerRef}
+          src={glbUrl ?? undefined}
           ios-src={usdzUrl ?? undefined}
           alt={alt}
           camera-controls
           auto-rotate
           touch-action="pan-y"
-          shadow-intensity="1"
-          shadow-softness="0.5"
+          shadow-intensity="1.2"
+          shadow-softness="0.7"
           environment-image="neutral"
-          exposure="1"
-          interaction-prompt="auto"
+          exposure="1.05"
+          interaction-prompt="none"
+          onPointerDown={() => setHintVisible(false)}
+          onTouchStart={() => setHintVisible(false)}
           style={{
             width: '100%',
             height: '100%',
             position: 'absolute',
             inset: 0,
-            backgroundColor: '#09090b',
+            backgroundColor: 'transparent',
+            overflow: 'hidden',
           }}
         />
       )}
 
       {/* Loading overlay while model-viewer script loads */}
-      {active && !mvLoaded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 border border-white/10 text-white text-xs">
+      {has3D && !mvLoaded && !showImage && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white/40 backdrop-blur-sm">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-700 text-xs shadow-sm">
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
             Chargement du modèle 3D…
           </div>
         </div>
       )}
 
-      {/* Toggle CTA */}
-      {!active && glbUrl && (
+      {/* Top-right toggle (3D ⇄ Image) — visible only when 3D is available */}
+      {has3D && (
+        <div className="absolute top-3 right-3 z-10 flex items-center gap-1 rounded-lg bg-white/90 border border-gray-200 backdrop-blur p-0.5 shadow-sm">
+          <button
+            type="button"
+            onClick={() => setShowImage(false)}
+            className={cn(
+              'inline-flex items-center gap-1.5 px-2.5 h-7 rounded-md text-xs font-medium transition-colors',
+              !showImage ? 'bg-brand-600 text-white' : 'text-gray-600 hover:text-gray-900',
+            )}
+          >
+            <Box className="w-3.5 h-3.5" />
+            3D
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowImage(true)}
+            className={cn(
+              'inline-flex items-center gap-1.5 px-2.5 h-7 rounded-md text-xs font-medium transition-colors',
+              showImage ? 'bg-brand-600 text-white' : 'text-gray-600 hover:text-gray-900',
+            )}
+          >
+            <ImageIcon className="w-3.5 h-3.5" />
+            Image
+          </button>
+        </div>
+      )}
+
+      {/* 3D axis compass (bottom-left) — vertical pill that mirrors the
+          orientation gizmos found in 3D editors (Blender / Three.js). */}
+      {has3D && !showImage && mvLoaded && (
+        <div className="absolute bottom-3 left-3 z-10 flex flex-col items-center gap-1.5 px-2 py-2.5 rounded-xl bg-white/90 border border-gray-200 backdrop-blur shadow-sm">
+          <AxisGizmo yaw={yaw} />
+          <div className="flex flex-col items-center text-[9px] uppercase tracking-wider font-semibold leading-tight">
+            <span className="text-red-500">X</span>
+            <span className="text-emerald-500">Y</span>
+            <span className="text-sky-500">Z</span>
+          </div>
+        </div>
+      )}
+
+      {/* Rotation hint — soft pulsing badge that auto-dismisses */}
+      {has3D && !showImage && mvLoaded && hintVisible && (
         <button
           type="button"
-          onClick={() => setActive(true)}
+          onClick={() => setHintVisible(false)}
           className={cn(
-            'absolute bottom-4 left-1/2 -translate-x-1/2 z-10',
-            'inline-flex items-center gap-2 px-4 py-2.5 rounded-xl',
-            'bg-white/95 hover:bg-white text-gray-900 text-sm font-medium',
-            'shadow-lg backdrop-blur transition-all',
+            'absolute bottom-3 left-1/2 -translate-x-1/2 z-10',
+            'inline-flex items-center gap-2 pl-3 pr-3.5 py-2 rounded-full',
+            'bg-white hover:bg-gray-50 text-gray-800 text-xs font-medium',
+            'shadow-md border border-gray-200 transition-all',
+            'animate-[fade-in-up_300ms_ease-out]',
           )}
         >
-          <Box className="w-4 h-4" />
-          Voir en 3D
+          <span className="relative flex items-center justify-center">
+            <RotateCw className="w-4 h-4 text-brand-600 animate-spin-slow" />
+            <MousePointer2 className="absolute w-2.5 h-2.5 text-gray-700" style={{ transform: 'translate(7px, 7px)' }} />
+          </span>
+          Glissez pour faire pivoter
         </button>
       )}
 
-      {/* Fullscreen button when active */}
-      {active && glbUrl && (
-        <button
-          type="button"
-          onClick={() => setActive(false)}
-          aria-label="Revenir à la photo"
-          className={cn(
-            'absolute top-3 right-3 z-10',
-            'inline-flex items-center justify-center w-8 h-8 rounded-lg',
-            'bg-black/60 hover:bg-black/80 text-white backdrop-blur transition-colors',
-          )}
-        >
-          <Maximize2 className="w-4 h-4" />
-        </button>
-      )}
-
-      {!glbUrl && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-lg bg-black/60 text-white text-xs backdrop-blur">
+      {/* No GLB available */}
+      {!has3D && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-lg bg-white/90 border border-gray-200 text-gray-600 text-xs shadow-sm">
           Modèle 3D pas encore disponible
         </div>
       )}
     </div>
+  );
+}
+
+// ─── Axis compass ──────────────────────────────────────────────────────────
+
+function AxisGizmo({ yaw }: { yaw: number }) {
+  // Yaw is the camera's horizontal angle (radians → deg). We rotate the gizmo
+  // counter-clockwise so the world-X axis stays anchored visually as the user
+  // orbits the model.
+  return (
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 40 40"
+      style={{ transform: `rotate(${-yaw}deg)`, transition: 'transform 80ms linear' }}
+      aria-hidden="true"
+    >
+      <line x1="20" y1="20" x2="36" y2="20" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" />
+      <text x="36" y="18" fontSize="8" fill="#ef4444" fontWeight="700">X</text>
+      <line x1="20" y1="20" x2="20" y2="4"  stroke="#22c55e" strokeWidth="2" strokeLinecap="round" />
+      <text x="22" y="8"  fontSize="8" fill="#22c55e" fontWeight="700">Y</text>
+      <line x1="20" y1="20" x2="9"  y2="31" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" />
+      <text x="2"  y="38" fontSize="8" fill="#3b82f6" fontWeight="700">Z</text>
+      <circle cx="20" cy="20" r="2" fill="#475569" />
+    </svg>
   );
 }
 

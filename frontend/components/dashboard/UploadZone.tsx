@@ -32,9 +32,9 @@ export function UploadZone({ onFileAccepted, disabled, className }: UploadZonePr
   const rejection = fileRejections[0]?.errors[0];
   let errorMsg: string | null = null;
   if (rejection) {
-    if (rejection.code === 'file-too-large')      errorMsg = 'File exceeds 10 MB limit';
-    else if (rejection.code === 'file-invalid-type') errorMsg = 'Only JPG, PNG and WebP are accepted';
-    else                                            errorMsg = rejection.message;
+    if (rejection.code === 'file-too-large')         errorMsg = 'Le fichier dépasse la limite de 10 Mo';
+    else if (rejection.code === 'file-invalid-type') errorMsg = 'Seuls les formats JPG, PNG et WebP sont acceptés';
+    else                                              errorMsg = rejection.message;
   }
 
   return (
@@ -67,14 +67,14 @@ export function UploadZone({ onFileAccepted, disabled, className }: UploadZonePr
 
         <div className="text-center">
           {isDragActive ? (
-            <p className="text-sm font-medium text-brand-600">Drop your image here</p>
+            <p className="text-sm font-medium text-brand-600">Déposez votre image ici</p>
           ) : (
             <>
               <p className="text-sm text-gray-700">
-                <span className="font-medium text-brand-600">Click to upload</span> or drag and drop
+                <span className="font-medium text-brand-600">Cliquez pour choisir</span> ou glissez-déposez
               </p>
               <p className="text-xs text-gray-400 mt-0.5">
-                JPG, PNG or WebP · Max 10 MB
+                JPG, PNG ou WebP · 10 Mo max
               </p>
             </>
           )}

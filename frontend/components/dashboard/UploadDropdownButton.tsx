@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ChevronDown, ImagePlus, Video, Layers } from 'lucide-react';
+import { ChevronDown, ImagePlus, Video, Layers, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface UploadDropdownButtonProps {
@@ -39,7 +39,8 @@ export function UploadDropdownButton({ onSelectImage, className }: UploadDropdow
           'border border-brand-600',
         )}
       >
-        Importer
+        <Plus className="w-4 h-4 sm:hidden" />
+        <span className="hidden sm:inline">Nouveau modèle</span>
       </button>
       <button
         type="button"
@@ -65,6 +66,7 @@ export function UploadDropdownButton({ onSelectImage, className }: UploadDropdow
           )}
         >
           <button
+            type="button"
             role="menuitem"
             onClick={() => {
               setOpen(false);

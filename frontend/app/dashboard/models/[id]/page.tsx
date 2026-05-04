@@ -168,13 +168,19 @@ export default function ModelDetailPage() {
             href={`/dashboard/models/${model.id}/edit`}
           >
             <Pencil className="w-4 h-4" />
-            Éditer
+            <span className="hidden sm:inline">Éditer</span>
           </Button>
           <Button variant="primary" size="md" onClick={handleShare}>
             {shared ? (
-              <><CheckCircle2 className="w-4 h-4" />Lien copié !</>
+              <>
+                <CheckCircle2 className="w-4 h-4" />
+                <span className="hidden sm:inline">Lien copié !</span>
+              </>
             ) : (
-              <><Share2 className="w-4 h-4" />Partager</>
+              <>
+                <Share2 className="w-4 h-4" />
+                <span className="hidden sm:inline">Partager</span>
+              </>
             )}
           </Button>
           <ActionsMenu
@@ -228,7 +234,7 @@ export default function ModelDetailPage() {
         <span className="text-gray-900 truncate">{model.name}</span>
       </nav>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 max-w-7xl">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* Preview — 2 cols */}
         <div className="lg:col-span-2">
           <Model3DPreview

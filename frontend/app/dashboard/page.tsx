@@ -46,15 +46,15 @@ interface KpiCardProps {
 
 function KpiCard({ label, value, delta, loading, rightSlot, footer }: KpiCardProps) {
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-5 flex flex-col gap-1 min-h-[110px]">
+    <div className="bg-white border border-gray-200 rounded-2xl p-6 flex flex-col gap-2 min-h-[130px]">
       <div className="flex items-start justify-between gap-2">
         <p className="text-sm text-gray-500">{label}</p>
         {rightSlot}
       </div>
       {loading ? (
-        <div className="h-8 w-20 bg-gray-100 rounded animate-pulse mt-1" />
+        <div className="h-10 w-24 bg-gray-100 rounded animate-pulse mt-1" />
       ) : (
-        <p className="text-3xl font-semibold text-gray-900 tabular-nums leading-tight">
+        <p className="text-4xl font-semibold text-gray-900 tabular-nums leading-tight">
           {value}
         </p>
       )}
@@ -192,7 +192,7 @@ export default function DashboardPage() {
       subtitle="Voici ce qui se passe avec vos modèles 3D."
       action={<UploadDropdownButton onSelectImage={() => setUploadOpen(true)} />}
     >
-      <div className="space-y-5 max-w-7xl">
+      <div className="space-y-5">
 
         {/* ── KPI cards ──────────────────────────────────────────────────── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

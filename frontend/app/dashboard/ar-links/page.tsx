@@ -3,7 +3,6 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Link2,
   QrCode,
   Download,
   Trash2,
@@ -12,8 +11,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Eye,
-  ChevronDown,
   Plus,
+  Copy,
   Image as ImageIcon,
 } from 'lucide-react';
 import { DashboardShell } from '@/components/layout/DashboardShell';
@@ -106,11 +105,21 @@ export default function ARLinksPage() {
       title="Liens AR"
       subtitle="Générez et gérez les QR codes pour vos expériences AR."
       action={
-        <Button onClick={() => setGenerateOpen(true)} disabled={eligibleModels.length === 0}>
+        <button
+          type="button"
+          onClick={() => setGenerateOpen(true)}
+          disabled={eligibleModels.length === 0}
+          className={cn(
+            'inline-flex items-center gap-2 h-10 px-4 rounded-xl',
+            'bg-brand-600 text-white text-sm font-medium shadow-sm',
+            'hover:bg-brand-700 active:bg-brand-800 transition-colors',
+            'border border-brand-600',
+            eligibleModels.length === 0 && 'opacity-50 cursor-not-allowed pointer-events-none',
+          )}
+        >
           <Plus className="w-4 h-4" />
-          Générer un lien AR
-          <ChevronDown className="w-4 h-4 -mr-1 opacity-70" />
-        </Button>
+          <span className="hidden sm:inline">Générer un lien AR</span>
+        </button>
       }
     >
       {toast && (
@@ -131,7 +140,7 @@ export default function ARLinksPage() {
         </div>
       )}
 
-      <div className="max-w-7xl">
+      <div>
         <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
           {loading ? (
             <div className="p-5 space-y-2">
@@ -156,14 +165,24 @@ export default function ARLinksPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-base table-fixed">
+                {/* Equal-width columns so the inter-column gaps stay identical
+                    regardless of cell content. The Modèle column gets a bit
+                    more room because of the thumbnail. */}
+                <colgroup>
+                  <col className="w-[34%]" />
+                  <col className="w-[18%]" />
+                  <col className="w-[14%]" />
+                  <col className="w-[20%]" />
+                  <col className="w-[14%]" />
+                </colgroup>
                 <thead>
-                  <tr className="text-xs text-gray-500 border-b border-gray-100">
-                    <th className="text-left font-normal px-5 py-3">Modèle</th>
-                    <th className="text-left font-normal px-3 py-3">QR Code</th>
-                    <th className="text-left font-normal px-3 py-3">Scans</th>
-                    <th className="text-left font-normal px-3 py-3 hidden md:table-cell">Créé</th>
-                    <th className="text-right font-normal px-5 py-3">Actions</th>
+                  <tr className="text-sm text-gray-500 border-b border-gray-100">
+                    <th className="text-left font-normal px-5 py-4">Modèle</th>
+                    <th className="text-left font-normal px-5 py-4">QR Code</th>
+                    <th className="text-left font-normal px-5 py-4">Scans</th>
+                    <th className="text-left font-normal px-5 py-4 hidden md:table-cell">Créé</th>
+                    <th className="text-right font-normal px-5 py-4">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -171,9 +190,9 @@ export default function ARLinksPage() {
                     const model = modelById(link.model_id);
                     return (
                       <tr key={link.id} className="border-b border-gray-50 last:border-b-0 hover:bg-gray-50/70 transition-colors">
-                        <td className="px-5 py-3">
+                        <td className="px-5 py-4">
                           <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 shrink-0 flex items-center justify-center">
+                            <div className="w-11 h-11 rounded-lg overflow-hidden bg-gray-100 shrink-0 flex items-center justify-center">
                               {model?.image_url ? (
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img src={model.image_url} alt="" className="w-full h-full object-cover" />
@@ -182,14 +201,14 @@ export default function ARLinksPage() {
                               )}
                             </div>
                             <div className="min-w-0">
-                              <p className="text-sm font-medium text-gray-900 truncate">
+                              <p className="text-base font-medium text-gray-900 truncate">
                                 {link.title ?? model?.name ?? link.slug}
                               </p>
                               <p className="text-xs text-gray-400 font-mono truncate">/{link.slug}</p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-3 py-3">
+                        <td className="px-5 py-4">
                           <button
                             type="button"
                             onClick={() => setQrModal(link)}
@@ -206,29 +225,38 @@ export default function ARLinksPage() {
                             )}
                           </button>
                         </td>
-                        <td className="px-3 py-3">
-                          <div className="flex items-center gap-1.5 text-sm text-gray-700">
-                            <BarChart2 className="w-3.5 h-3.5 text-gray-400" />
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-1.5 text-base text-gray-700">
+                            <BarChart2 className="w-4 h-4 text-gray-400" />
                             <span className="font-medium tabular-nums">{link.scan_count}</span>
                           </div>
                         </td>
-                        <td className="px-3 py-3 text-gray-500 hidden md:table-cell">
+                        <td className="px-5 py-4 text-base text-gray-600 hidden md:table-cell">
                           {formatDate(link.created_at)}
                         </td>
-                        <td className="px-5 py-3">
-                          <div className="flex items-center justify-end gap-1">
-                            <button
-                              type="button"
-                              onClick={() => handleDownloadQr(link)}
-                              disabled={!link.qr_url}
-                              title="Télécharger le QR"
-                              className="inline-flex items-center justify-center w-8 h-8 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                            >
-                              <Download className="w-4 h-4" />
-                            </button>
+                        <td className="px-5 py-4">
+                          <div className="flex items-center justify-end">
                             <ActionsMenu
                               ariaLabel={`Actions pour ${link.title ?? link.slug}`}
                               items={[
+                                {
+                                  label: 'Copier le lien',
+                                  icon: <Copy className="w-4 h-4" />,
+                                  onClick: async () => {
+                                    try {
+                                      await navigator.clipboard.writeText(`${APP_URL}/ar/${link.slug}`);
+                                      showToast('success', 'Lien copié dans le presse-papier.');
+                                    } catch {
+                                      showToast('error', 'Impossible de copier le lien.');
+                                    }
+                                  },
+                                },
+                                {
+                                  label: 'Télécharger le QR',
+                                  icon: <Download className="w-4 h-4" />,
+                                  onClick: () => handleDownloadQr(link),
+                                  disabled: !link.qr_url,
+                                },
                                 {
                                   label: 'Voir le modèle',
                                   icon: <Eye className="w-4 h-4" />,

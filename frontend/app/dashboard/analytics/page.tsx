@@ -186,14 +186,14 @@ function Kpi({ label, value, icon, accent }: {
   accent?: string;
 }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-5">
+    <div className="bg-white border border-gray-200 rounded-2xl p-6 min-h-[130px] flex flex-col">
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm text-gray-500">{label}</p>
-        <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center', accent ?? 'bg-brand-50 text-brand-600')}>
+        <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center', accent ?? 'bg-brand-50 text-brand-600')}>
           {icon}
         </div>
       </div>
-      <p className="text-3xl font-semibold text-gray-900 tabular-nums leading-tight mt-2">{value}</p>
+      <p className="text-4xl font-semibold text-gray-900 tabular-nums leading-tight mt-3">{value}</p>
     </div>
   );
 }
@@ -268,7 +268,7 @@ export default function AnalyticsPage() {
       subtitle="Suivez la performance de vos expériences AR."
       action={<DateRangePicker range={range} onChange={setRange} />}
     >
-      <div className="space-y-5 max-w-7xl">
+      <div className="space-y-5">
 
         {error && (
           <div className="flex items-center gap-2.5 rounded-xl px-4 py-3 bg-red-50 border border-red-200 text-red-700 text-sm">
@@ -303,104 +303,114 @@ export default function AnalyticsPage() {
           />
         </div>
 
-        {/* Vues dans le temps */}
-        <section className="bg-white border border-gray-200 rounded-2xl p-5">
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <h2 className="text-sm font-semibold text-gray-900">Vues dans le temps</h2>
-              <p className="text-xs text-gray-500 mt-0.5">{PRESET_LABELS[range.preset]} · {summary?.range_days ?? '—'} jours</p>
+        {/* Two-col layout: chart on the left, stacked widgets on the right */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+
+          {/* LEFT — Vues dans le temps (large) */}
+          <section className="lg:col-span-7 bg-white border border-gray-200 rounded-2xl p-5 flex flex-col">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h2 className="text-sm font-semibold text-gray-900">Vues dans le temps</h2>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {PRESET_LABELS[range.preset]} · {summary?.range_days ?? '—'} jours
+                </p>
+              </div>
             </div>
+            <div className="flex-1 flex flex-col justify-end">
+              {loading ? (
+                <div className="flex items-end gap-1 h-64">
+                  {[...Array(12)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="flex-1 bg-gray-100 rounded-t-md animate-pulse"
+                      style={{ height: `${Math.random() * 60 + 20}%` }}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="h-64">
+                  <BarChart data={summary?.daily_buckets ?? []} />
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* RIGHT — Top produits stacked above Répartition par appareil */}
+          <div className="lg:col-span-5 flex flex-col gap-5">
+
+            <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-gray-100">
+                <h2 className="text-sm font-semibold text-gray-900">Top produits les plus consultés</h2>
+              </div>
+              {topProducts.length === 0 ? (
+                <div className="flex items-center justify-center py-10 text-sm text-gray-400">
+                  Aucun scan enregistré pour le moment
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-100">
+                  {topProducts.map((p, i) => {
+                    const max = topProducts[0]?.scans || 1;
+                    const pct = Math.round((p.scans / max) * 100);
+                    return (
+                      <div key={p.id} className="px-5 py-3 flex items-center gap-3">
+                        <span className="text-xs font-mono text-gray-400 w-4 shrink-0">#{i + 1}</span>
+                        {p.image ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={p.image} alt="" className="w-8 h-8 rounded-lg object-cover bg-gray-100 shrink-0" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-lg bg-gray-100 shrink-0" />
+                        )}
+                        <div className="flex-1 min-w-0 space-y-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-sm text-gray-900 truncate">{p.name}</p>
+                            <span className="text-sm font-semibold text-gray-900 tabular-nums">{p.scans}</span>
+                          </div>
+                          <ProgressBar value={pct} color="brand" />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+
+            <section className="bg-white border border-gray-200 rounded-2xl p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <Smartphone className="w-4 h-4 text-brand-600" />
+                <h2 className="text-sm font-semibold text-gray-900">Répartition par appareil</h2>
+              </div>
+              {loading ? (
+                <div className="space-y-3">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="space-y-1.5">
+                      <div className="h-3 w-20 bg-gray-100 rounded animate-pulse" />
+                      <div className="h-2 bg-gray-100 rounded-full animate-pulse" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {devices.map((d) => {
+                    const pct = deviceTotal > 0 ? Math.round((d.count / deviceTotal) * 100) : 0;
+                    return (
+                      <div key={d.label} className="space-y-1.5">
+                        <div className="flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-1.5 text-gray-500">
+                            {d.icon}
+                            {d.label}
+                          </div>
+                          <span className="text-gray-700 tabular-nums font-medium">
+                            {d.count} <span className="text-gray-400">({pct}%)</span>
+                          </span>
+                        </div>
+                        <ProgressBar value={pct} color={d.color} />
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
           </div>
-          {loading ? (
-            <div className="flex items-end gap-1 h-40">
-              {[...Array(12)].map((_, i) => (
-                <div
-                  key={i}
-                  className="flex-1 bg-gray-100 rounded-t-md animate-pulse"
-                  style={{ height: `${Math.random() * 60 + 20}%` }}
-                />
-              ))}
-            </div>
-          ) : (
-            <BarChart data={summary?.daily_buckets ?? []} />
-          )}
-        </section>
-
-        {/* Two-col: Top produits + Répartition par appareil */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-
-          <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100">
-              <h2 className="text-sm font-semibold text-gray-900">Top produits les plus consultés</h2>
-            </div>
-            {topProducts.length === 0 ? (
-              <div className="flex items-center justify-center py-12 text-sm text-gray-400">
-                Aucun scan enregistré pour le moment
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-100">
-                {topProducts.map((p, i) => {
-                  const max = topProducts[0]?.scans || 1;
-                  const pct = Math.round((p.scans / max) * 100);
-                  return (
-                    <div key={p.id} className="px-5 py-3.5 flex items-center gap-3">
-                      <span className="text-xs font-mono text-gray-400 w-4 shrink-0">#{i + 1}</span>
-                      {p.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={p.image} alt="" className="w-8 h-8 rounded-lg object-cover bg-gray-100 shrink-0" />
-                      ) : (
-                        <div className="w-8 h-8 rounded-lg bg-gray-100 shrink-0" />
-                      )}
-                      <div className="flex-1 min-w-0 space-y-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-sm text-gray-900 truncate">{p.name}</p>
-                          <span className="text-sm font-semibold text-gray-900 tabular-nums">{p.scans}</span>
-                        </div>
-                        <ProgressBar value={pct} color="brand" />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </section>
-
-          <section className="bg-white border border-gray-200 rounded-2xl p-5">
-            <div className="flex items-center gap-2 mb-5">
-              <Smartphone className="w-4 h-4 text-brand-600" />
-              <h2 className="text-sm font-semibold text-gray-900">Répartition par appareil</h2>
-            </div>
-            {loading ? (
-              <div className="space-y-4">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="space-y-1.5">
-                    <div className="h-3 w-20 bg-gray-100 rounded animate-pulse" />
-                    <div className="h-2 bg-gray-100 rounded-full animate-pulse" />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {devices.map((d) => {
-                  const pct = deviceTotal > 0 ? Math.round((d.count / deviceTotal) * 100) : 0;
-                  return (
-                    <div key={d.label} className="space-y-1.5">
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-1.5 text-gray-500">
-                          {d.icon}
-                          {d.label}
-                        </div>
-                        <span className="text-gray-700 tabular-nums font-medium">
-                          {d.count} <span className="text-gray-400">({pct}%)</span>
-                        </span>
-                      </div>
-                      <ProgressBar value={pct} color={d.color} />
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </section>
         </div>
       </div>
     </DashboardShell>

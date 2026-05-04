@@ -5,13 +5,15 @@
 /* ─── CSS Variables ──────────────────────────────────────────────────────────── */
 
 :root {
-  --color-brand-600: #5e6ad2;
-  --color-brand-500: #7b89e8;
-  --color-brand-400: #9ba6f0;
-  --scrollbar-width: 6px;
-  --scrollbar-track: #f1f5f9;
-  --scrollbar-thumb: #cbd5e1;
-  --scrollbar-thumb-hover: #94a3b8;
+  --color-brand-600: #2563eb;
+  --color-brand-500: #3b82f6;
+  --color-brand-400: #60a5fa;
+  /* Scrollbar — transparent track + slim thumb so the reserved gutter from
+     `scrollbar-gutter: stable` doesn't read as an empty white band. */
+  --scrollbar-width: 8px;
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: rgba(148, 163, 184, 0.45);
+  --scrollbar-thumb-hover: rgba(100, 116, 139, 0.65);
 }
 
 /* ─── Base ───────────────────────────────────────────────────────────────────── */
@@ -33,6 +35,14 @@
   body {
     @apply bg-surface text-gray-900;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  /* Reserve scrollbar space so the scroll thumb doesn't push content sideways
+     when it appears. `stable` keeps the layout width identical regardless of
+     scroll state, eliminating the empty band on the right of scrollable
+     panels.  Falls back gracefully on older browsers. */
+  html, body {
+    scrollbar-gutter: stable;
   }
 
   ::selection {
