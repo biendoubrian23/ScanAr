@@ -80,7 +80,7 @@ export function Model3DPreview({
       className={cn(
         // Soft studio backdrop — a vertical gradient that fakes a horizon line
         // gives depth without pulling focus away from the model.
-        'relative w-full mx-auto aspect-[4/3] lg:aspect-[16/10] max-h-[440px]',
+        'relative w-full mx-auto aspect-[3/4] max-h-[580px]',
         'rounded-2xl overflow-hidden border border-gray-200',
         'bg-gradient-to-b from-slate-50 via-slate-100 to-slate-200',
         className,

@@ -142,38 +142,150 @@ function DateRangePicker({
   );
 }
 
-// ─── Bar chart ─────────────────────────────────────────────────────────────
+// ─── Time-series chart (SVG, with axes) ────────────────────────────────────
 
-function BarChart({ data }: { data: { date: string; count: number }[] }) {
-  const max = Math.max(...data.map((d) => d.count), 1);
-  // Show at most ~15 labels to avoid crowding
-  const labelStep = Math.ceil(data.length / 12);
+/** Round a max value up to a "nice" number so y-axis ticks read cleanly. */
+function niceMax(raw: number): number {
+  if (raw <= 1) return 1;
+  const pow = Math.pow(10, Math.floor(Math.log10(raw)));
+  const n = raw / pow;
+  const nice = n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10;
+  return nice * pow;
+}
+
+function TimeSeriesChart({ data }: { data: { date: string; count: number }[] }) {
+  if (data.length === 0) {
+    return (
+      <div className="h-full flex items-center justify-center text-sm text-gray-400">
+        Aucune donnée pour cette période
+      </div>
+    );
+  }
+
+  // ── Scales ─────────────────────────────────────────────────────────────
+  const rawMax  = Math.max(...data.map((d) => d.count));
+  const yMax    = niceMax(rawMax || 1);
+  const tickN   = Math.min(yMax, 4);
+  const yTicks  = Array.from({ length: tickN + 1 }, (_, i) => Math.round((i * yMax) / tickN));
+
+  // SVG viewBox — fixed coordinate system, scales responsively via CSS.
+  const W = 720, H = 260;
+  const PAD = { top: 16, right: 16, bottom: 32, left: 36 };
+  const innerW = W - PAD.left - PAD.right;
+  const innerH = H - PAD.top - PAD.bottom;
+
+  const xAt = (i: number): number =>
+    data.length === 1
+      ? PAD.left + innerW / 2
+      : PAD.left + (i / (data.length - 1)) * innerW;
+  const yAt = (v: number): number =>
+    PAD.top + innerH - (v / yMax) * innerH;
+
+  const points  = data.map((d, i) => `${xAt(i)},${yAt(d.count)}`);
+  const baselineY = yAt(0);
+
+  // X-axis labels: aim for ~6–8 visible labels max.
+  const xLabelStep = Math.max(1, Math.ceil(data.length / 7));
+  const fmtDay = (d: string) =>
+    new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 
   return (
-    <div className="flex items-end gap-1 h-40 w-full">
-      {data.map((b, i) => {
-        const pct = Math.round((b.count / max) * 100);
-        const showLabel = i % labelStep === 0 || i === data.length - 1;
-        const dayLabel = new Date(b.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-        return (
-          <div
-            key={b.date}
-            className="flex-1 flex flex-col items-center gap-1 min-w-0"
-            title={`${dayLabel} : ${b.count} scan${b.count !== 1 ? 's' : ''}`}
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      preserveAspectRatio="none"
+      className="w-full h-full overflow-visible"
+      role="img"
+      aria-label="Vues dans le temps"
+    >
+      <defs>
+        <linearGradient id="chart-area-gradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#3b82f6" stopOpacity="0.25" />
+          <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+
+      {/* ── Grid + Y-axis labels ─────────────────────────────────────── */}
+      {yTicks.map((t) => (
+        <g key={t}>
+          <line
+            x1={PAD.left}
+            x2={W - PAD.right}
+            y1={yAt(t)}
+            y2={yAt(t)}
+            stroke="#f1f5f9"
+            strokeWidth="1"
+          />
+          <text
+            x={PAD.left - 8}
+            y={yAt(t)}
+            textAnchor="end"
+            dominantBaseline="middle"
+            fontSize="11"
+            fill="#94a3b8"
           >
-            <div className="w-full bg-gray-50 relative flex-1 rounded-t-md overflow-hidden">
-              <div
-                className="absolute bottom-0 left-0 right-0 rounded-t-md bg-brand-500 transition-all duration-500"
-                style={{ height: `${pct}%` }}
-              />
-            </div>
-            <span className="text-[9px] text-gray-400 truncate w-full text-center leading-none h-3">
-              {showLabel ? dayLabel : ''}
-            </span>
-          </div>
+            {t}
+          </text>
+        </g>
+      ))}
+
+      {/* ── X-axis baseline (slightly stronger than grid) ─────────────── */}
+      <line
+        x1={PAD.left}
+        x2={W - PAD.right}
+        y1={baselineY}
+        y2={baselineY}
+        stroke="#cbd5e1"
+        strokeWidth="1"
+      />
+
+      {/* ── Area fill (only meaningful when data.length >= 2) ────────── */}
+      {data.length > 1 && (
+        <path
+          d={`M ${xAt(0)},${baselineY} L ${points.join(' L ')} L ${xAt(data.length - 1)},${baselineY} Z`}
+          fill="url(#chart-area-gradient)"
+        />
+      )}
+
+      {/* ── Line ─────────────────────────────────────────────────────── */}
+      {data.length > 1 && (
+        <path
+          d={`M ${points.join(' L ')}`}
+          fill="none"
+          stroke="#3b82f6"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      )}
+
+      {/* ── Data points (always visible, with white halo for contrast) ─ */}
+      {data.map((d, i) => (
+        <g key={d.date}>
+          <title>{`${fmtDay(d.date)} : ${d.count} scan${d.count !== 1 ? 's' : ''}`}</title>
+          <circle cx={xAt(i)} cy={yAt(d.count)} r="4" fill="#fff" stroke="#3b82f6" strokeWidth="2" />
+        </g>
+      ))}
+
+      {/* ── X-axis labels ────────────────────────────────────────────── */}
+      {data.map((d, i) => {
+        const isLast  = i === data.length - 1;
+        const isFirst = i === 0;
+        const onStep  = i % xLabelStep === 0;
+        if (!onStep && !isLast && !isFirst) return null;
+        return (
+          <text
+            key={`xl-${d.date}`}
+            x={xAt(i)}
+            y={H - PAD.bottom + 16}
+            textAnchor="middle"
+            fontSize="10"
+            fill="#94a3b8"
+          >
+            {fmtDay(d.date)}
+          </text>
         );
       })}
-    </div>
+    </svg>
   );
 }
 
@@ -316,21 +428,11 @@ export default function AnalyticsPage() {
                 </p>
               </div>
             </div>
-            <div className="flex-1 flex flex-col justify-end">
+            <div className="flex-1 min-h-[260px]">
               {loading ? (
-                <div className="flex items-end gap-1 h-64">
-                  {[...Array(12)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="flex-1 bg-gray-100 rounded-t-md animate-pulse"
-                      style={{ height: `${Math.random() * 60 + 20}%` }}
-                    />
-                  ))}
-                </div>
+                <div className="h-full bg-gray-50 rounded-lg animate-pulse" />
               ) : (
-                <div className="h-64">
-                  <BarChart data={summary?.daily_buckets ?? []} />
-                </div>
+                <TimeSeriesChart data={summary?.daily_buckets ?? []} />
               )}
             </div>
           </section>

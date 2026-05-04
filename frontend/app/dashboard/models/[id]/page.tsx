@@ -234,9 +234,9 @@ export default function ModelDetailPage() {
         <span className="text-gray-900 truncate">{model.name}</span>
       </nav>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Preview — 2 cols */}
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* Preview — portrait viewer */}
+        <div>
           <Model3DPreview
             glbUrl={model.glb_url}
             usdzUrl={model.usdz_url}

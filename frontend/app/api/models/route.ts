@@ -65,7 +65,7 @@ export async function POST(
     );
   }
 
-  let body: { imageUrl?: string; imagePath?: string; name?: string };
+  let body: { imagePath?: string; name?: string };
   try {
     body = await req.json();
   } catch {
@@ -75,14 +75,30 @@ export async function POST(
     );
   }
 
-  const { imageUrl, imagePath, name } = body;
+  const { imagePath, name } = body;
 
-  if (!imageUrl || !imagePath || !name) {
+  if (!imagePath || !name) {
     return NextResponse.json(
-      { data: null, error: 'imageUrl, imagePath and name are required', success: false },
+      { data: null, error: 'imagePath and name are required', success: false },
       { status: 400 },
     );
   }
+
+  // Generate a long-lived signed URL so the worker (which has no auth) can
+  // download the image from the private 'images' bucket, and the UI can show
+  // the thumbnail for up to one year.
+  const { data: signedData, error: signedError } = await supabaseAdmin.storage
+    .from('images')
+    .createSignedUrl(imagePath, 365 * 24 * 60 * 60); // 1 year
+
+  if (signedError || !signedData?.signedUrl) {
+    return NextResponse.json(
+      { data: null, error: `Failed to sign image URL: ${signedError?.message ?? 'unknown'}`, success: false },
+      { status: 500 },
+    );
+  }
+
+  const imageUrl = signedData.signedUrl;
 
   // ── Create the models_3d record ──────────────────────────────────────────
   const { data: model, error: insertError } = await supabaseAdmin

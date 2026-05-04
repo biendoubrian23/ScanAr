@@ -29,10 +29,10 @@ export function FloatingProgressWidget() {
     useUploadStore();
   const [collapsed, setCollapsed] = useState(false);
 
-  // Auto-dismiss on success after 8s
+  // Auto-dismiss on success after 15 s — long enough to read all steps.
   useEffect(() => {
     if (phase !== 'completed') return;
-    const t = setTimeout(() => dismiss(), 8000);
+    const t = setTimeout(() => dismiss(), 15_000);
     return () => clearTimeout(t);
   }, [phase, dismiss]);
 
@@ -46,17 +46,17 @@ export function FloatingProgressWidget() {
 
   // Friendly title
   const title = (() => {
-    if (uploadError && !activeModel) return 'Upload failed';
-    if (phase === 'uploading')  return 'Uploading…';
-    if (phase === 'processing') return 'Generating 3D…';
-    if (phase === 'completed')  return 'Model ready';
-    if (phase === 'failed')     return 'Generation failed';
-    return 'Working…';
+    if (uploadError && !activeModel) return "Échec de l'envoi";
+    if (phase === 'uploading')  return 'Envoi en cours…';
+    if (phase === 'processing') return 'Génération 3D…';
+    if (phase === 'completed')  return 'Modèle prêt !';
+    if (phase === 'failed')     return 'Génération échouée';
+    return 'Traitement…';
   })();
 
   const subtitle = (() => {
     if (uploadError && !activeModel) return uploadError;
-    if (!activeModel && isUploading) return 'Sending image to storage';
+    if (!activeModel && isUploading) return "Envoi de l'image vers le stockage";
     if (!activeModel) return '';
 
     if (phase === 'failed') {
@@ -111,15 +111,17 @@ export function FloatingProgressWidget() {
         </div>
 
         <button
+          type="button"
           onClick={() => setCollapsed((c) => !c)}
-          aria-label={collapsed ? 'Expand' : 'Collapse'}
+          aria-label={collapsed ? 'Déplier' : 'Réduire'}
           className="p-1 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
         >
           {collapsed ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
         <button
+          type="button"
           onClick={dismiss}
-          aria-label="Close"
+          aria-label="Fermer"
           className="p-1 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
         >
           <X className="w-4 h-4" />
@@ -145,11 +147,11 @@ export function FloatingProgressWidget() {
           {/* Action buttons */}
           {phase === 'completed' && activeModel && (
             <Link
-              href={`/dashboard/models`}
+              href={`/dashboard/models/${activeModel.id}`}
               className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg bg-brand-500 text-white text-sm font-medium hover:bg-brand-600 transition-colors"
               onClick={dismiss}
             >
-              View model
+              Voir le modèle
               <ExternalLink className="w-3.5 h-3.5" />
             </Link>
           )}
