@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { ModelsStoreProvider } from '@/lib/stores/modelsStore';
+import { ArLinksStoreProvider } from '@/lib/stores/arLinksStore';
 import { UploadStoreProvider } from '@/lib/stores/uploadStore';
 import { FloatingProgressWidget } from '@/components/pipeline/FloatingProgressWidget';
 
@@ -14,10 +15,12 @@ import { FloatingProgressWidget } from '@/components/pipeline/FloatingProgressWi
 export function DashboardProviders({ children }: { children: React.ReactNode }) {
   return (
     <ModelsStoreProvider>
-      <UploadStoreProvider>
-        {children}
-        <FloatingProgressWidget />
-      </UploadStoreProvider>
+      <ArLinksStoreProvider>
+        <UploadStoreProvider>
+          {children}
+          <FloatingProgressWidget />
+        </UploadStoreProvider>
+      </ArLinksStoreProvider>
     </ModelsStoreProvider>
   );
 }

@@ -1,3 +1,4 @@
+import io
 import os
 import subprocess
 import tempfile
@@ -27,6 +28,50 @@ async def download_image(image_url: str) -> bytes:
         resp = await client.get(image_url)
         resp.raise_for_status()
         return resp.content
+
+
+def _extract_glb_metadata(glb_bytes: bytes) -> dict:
+    """
+    Extract polygons / materials / bounding box (mm) from a GLB binary.
+
+    Returns {} if trimesh fails to parse — the pipeline must remain resilient.
+    Sizes are converted from glTF units (assumed metres) to millimetres.
+    """
+    try:
+        import trimesh
+
+        scene = trimesh.load(io.BytesIO(glb_bytes), file_type="glb")
+
+        polygons = 0
+        materials = set()
+        if hasattr(scene, "geometry") and scene.geometry:
+            for geom in scene.geometry.values():
+                if hasattr(geom, "faces"):
+                    polygons += len(geom.faces)
+                if hasattr(geom, "visual") and getattr(geom.visual, "material", None) is not None:
+                    materials.add(id(geom.visual.material))
+        elif hasattr(scene, "faces"):
+            polygons = len(scene.faces)
+
+        try:
+            bounds = scene.bounds  # 2x3 array
+            extents = bounds[1] - bounds[0]
+            dims_mm = {
+                "x": round(float(extents[0]) * 1000, 1),
+                "y": round(float(extents[1]) * 1000, 1),
+                "z": round(float(extents[2]) * 1000, 1),
+            }
+        except Exception:
+            dims_mm = None
+
+        return {
+            "polygons": int(polygons) if polygons else None,
+            "materials_count": len(materials) if materials else None,
+            "dimensions_mm": dims_mm,
+        }
+    except Exception as e:
+        logger.warning(f"GLB metadata extraction failed: {e}")
+        return {}
 
 
 async def process_image_to_3d(
@@ -103,11 +148,17 @@ async def process_image_to_3d(
 
     await emit(STEP_UPLOAD, 100, "done")
 
+    meta = _extract_glb_metadata(glb_bytes)
+
     return {
         "glb_url": glb_url,
         "glb_path": glb_path,
         "usdz_url": usdz_url,
         "usdz_path": usdz_path,
+        "file_size_bytes": len(glb_bytes),
+        "polygons": meta.get("polygons"),
+        "materials_count": meta.get("materials_count"),
+        "dimensions_mm": meta.get("dimensions_mm"),
     }
 
 

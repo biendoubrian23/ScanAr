@@ -31,6 +31,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     usdzPath,
     errorMessage,
     processingTimeMs,
+    fileSizeBytes,
+    polygons,
+    materialsCount,
+    dimensionsMm,
   } = payload;
 
   if (!jobId || !status) {
@@ -58,6 +62,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           usdz_path: usdzPath ?? null,
           progress: 100,
           processing_time_ms: processingTimeMs ?? null,
+          file_size_bytes: fileSizeBytes ?? null,
+          polygons: polygons ?? null,
+          materials_count: materialsCount ?? null,
+          dimensions_mm: dimensionsMm ?? null,
           updated_at: new Date().toISOString(),
         })
         .eq('id', jobId)

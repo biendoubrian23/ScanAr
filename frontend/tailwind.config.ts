@@ -9,22 +9,22 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Brand — Linear-inspired indigo/violet
+        // Brand — bleu vif type screenshot dashboard (proche Tailwind blue-600)
         brand: {
-          50:  '#eef0fb',
-          100: '#dde1f7',
-          200: '#bbc3ef',
-          300: '#99a5e7',
-          400: '#7b89e8',
-          500: '#5e6ad2',
-          600: '#4e58b8',
-          700: '#3e469e',
-          800: '#2e3484',
-          900: '#1e226a',
-          950: '#0f1150',
+          50:  '#eff6ff',
+          100: '#dbeafe',
+          200: '#bfdbfe',
+          300: '#93c5fd',
+          400: '#60a5fa',
+          500: '#3b82f6',
+          600: '#2563eb',
+          700: '#1d4ed8',
+          800: '#1e40af',
+          900: '#1e3a8a',
+          950: '#172554',
         },
-        // UI surfaces — très proches de Linear
-        surface: '#f7f8fa',
+        // UI surfaces — fond pages très clair, presque blanc
+        surface: '#fafafa',
         sidebar: '#ffffff',
       },
       fontFamily: {

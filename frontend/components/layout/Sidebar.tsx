@@ -24,11 +24,11 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard',  href: '/dashboard',            icon: LayoutDashboard },
-  { label: 'Models',     href: '/dashboard/models',     icon: Box },
-  { label: 'AR Links',   href: '/dashboard/ar-links',   icon: Link2 },
-  { label: 'Analytics',  href: '/dashboard/analytics',  icon: BarChart2 },
-  { label: 'Settings',   href: '/dashboard/settings',   icon: Settings },
+  { label: 'Tableau de bord', href: '/dashboard',           icon: LayoutDashboard },
+  { label: 'Modèles',         href: '/dashboard/models',    icon: Box },
+  { label: 'Liens AR',        href: '/dashboard/ar-links',  icon: Link2 },
+  { label: 'Analytique',      href: '/dashboard/analytics', icon: BarChart2 },
+  { label: 'Paramètres',      href: '/dashboard/settings',  icon: Settings },
 ];
 
 function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {

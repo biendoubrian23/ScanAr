@@ -118,6 +118,10 @@ async def process_job(job_data: dict):
             "usdzUrl": result.get("usdz_url"),
             "usdzPath": result.get("usdz_path"),
             "processingTimeMs": processing_time_ms,
+            "fileSizeBytes": result.get("file_size_bytes"),
+            "polygons": result.get("polygons"),
+            "materialsCount": result.get("materials_count"),
+            "dimensionsMm": result.get("dimensions_mm"),
         })
 
         logger.info(f"Job {model_id} completed in {processing_time_ms}ms")
