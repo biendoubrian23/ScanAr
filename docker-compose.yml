@@ -13,6 +13,11 @@ services:
       interval: 10s
       timeout: 3s
       retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 768M
 
   # ── Hunyuan3D API Server (GPU) ────────────────────────────────────────
   hunyuan3d:
@@ -55,6 +60,10 @@ services:
     build:
       context: .
       dockerfile: docker/frontend.Dockerfile
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
     restart: unless-stopped
     ports:
       - "3050:3000"
@@ -99,18 +108,19 @@ services:
           cpus: "2"
           memory: 2G
 
-  # ── Cloudflare Tunnel (optional) ──────────────────────────────────────
+  # ── Cloudflare Quick Tunnel (trycloudflare.com, no account needed) ───
   cloudflared:
     image: cloudflare/cloudflared:latest
     restart: unless-stopped
-    command: tunnel --no-autoupdate run
-    environment:
-      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    command: tunnel --no-autoupdate --url http://frontend:3000
     depends_on:
       frontend:
         condition: service_started
-    profiles:
-      - tunnel
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
 
 volumes:
   redis_data:
