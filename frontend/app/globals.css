@@ -5,9 +5,9 @@
 /* ─── CSS Variables ──────────────────────────────────────────────────────────── */
 
 :root {
-  --color-brand-600: #2563eb;
-  --color-brand-500: #3b82f6;
-  --color-brand-400: #60a5fa;
+  --color-brand-600: #0d9488;
+  --color-brand-500: #14b8a6;
+  --color-brand-400: #2dd4bf;
   /* Scrollbar — transparent track + slim thumb so the reserved gutter from
      `scrollbar-gutter: stable` doesn't read as an empty white band. */
   --scrollbar-width: 8px;

@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   ImagePlus,
   Cpu,
@@ -19,6 +20,8 @@ import {
   ChevronRight,
   Box,
   Share2,
+  Camera,
+  Hexagon,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -50,28 +53,28 @@ function Navbar() {
     <nav className="fixed top-0 inset-x-0 z-50">
       <div
         className={cn(
-          'mx-auto max-w-6xl mt-4 mx-4 lg:mx-auto px-5 py-3',
+          'mx-auto max-w-7xl mt-4 mx-4 lg:mx-auto px-6 py-4',
           'flex items-center justify-between',
-          'bg-dark-950/80 backdrop-blur-xl',
-          'border border-white/10 rounded-2xl',
-          'shadow-xl shadow-black/20',
+          'bg-white/85 backdrop-blur-xl',
+          'border border-gray-200 rounded-2xl',
+          'shadow-sm shadow-gray-900/[0.04]',
         )}
       >
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-brand-600 to-brand-500 shadow-lg shadow-brand-600/30 group-hover:shadow-brand-500/40 transition-shadow">
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-brand-600 to-brand-500 shadow-md shadow-brand-600/25 group-hover:shadow-brand-500/35 transition-shadow">
             <ScanLine className="w-4 h-4 text-white" />
           </div>
-          <span className="text-lg font-bold gradient-text">ScanAR</span>
+          <span className="text-lg font-bold text-gray-900">ScanAR</span>
         </Link>
 
         {/* Desktop nav links */}
-        <div className="hidden md:flex items-center gap-6">
+        <div className="hidden md:flex items-center gap-7">
           {['Features', 'How it works', 'Pricing'].map((item) => (
             <a
               key={item}
               href={`#${item.toLowerCase().replace(/\s+/g, '-')}`}
-              className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors duration-150"
+              className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors duration-150"
             >
               {item}
             </a>
@@ -82,7 +85,7 @@ function Navbar() {
         <div className="hidden md:flex items-center gap-2">
           <Link
             href="/login"
-            className="px-4 py-2 text-sm text-zinc-400 hover:text-zinc-100 transition-colors"
+            className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
           >
             Login
           </Link>
@@ -90,9 +93,9 @@ function Navbar() {
             href="/signup"
             className={cn(
               'flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-xl',
-              'bg-gradient-to-r from-brand-600 to-brand-500 text-white',
-              'shadow-md shadow-brand-600/30',
-              'hover:shadow-brand-500/40 hover:from-brand-500 hover:to-brand-400',
+              'bg-brand-700 text-white',
+              'shadow-md shadow-brand-700/20',
+              'hover:bg-brand-800 hover:shadow-brand-700/30',
               'transition-all duration-200',
             )}
           >
@@ -103,7 +106,8 @@ function Navbar() {
 
         {/* Mobile hamburger */}
         <button
-          className="md:hidden p-2 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-white/8 transition-colors"
+          type="button"
+          className="md:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
           onClick={() => setMenuOpen((v) => !v)}
           aria-label="Toggle menu"
         >
@@ -117,22 +121,22 @@ function Navbar() {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="md:hidden mx-4 mt-2 p-4 bg-dark-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl flex flex-col gap-3">
+        <div className="md:hidden mx-4 mt-2 p-4 bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-lg flex flex-col gap-3">
           {['Features', 'How it works', 'Pricing'].map((item) => (
             <a
               key={item}
               href={`#${item.toLowerCase().replace(/\s+/g, '-')}`}
-              className="text-sm text-zinc-300 hover:text-white py-1.5"
+              className="text-sm font-medium text-gray-700 hover:text-gray-900 py-1.5"
               onClick={() => setMenuOpen(false)}
             >
               {item}
             </a>
           ))}
-          <div className="pt-2 border-t border-white/8 flex flex-col gap-2">
-            <Link href="/login" className="text-sm text-zinc-400 py-1.5">Login</Link>
+          <div className="pt-2 border-t border-gray-200 flex flex-col gap-2">
+            <Link href="/login" className="text-sm text-gray-600 py-1.5">Login</Link>
             <Link
               href="/signup"
-              className="flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 text-white"
+              className="flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium rounded-xl bg-brand-700 text-white hover:bg-brand-800 transition-colors"
             >
               Get Started <ChevronRight className="w-3.5 h-3.5" />
             </Link>
@@ -143,211 +147,186 @@ function Navbar() {
   );
 }
 
-// ─── Floating Card (Hero) ─────────────────────────────────────────────────────
+// ─── Hero Carousel ────────────────────────────────────────────────────────────
 
-function FloatingModelCard() {
+const HERO_IMAGES = [
+  { src: '/images/herosection/chaise.png', alt: 'Reconstruction 3D d\'une chaise' },
+  { src: '/images/herosection/dessert.png', alt: 'Reconstruction 3D d\'un dessert' },
+  { src: '/images/herosection/plat.png', alt: 'Reconstruction 3D d\'un plat' },
+];
+
+function HeroCarousel() {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setIndex((i) => (i + 1) % HERO_IMAGES.length);
+    }, 5000);
+    return () => clearInterval(id);
+  }, []);
+
   return (
-    <motion.div
-      animate={{ y: [0, -12, 0] }}
-      transition={{ duration: 6, ease: 'easeInOut', repeat: Infinity }}
-      className={cn(
-        'relative w-72 h-72 lg:w-80 lg:h-80',
-        'glass rounded-3xl overflow-hidden',
-        'shadow-2xl shadow-brand-600/20',
-      )}
-    >
-      {/* Shimmer gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-brand-600/20 via-transparent to-brand-400/10" />
-
-      {/* Top bar */}
-      <div className="absolute top-0 inset-x-0 flex items-center justify-between px-4 py-3 bg-white/5 border-b border-white/8">
-        <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-full bg-red-400/70" />
-          <div className="w-2.5 h-2.5 rounded-full bg-yellow-400/70" />
-          <div className="w-2.5 h-2.5 rounded-full bg-green-400/70" />
-        </div>
-        <span className="text-[10px] text-zinc-500 font-mono">preview.glb</span>
-      </div>
-
-      {/* 3D placeholder with shimmer */}
-      <div className="absolute inset-0 flex items-center justify-center mt-8">
-        <div className="relative w-40 h-40">
-          {/* Rotating glow ring */}
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 12, ease: 'linear', repeat: Infinity }}
-            className="absolute inset-0 rounded-full border border-brand-500/30 border-dashed"
+    <div className="relative w-full h-full">
+      {HERO_IMAGES.map((img, i) => (
+        <motion.div
+          key={img.src}
+          initial={false}
+          animate={{ opacity: index === i ? 1 : 0 }}
+          transition={{ duration: 0.9, ease: 'easeInOut' }}
+          className="absolute inset-0"
+          aria-hidden={index !== i}
+        >
+          <Image
+            src={img.src}
+            alt={img.alt}
+            fill
+            priority={i === 0}
+            sizes="(min-width: 1024px) 70vw, 100vw"
+            className="object-contain object-right"
           />
-          <motion.div
-            animate={{ rotate: -360 }}
-            transition={{ duration: 8, ease: 'linear', repeat: Infinity }}
-            className="absolute inset-4 rounded-full border border-brand-400/20 border-dashed"
+        </motion.div>
+      ))}
+
+      {/* Pagination dots — absolute bottom */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10">
+        {HERO_IMAGES.map((_, i) => (
+          <button
+            key={i}
+            type="button"
+            onClick={() => setIndex(i)}
+            aria-label={`Afficher l'image ${i + 1}`}
+            className={cn(
+              'h-1.5 rounded-full transition-all duration-300',
+              index === i ? 'w-8 bg-gray-900' : 'w-1.5 bg-gray-300 hover:bg-gray-400',
+            )}
           />
-
-          {/* Central box icon */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="relative">
-              <div className="absolute inset-0 blur-2xl bg-brand-500/40 rounded-full scale-150" />
-              <Box className="w-14 h-14 text-brand-400 relative" strokeWidth={1.5} />
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
-
-      {/* Shimmer sweep */}
-      <div
-        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"
-        style={{
-          backgroundSize: '200% 100%',
-          animation: 'shimmer 2.5s linear infinite',
-        }}
-      />
-
-      {/* Status bar bottom */}
-      <div className="absolute bottom-0 inset-x-0 px-4 py-3 bg-white/5 border-t border-white/8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-            <span className="text-[10px] text-zinc-400">Model ready</span>
-          </div>
-          <span className="text-[10px] font-medium text-brand-400">View in AR →</span>
-        </div>
-      </div>
-
-      {/* Particles */}
-      <div className="particle particle-1" style={{ bottom: '30%', left: '15%' }} />
-      <div className="particle particle-2" style={{ bottom: '25%', right: '20%' }} />
-      <div className="particle particle-3" style={{ bottom: '20%', left: '45%' }} />
-    </motion.div>
+    </div>
   );
 }
 
 // ─── Hero Section ─────────────────────────────────────────────────────────────
 
+const HERO_FEATURES = [
+  { icon: Camera, lines: ['Résultats', 'photoréalistes'] },
+  { icon: Globe, lines: ['WebAR', 'sans application'] },
+  { icon: Share2, lines: ['Partage via', 'QR code'] },
+];
+
 function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
   return (
-    <section className="relative min-h-screen flex items-center pt-28 pb-20 overflow-hidden">
-      {/* Background glow */}
-      <div className="absolute inset-0 hero-glow pointer-events-none" />
+    <section className="relative min-h-screen flex items-center pt-32 pb-16 overflow-hidden bg-white">
+      {/* Background image carousel — full section, white space in image aligns with text */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.9, delay: 0.15, ease: 'easeOut' }}
+        className="absolute inset-0 pointer-events-none"
+      >
+        <HeroCarousel />
+      </motion.div>
 
-      {/* Grid pattern */}
-      <div
-        className="absolute inset-0 opacity-[0.03] pointer-events-none"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)',
-          backgroundSize: '60px 60px',
-        }}
-      />
-
-      {/* Ambient orbs */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-600/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-brand-400/8 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="relative mx-auto max-w-6xl px-6 w-full">
-        <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
-          {/* Text content */}
-          <div className="flex-1 text-center lg:text-left">
-            {/* Badge */}
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              variants={stagger(0)}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-600/15 border border-brand-500/30 text-brand-300 text-xs font-medium mb-6"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              Powered by Hunyuan3D AI
-            </motion.div>
-
-            {/* Headline */}
-            <motion.h1
-              initial="hidden"
-              animate="visible"
-              variants={stagger(0.1)}
-              className="text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] tracking-tight text-zinc-100 mb-4"
-            >
-              Turn any image into{' '}
-              <span className="gradient-text block mt-1">AR reality</span>
-            </motion.h1>
-
-            {/* Subtitle */}
-            <motion.p
-              initial="hidden"
-              animate="visible"
-              variants={stagger(0.2)}
-              className="text-lg text-zinc-400 leading-relaxed max-w-xl mx-auto lg:mx-0 mb-8"
-            >
-              Upload a photo. Our AI generates a photorealistic 3D model in seconds.
-              Share via QR code. Your customers scan and see it in their space.
-            </motion.p>
-
-            {/* CTA buttons */}
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              variants={stagger(0.3)}
-              className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start"
-            >
-              <Link
-                href="/signup"
-                className={cn(
-                  'flex items-center gap-2 px-6 py-3.5 rounded-xl text-base font-semibold',
-                  'bg-gradient-to-r from-brand-600 to-brand-500 text-white',
-                  'shadow-lg shadow-brand-600/35',
-                  'hover:shadow-brand-500/45 hover:from-brand-500 hover:to-brand-400',
-                  'transition-all duration-200 group',
-                )}
-              >
-                Start for free
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-              </Link>
-
-              <button
-                onClick={onDemoClick}
-                className={cn(
-                  'flex items-center gap-2.5 px-6 py-3.5 rounded-xl text-base font-medium',
-                  'bg-white/5 backdrop-blur border border-white/10',
-                  'text-zinc-200 hover:bg-white/10 hover:border-white/20 hover:text-white',
-                  'transition-all duration-200 group',
-                )}
-              >
-                <div className="flex items-center justify-center w-7 h-7 rounded-full bg-brand-600/25 border border-brand-500/30 group-hover:bg-brand-600/35 transition-colors">
-                  <Play className="w-3 h-3 text-brand-400 ml-0.5" />
-                </div>
-                Watch demo
-              </button>
-            </motion.div>
-
-            {/* Social proof */}
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              variants={stagger(0.4)}
-              className="flex items-center gap-6 mt-8 justify-center lg:justify-start"
-            >
-              <div className="flex items-center gap-1.5 text-xs text-zinc-500">
-                <Check className="w-3.5 h-3.5 text-green-400" />
-                No credit card required
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-zinc-500">
-                <Check className="w-3.5 h-3.5 text-green-400" />
-                3 free models
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-zinc-500">
-                <Check className="w-3.5 h-3.5 text-green-400" />
-                iOS & Android AR
-              </div>
-            </motion.div>
-          </div>
-
-          {/* Floating card */}
+      {/* Foreground content — left text */}
+      <div className="relative z-10 mx-auto max-w-7xl px-6 w-full">
+        <div className="max-w-xl">
+          {/* Badge */}
           <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.7, delay: 0.2, ease: 'easeOut' }}
-            className="shrink-0"
+            initial="hidden"
+            animate="visible"
+            variants={stagger(0)}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur border border-gray-200 text-gray-700 text-[11px] font-medium mb-8 uppercase tracking-[0.08em]"
           >
-            <FloatingModelCard />
+            <Hexagon className="w-3.5 h-3.5" strokeWidth={1.75} />
+            Plateforme de reconstruction 3D & AR
+          </motion.div>
+
+          {/* Headline */}
+          <motion.h1
+            initial="hidden"
+            animate="visible"
+            variants={stagger(0.1)}
+            className="text-4xl md:text-5xl lg:text-[3.5rem] font-bold leading-[1.08] tracking-tight text-gray-900 mb-6"
+          >
+            Transformez<br />
+            n&apos;importe quel objet<br />
+            réel en expérience 3D<br />
+            en réalité augmentée
+          </motion.h1>
+
+          {/* Subtitle */}
+          <motion.p
+            initial="hidden"
+            animate="visible"
+            variants={stagger(0.2)}
+            className="text-base text-gray-600 leading-relaxed max-w-md mb-8"
+          >
+            Capturez. Reconstruisez. Partagez.<br />
+            Permettez à n&apos;importe qui de placer votre objet
+            dans le monde réel grâce à un simple QR code.
+          </motion.p>
+
+          {/* CTA buttons */}
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={stagger(0.3)}
+            className="flex flex-wrap items-center gap-3 mb-10"
+          >
+            <Link
+              href="/signup"
+              className={cn(
+                'flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-semibold',
+                'bg-brand-700 text-white',
+                'shadow-md shadow-brand-700/20',
+                'hover:bg-brand-800 hover:shadow-brand-700/30',
+                'transition-all duration-200 group',
+              )}
+            >
+              Générer un modèle 3D
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+
+            <button
+              type="button"
+              onClick={onDemoClick}
+              className={cn(
+                'flex items-center gap-2.5 px-6 py-3.5 rounded-xl text-sm font-medium',
+                'bg-white/90 backdrop-blur border border-gray-200 text-gray-900',
+                'hover:border-gray-300 hover:bg-white',
+                'transition-all duration-200',
+              )}
+            >
+              <Play className="w-3.5 h-3.5 ml-0.5" fill="currentColor" />
+              Voir la démo AR
+            </button>
+          </motion.div>
+
+          {/* Feature chips */}
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={stagger(0.4)}
+            className="flex flex-wrap gap-3"
+          >
+            {HERO_FEATURES.map((feat) => {
+              const Icon = feat.icon;
+              return (
+                <div
+                  key={feat.lines.join('-')}
+                  className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white/90 backdrop-blur border border-gray-200"
+                >
+                  <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100">
+                    <Icon className="w-3.5 h-3.5 text-gray-700" strokeWidth={1.75} />
+                  </div>
+                  <div className="text-[11px] leading-tight text-gray-700">
+                    {feat.lines.map((l) => (
+                      <div key={l}>{l}</div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </motion.div>
         </div>
       </div>
