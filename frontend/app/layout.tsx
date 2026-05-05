@@ -1,6 +1,21 @@
 import type { Metadata, Viewport } from 'next';
+import { Inter, Unna } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/lib/stores/authStore';
+
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800', '900'],
+  variable: '--font-inter',
+  display: 'swap',
+});
+
+const unna = Unna({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-unna',
+  display: 'swap',
+});
 
 // ─── Metadata ─────────────────────────────────────────────────────────────────
 
@@ -44,7 +59,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${unna.variable}`}>
       <body className="bg-surface text-gray-900 antialiased font-sans min-h-screen">
         <AuthProvider>{children}</AuthProvider>
       </body>

@@ -92,6 +92,18 @@
     @apply bg-gradient-to-r from-brand-600 to-brand-500 bg-clip-text text-transparent;
   }
 
+  /* Vertically stretched display text (Unna serif, tall+slender feel) */
+  .text-stretched {
+    display: inline-block;
+    transform: scaleY(1.2);
+    transform-origin: bottom left;
+  }
+  .text-stretched-center {
+    display: inline-block;
+    transform: scaleY(1.2);
+    transform-origin: bottom;
+  }
+
   /* Thin scrollbar utility */
   .scrollbar-thin {
     scrollbar-width: thin;

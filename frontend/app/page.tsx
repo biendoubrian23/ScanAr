@@ -219,22 +219,22 @@ function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
         initial={{ opacity: 0, y: '-5%' }}
         animate={{ opacity: 1, y: '-5%' }}
         transition={{ duration: 0.9, delay: 0.15, ease: 'easeOut' }}
-        className="absolute inset-x-0 top-8 bottom-0 pointer-events-none scale-[0.90] origin-center"
+        className="absolute inset-x-0 top-[1.2rem] bottom-0 pointer-events-none scale-[0.90] origin-center"
       >
         <HeroCarousel />
       </motion.div>
 
       {/* Foreground content — left text */}
       <div className="relative z-10 mx-auto max-w-7xl px-6 w-full">
-        <div className="max-w-[30rem]">
+        <div className="max-w-[33rem]">
           {/* Badge */}
           <motion.div
             initial="hidden"
             animate="visible"
             variants={stagger(0)}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 backdrop-blur border border-gray-200 text-gray-700 text-[10px] font-medium mb-8 uppercase tracking-[0.08em]"
+            className="inline-flex items-center gap-[0.55rem] px-[0.825rem] py-[0.4125rem] rounded-full bg-white/80 backdrop-blur border border-gray-200 text-gray-700 text-[11px] font-medium mb-[3.5rem] uppercase tracking-[0.08em]"
           >
-            <Hexagon className="w-3 h-3" strokeWidth={1.75} />
+            <Hexagon className="w-[0.825rem] h-[0.825rem]" strokeWidth={1.75} />
             Plateforme de reconstruction 3D & AR
           </motion.div>
 
@@ -243,13 +243,34 @@ function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
             initial="hidden"
             animate="visible"
             variants={stagger(0.1)}
-            className="text-[2.1rem] font-bold leading-[1.08] tracking-tight text-gray-900 mb-6 whitespace-nowrap"
-            style={{ fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: 700, letterSpacing: '-0.025em' }}
+            className="text-[3rem] leading-[1.0] text-gray-900 mb-[2.4rem] whitespace-nowrap"
+            style={{ fontFamily: 'var(--font-unna), Georgia, serif', fontWeight: 400, letterSpacing: '0' }}
           >
-            Transformez vos visiteurs<br />
-            en acheteurs grâce à la<br />
-            réalité augmentée :<br />
-            +30% de ventes.
+            <span
+              className="inline-block"
+              style={{ transform: 'scaleY(1.2)', transformOrigin: 'bottom left' }}
+            >
+              Transformez vos visiteurs<br />
+              en acheteurs grâce à la<br />
+              réalité augmentée :<br />
+              <span className="relative inline-block">
+                +30%
+                <svg
+                  aria-hidden
+                  className="absolute left-[-3%] right-[-3%] -bottom-1 w-[106%] h-3 pointer-events-none"
+                  viewBox="0 0 100 12"
+                  preserveAspectRatio="none"
+                >
+                  <path
+                    d="M3,8 C30,3 70,3 97,8"
+                    stroke="#dc2626"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                </svg>
+              </span> de ventes.
+            </span>
           </motion.h1>
 
           {/* Subtitle */}
@@ -257,7 +278,7 @@ function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
             initial="hidden"
             animate="visible"
             variants={stagger(0.2)}
-            className="text-sm text-gray-500 leading-relaxed mb-8"
+            className="text-[0.95rem] text-gray-500 leading-relaxed mb-[2.2rem]"
           >
             Offrez à vos clients une expérience d&apos;achat immersive<br />
             depuis leur navigateur, sans aucune application.<br />
@@ -270,12 +291,12 @@ function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
             initial="hidden"
             animate="visible"
             variants={stagger(0.3)}
-            className="flex flex-wrap items-center gap-2.5 mb-10"
+            className="flex flex-wrap items-center gap-[0.69rem] mb-[2.75rem]"
           >
             <Link
               href="/signup"
               className={cn(
-                'flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold',
+                'flex items-center gap-[0.55rem] px-[1.375rem] py-[0.825rem] rounded-xl text-[0.95rem] font-semibold',
                 'bg-brand-700 text-white',
                 'shadow-md shadow-brand-700/20',
                 'hover:bg-brand-800 hover:shadow-brand-700/30',
@@ -283,20 +304,20 @@ function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
               )}
             >
               Générer un modèle 3D
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+              <ArrowRight className="w-[0.96rem] h-[0.96rem] group-hover:translate-x-0.5 transition-transform" />
             </Link>
 
             <button
               type="button"
               onClick={onDemoClick}
               className={cn(
-                'flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-medium',
+                'flex items-center gap-[0.55rem] px-[1.375rem] py-[0.825rem] rounded-xl text-[0.95rem] font-medium',
                 'bg-white/90 backdrop-blur border border-gray-200 text-gray-900',
                 'hover:border-gray-300 hover:bg-white',
                 'transition-all duration-200',
               )}
             >
-              <Play className="w-3 h-3 ml-0.5" fill="currentColor" />
+              <Play className="w-[0.825rem] h-[0.825rem] ml-0.5" fill="currentColor" />
               Voir la démo AR
             </button>
           </motion.div>
@@ -306,21 +327,21 @@ function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
             initial="hidden"
             animate="visible"
             variants={stagger(0.4)}
-            className="flex items-center gap-3"
+            className="flex items-center gap-[0.825rem]"
           >
             {HERO_FEATURES.map((feat) => {
               const Icon = feat.icon;
               return (
                 <div
                   key={feat.lines.join('-')}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/90 backdrop-blur border border-gray-200"
+                  className="flex items-center gap-[0.55rem] px-[0.825rem] py-[0.55rem] rounded-lg bg-white/90 backdrop-blur border border-gray-200"
                 >
-                  <Icon className="w-4 h-4 text-gray-700 shrink-0" strokeWidth={1.75} />
+                  <Icon className="w-[1.1rem] h-[1.1rem] text-gray-700 shrink-0" strokeWidth={1.75} />
                   <div className="flex flex-col leading-tight">
-                    <span className="text-[11px] font-semibold text-gray-900 whitespace-nowrap">
+                    <span className="text-[12px] font-semibold text-gray-900 whitespace-nowrap">
                       {feat.lines[0]}
                     </span>
-                    <span className="text-[11px] text-gray-500 whitespace-nowrap">
+                    <span className="text-[12px] text-gray-500 whitespace-nowrap">
                       {feat.lines[1]}
                     </span>
                   </div>
@@ -329,6 +350,179 @@ function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
             })}
           </motion.div>
         </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Immersive Experience Section ─────────────────────────────────────────────
+
+const IMMERSIVE_FEATURES = [
+  {
+    icon: ScanLine,
+    title: 'Manipulation 360° fluide',
+    desc: 'Pivot, zoom, inspection libre — comme en boutique.',
+  },
+  {
+    icon: Box,
+    title: 'Échelle réelle, contexte réel',
+    desc: "Vos clients placent le produit chez eux avant d'acheter.",
+  },
+  {
+    icon: BarChart2,
+    title: '+40% d\'engagement, −25% de retours',
+    desc: 'Une décision prise en confiance, et un panier qui grimpe.',
+  },
+];
+
+function ImmersiveSection() {
+  return (
+    <section className="relative py-24 bg-white overflow-hidden">
+      <div className="mx-auto max-w-7xl px-6">
+        {/* Centered section title */}
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.55, ease: 'easeOut' }}
+          className="text-center text-[2.2rem] lg:text-[2.9rem] leading-[1.0] text-gray-900 mb-16 lg:mb-20"
+          style={{ fontFamily: 'var(--font-unna), Georgia, serif', fontWeight: 400, letterSpacing: '0' }}
+        >
+          <span
+            className="inline-block"
+            style={{ transform: 'scaleY(1.2)', transformOrigin: 'bottom' }}
+          >
+            L&apos;achat passe à la dimension supérieure.
+          </span>
+        </motion.h2>
+
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-stretch">
+          {/* Left — Image (square corners, fills column height) */}
+          <motion.div
+            initial={{ opacity: 0, x: -24 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.7, ease: 'easeOut' }}
+            className="relative ring-1 ring-gray-200 shadow-xl shadow-gray-900/10 overflow-hidden min-h-[360px]"
+          >
+            <Image
+              src="/images/section/section1.png"
+              alt="Tablette affichant un produit en réalité augmentée à taille réelle"
+              fill
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              className="object-cover"
+            />
+          </motion.div>
+
+          {/* Right — Content (vertically centered to match image height) */}
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-80px' }}
+            variants={fadeUp}
+            transition={{ duration: 0.55 }}
+            className="flex flex-col justify-center"
+          >
+            {/* Subtitle */}
+            <h3
+              className="text-[1.9rem] lg:text-[2.4rem] leading-[1.05] text-gray-900 mb-6"
+              style={{ fontFamily: 'var(--font-unna), Georgia, serif', fontWeight: 400, letterSpacing: '0' }}
+            >
+              <span
+                className="inline-block"
+                style={{ transform: 'scaleY(1.2)', transformOrigin: 'bottom left' }}
+              >
+                Vos produits,<br />
+                entre les mains de vos clients.
+              </span>
+            </h3>
+
+            {/* Description */}
+            <p className="text-[1rem] text-gray-600 leading-relaxed mb-7">
+              Manipulez, tournez, placez à taille réelle — depuis n&apos;importe
+              quel téléphone, sans installation ni friction. L&apos;expérience
+              d&apos;une boutique physique, accessible en un seul clic.
+            </p>
+
+            {/* Feature bullets */}
+            <ul className="space-y-4 mb-9">
+              {IMMERSIVE_FEATURES.map(({ icon: Icon, title, desc }) => (
+                <li key={title} className="flex items-start gap-3.5">
+                  <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-brand-50 text-brand-700 shrink-0 ring-1 ring-brand-100">
+                    <Icon className="w-[1rem] h-[1rem]" strokeWidth={2} />
+                  </div>
+                  <div>
+                    <p className="text-[0.95rem] font-semibold text-gray-900 leading-snug">{title}</p>
+                    <p className="text-[0.875rem] text-gray-500 leading-snug">{desc}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            {/* CTA */}
+            <div className="flex flex-wrap items-center gap-3">
+              <Link
+                href="/signup"
+                className={cn(
+                  'inline-flex items-center gap-2 px-5 py-3 rounded-xl text-[0.95rem] font-semibold',
+                  'bg-gray-900 text-white',
+                  'hover:bg-gray-800 hover:shadow-lg hover:shadow-gray-900/15',
+                  'transition-all duration-200 group',
+                )}
+              >
+                Démarrer maintenant
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+              <a
+                href="#how-it-works"
+                className="inline-flex items-center gap-1.5 px-3 py-3 text-[0.95rem] font-medium text-gray-700 hover:text-gray-900 transition-colors"
+              >
+                Voir le pipeline
+                <ChevronRight className="w-4 h-4" />
+              </a>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Pipeline Visual Section ──────────────────────────────────────────────────
+
+function PipelineVisualSection() {
+  return (
+    <section className="relative py-24 bg-white overflow-hidden">
+      <div className="mx-auto max-w-7xl px-6">
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.55, ease: 'easeOut' }}
+          className="text-center text-[2.2rem] lg:text-[2.9rem] leading-[1.0] text-gray-900 mb-14 lg:mb-20"
+          style={{ fontFamily: 'var(--font-unna), Georgia, serif', fontWeight: 400, letterSpacing: '0' }}
+        >
+          <span className="text-stretched-center">
+            De la photo à la réalité augmentée.
+          </span>
+        </motion.h2>
+
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.7, ease: 'easeOut' }}
+          className="relative"
+        >
+          <Image
+            src="/images/section/section3.png"
+            alt="Pipeline ScanAR : capturer, reconstruire, optimiser, générer le QR code, voir en AR"
+            width={2172}
+            height={724}
+            className="w-full h-auto"
+            sizes="(min-width: 1024px) 90vw, 100vw"
+          />
+        </motion.div>
       </div>
     </section>
   );
@@ -366,7 +560,7 @@ const PIPELINE_STEPS = [
 function PipelineSection() {
   return (
     <section id="how-it-works" className="py-24 relative">
-      <div className="mx-auto max-w-6xl px-6">
+      <div className="mx-auto max-w-7xl px-6">
         {/* Header */}
         <motion.div
           initial="hidden"
@@ -380,9 +574,11 @@ function PipelineSection() {
             <Zap className="w-3.5 h-3.5" />
             How it works
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-zinc-100 leading-tight">
-            From photo to AR in{' '}
-            <span className="gradient-text">four steps</span>
+          <h2 className="text-4xl md:text-5xl font-display font-normal text-zinc-100 leading-[1.0]">
+            <span className="text-stretched-center">
+              From photo to AR in{' '}
+              <span className="gradient-text">four steps</span>
+            </span>
           </h2>
           <p className="mt-4 text-zinc-500 max-w-xl mx-auto">
             No 3D skills needed. Our fully automated pipeline handles everything.
@@ -499,7 +695,7 @@ function FeaturesGrid() {
       {/* Background subtle glow */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-brand-600/5 to-transparent pointer-events-none" />
 
-      <div className="relative mx-auto max-w-6xl px-6">
+      <div className="relative mx-auto max-w-7xl px-6">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -512,9 +708,11 @@ function FeaturesGrid() {
             <Box className="w-3.5 h-3.5" />
             Features
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-zinc-100 leading-tight">
-            Everything you need to{' '}
-            <span className="gradient-text">go spatial</span>
+          <h2 className="text-4xl md:text-5xl font-display font-normal text-zinc-100 leading-[1.0]">
+            <span className="text-stretched-center">
+              Everything you need to{' '}
+              <span className="gradient-text">go spatial</span>
+            </span>
           </h2>
           <p className="mt-4 text-zinc-500 max-w-xl mx-auto">
             From generation to distribution — ScanAR handles the full AR lifecycle.
@@ -617,7 +815,7 @@ function UseCasesSection() {
 
   return (
     <section className="py-24">
-      <div className="mx-auto max-w-6xl px-6">
+      <div className="mx-auto max-w-7xl px-6">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -630,9 +828,11 @@ function UseCasesSection() {
             <Globe className="w-3.5 h-3.5" />
             Use cases
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-zinc-100 leading-tight">
-            Built for every{' '}
-            <span className="gradient-text">industry</span>
+          <h2 className="text-4xl md:text-5xl font-display font-normal text-zinc-100 leading-[1.0]">
+            <span className="text-stretched-center">
+              Built for every{' '}
+              <span className="gradient-text">industry</span>
+            </span>
           </h2>
         </motion.div>
 
@@ -771,7 +971,7 @@ function UseCasesSection() {
 function CTASection() {
   return (
     <section className="py-24">
-      <div className="mx-auto max-w-4xl px-6">
+      <div className="mx-auto max-w-7xl px-6">
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -787,8 +987,10 @@ function CTASection() {
           <div className="absolute inset-0 bg-gradient-radial from-brand-600/20 via-transparent to-transparent pointer-events-none" />
 
           <motion.div variants={stagger(0.1)} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-            <h2 className="text-4xl md:text-5xl font-bold text-zinc-100 mb-4 leading-tight">
-              Ready to go <span className="gradient-text">spatial</span>?
+            <h2 className="text-4xl md:text-5xl font-display font-normal text-zinc-100 mb-6 leading-[1.0]">
+              <span className="text-stretched-center">
+                Ready to go <span className="gradient-text">spatial</span>?
+              </span>
             </h2>
             <p className="text-zinc-400 text-lg mb-8 max-w-lg mx-auto">
               Join hundreds of brands already using ScanAR to create immersive AR experiences that convert.
@@ -832,7 +1034,7 @@ function Footer() {
 
   return (
     <footer className="border-t border-white/6 bg-dark-950/80">
-      <div className="mx-auto max-w-6xl px-6 py-14">
+      <div className="mx-auto max-w-7xl px-6 py-14">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1 space-y-4">
@@ -967,6 +1169,8 @@ export default function LandingPage() {
       <Navbar />
       <main>
         <HeroSection onDemoClick={() => setDemoOpen(true)} />
+        <ImmersiveSection />
+        <PipelineVisualSection />
         <PipelineSection />
         <FeaturesGrid />
         <UseCasesSection />
