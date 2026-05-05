@@ -182,7 +182,7 @@ function HeroCarousel() {
             fill
             priority={i === 0}
             sizes="(min-width: 1024px) 70vw, 100vw"
-            className="object-contain object-right"
+            className="object-contain object-[58%_center]"
           />
         </motion.div>
       ))}
@@ -222,22 +222,22 @@ function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.9, delay: 0.15, ease: 'easeOut' }}
-        className="absolute inset-0 pointer-events-none"
+        className="absolute inset-x-0 top-20 bottom-0 pointer-events-none"
       >
         <HeroCarousel />
       </motion.div>
 
       {/* Foreground content — left text */}
       <div className="relative z-10 mx-auto max-w-7xl px-6 w-full">
-        <div className="max-w-xl">
+        <div className="max-w-sm">
           {/* Badge */}
           <motion.div
             initial="hidden"
             animate="visible"
             variants={stagger(0)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur border border-gray-200 text-gray-700 text-[11px] font-medium mb-8 uppercase tracking-[0.08em]"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 backdrop-blur border border-gray-200 text-gray-700 text-[10px] font-medium mb-6 uppercase tracking-[0.08em]"
           >
-            <Hexagon className="w-3.5 h-3.5" strokeWidth={1.75} />
+            <Hexagon className="w-3 h-3" strokeWidth={1.75} />
             Plateforme de reconstruction 3D & AR
           </motion.div>
 
@@ -246,12 +246,11 @@ function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
             initial="hidden"
             animate="visible"
             variants={stagger(0.1)}
-            className="text-4xl md:text-5xl lg:text-[3.5rem] font-bold leading-[1.08] tracking-tight text-gray-900 mb-6"
+            className="text-3xl md:text-4xl lg:text-[2.75rem] font-bold leading-[1.1] tracking-tight text-gray-900 mb-5"
           >
-            Transformez<br />
-            n&apos;importe quel objet<br />
-            réel en expérience 3D<br />
-            en réalité augmentée
+            Donnez vie à vos<br />
+            produits en réalité<br />
+            augmentée
           </motion.h1>
 
           {/* Subtitle */}
@@ -259,7 +258,7 @@ function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
             initial="hidden"
             animate="visible"
             variants={stagger(0.2)}
-            className="text-base text-gray-600 leading-relaxed max-w-md mb-8"
+            className="text-sm text-gray-600 leading-relaxed mb-7"
           >
             Capturez. Reconstruisez. Partagez.<br />
             Permettez à n&apos;importe qui de placer votre objet
@@ -271,12 +270,12 @@ function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
             initial="hidden"
             animate="visible"
             variants={stagger(0.3)}
-            className="flex flex-wrap items-center gap-3 mb-10"
+            className="flex flex-wrap items-center gap-2.5 mb-8"
           >
             <Link
               href="/signup"
               className={cn(
-                'flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-semibold',
+                'flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold',
                 'bg-brand-700 text-white',
                 'shadow-md shadow-brand-700/20',
                 'hover:bg-brand-800 hover:shadow-brand-700/30',
@@ -284,20 +283,20 @@ function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
               )}
             >
               Générer un modèle 3D
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
             </Link>
 
             <button
               type="button"
               onClick={onDemoClick}
               className={cn(
-                'flex items-center gap-2.5 px-6 py-3.5 rounded-xl text-sm font-medium',
+                'flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-medium',
                 'bg-white/90 backdrop-blur border border-gray-200 text-gray-900',
                 'hover:border-gray-300 hover:bg-white',
                 'transition-all duration-200',
               )}
             >
-              <Play className="w-3.5 h-3.5 ml-0.5" fill="currentColor" />
+              <Play className="w-3 h-3 ml-0.5" fill="currentColor" />
               Voir la démo AR
             </button>
           </motion.div>
@@ -307,23 +306,19 @@ function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
             initial="hidden"
             animate="visible"
             variants={stagger(0.4)}
-            className="flex flex-wrap gap-3"
+            className="flex items-center gap-2"
           >
             {HERO_FEATURES.map((feat) => {
               const Icon = feat.icon;
               return (
                 <div
                   key={feat.lines.join('-')}
-                  className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white/90 backdrop-blur border border-gray-200"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/90 backdrop-blur border border-gray-200"
                 >
-                  <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100">
-                    <Icon className="w-3.5 h-3.5 text-gray-700" strokeWidth={1.75} />
-                  </div>
-                  <div className="text-[11px] leading-tight text-gray-700">
-                    {feat.lines.map((l) => (
-                      <div key={l}>{l}</div>
-                    ))}
-                  </div>
+                  <Icon className="w-3 h-3 text-gray-600 shrink-0" strokeWidth={1.75} />
+                  <span className="text-[10px] leading-none text-gray-600 whitespace-nowrap">
+                    {feat.lines.join(' ')}
+                  </span>
                 </div>
               );
             })}
