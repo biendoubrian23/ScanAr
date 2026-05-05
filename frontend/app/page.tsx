@@ -206,36 +206,35 @@ function HeroCarousel() {
 // ─── Hero Section ─────────────────────────────────────────────────────────────
 
 const HERO_FEATURES = [
-  { icon: Camera, lines: ['Résultats', 'photoréalistes'] },
-  { icon: Globe, lines: ['WebAR', 'sans application'] },
-  { icon: Share2, lines: ['Partage via', 'QR code'] },
+  { icon: Camera, lines: ['Photoréaliste', 'Rendu fidèle'] },
+  { icon: Globe, lines: ['WebAR', 'Aucune app requise'] },
+  { icon: Share2, lines: ['Partage simple', 'QR code ou lien'] },
 ];
 
 function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
   return (
-    <section className="relative min-h-screen flex items-start pt-8 pb-16 overflow-hidden bg-white">
+    <section className="relative min-h-[92vh] flex items-start pt-8 lg:pt-[1.8vw] pb-16 lg:pb-[2.7vw] overflow-hidden bg-white">
       {/* Background image carousel — full section, white space in image aligns with text */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.88 }}
-        animate={{ opacity: 1, scale: 0.90 }}
+        initial={{ opacity: 0, y: '-14%' }}
+        animate={{ opacity: 1, y: '-14%' }}
         transition={{ duration: 0.9, delay: 0.15, ease: 'easeOut' }}
-        className="absolute inset-x-0 top-10 bottom-0 pointer-events-none"
-        style={{ transformOrigin: 'center center', translateY: '-14%' }}
+        className="absolute inset-x-0 top-[2vw] bottom-0 pointer-events-none scale-[0.90] origin-center"
       >
         <HeroCarousel />
       </motion.div>
 
       {/* Foreground content — left text */}
-      <div className="relative z-10 mx-auto max-w-7xl px-6 w-full">
-        <div className="max-w-lg">
+      <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-[1.8vw] w-full">
+        <div className="max-w-xl lg:max-w-[36vw]">
           {/* Badge */}
           <motion.div
             initial="hidden"
             animate="visible"
             variants={stagger(0)}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 backdrop-blur border border-gray-200 text-gray-700 text-[10px] font-medium mb-8 uppercase tracking-[0.08em]"
+            className="inline-flex items-center gap-2 lg:gap-[0.45vw] px-3 lg:px-[0.8vw] py-1.5 lg:py-[0.35vw] rounded-full bg-white/80 backdrop-blur border border-gray-200 text-gray-700 text-[10px] lg:text-[0.63vw] font-medium mb-8 lg:mb-[1.6vw] uppercase tracking-[0.08em]"
           >
-            <Hexagon className="w-3 h-3" strokeWidth={1.75} />
+            <Hexagon className="w-3 h-3 lg:w-[0.75vw] lg:h-[0.75vw]" strokeWidth={1.75} />
             Plateforme de reconstruction 3D & AR
           </motion.div>
 
@@ -244,12 +243,13 @@ function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
             initial="hidden"
             animate="visible"
             variants={stagger(0.1)}
-            className="text-[2.1rem] lg:text-[2.5rem] font-bold leading-[1.08] tracking-tight text-gray-900 mb-6"
+            className="text-[2.1rem] lg:text-[2.3vw] font-bold leading-[1.08] tracking-tight text-gray-900 mb-6 lg:mb-[1.25vw] whitespace-nowrap"
             style={{ fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: 700, letterSpacing: '-0.025em' }}
           >
             Transformez vos visiteurs<br />
-            en acheteurs, vendez<br />
-            30% de plus.
+            en acheteurs grâce à la<br />
+            réalité augmentée :<br />
+            +30% de ventes.
           </motion.h1>
 
           {/* Subtitle */}
@@ -257,11 +257,12 @@ function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
             initial="hidden"
             animate="visible"
             variants={stagger(0.2)}
-            className="text-sm text-gray-500 leading-relaxed mb-8"
+            className="text-sm lg:text-[0.85vw] text-gray-500 leading-relaxed mb-8 lg:mb-[1.6vw]"
           >
-            Capturez. Reconstruisez. Partagez.<br />
-            Permettez à quiconque de voir<br />
-            vos produits en AR.
+            Offrez à vos clients une expérience d&apos;achat immersive<br />
+            depuis leur navigateur, sans aucune application.<br />
+            Réduisez les retours, doublez l&apos;engagement<br />
+            et concluez plus de ventes.
           </motion.p>
 
           {/* CTA buttons */}
@@ -269,12 +270,12 @@ function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
             initial="hidden"
             animate="visible"
             variants={stagger(0.3)}
-            className="flex flex-wrap items-center gap-2.5 mb-12"
+            className="flex flex-wrap items-center gap-2.5 lg:gap-[0.55vw] mb-12 lg:mb-[2.25vw]"
           >
             <Link
               href="/signup"
               className={cn(
-                'flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold',
+                'flex items-center gap-2 lg:gap-[0.45vw] px-5 lg:px-[1.25vw] py-3 lg:py-[0.75vw] rounded-xl text-sm lg:text-[0.85vw] font-semibold',
                 'bg-brand-700 text-white',
                 'shadow-md shadow-brand-700/20',
                 'hover:bg-brand-800 hover:shadow-brand-700/30',
@@ -282,20 +283,20 @@ function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
               )}
             >
               Générer un modèle 3D
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+              <ArrowRight className="w-3.5 h-3.5 lg:w-[0.9vw] lg:h-[0.9vw] group-hover:translate-x-0.5 transition-transform" />
             </Link>
 
             <button
               type="button"
               onClick={onDemoClick}
               className={cn(
-                'flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-medium',
+                'flex items-center gap-2 lg:gap-[0.45vw] px-5 lg:px-[1.25vw] py-3 lg:py-[0.75vw] rounded-xl text-sm lg:text-[0.85vw] font-medium',
                 'bg-white/90 backdrop-blur border border-gray-200 text-gray-900',
                 'hover:border-gray-300 hover:bg-white',
                 'transition-all duration-200',
               )}
             >
-              <Play className="w-3 h-3 ml-0.5" fill="currentColor" />
+              <Play className="w-3 h-3 lg:w-[0.75vw] lg:h-[0.75vw] ml-0.5" fill="currentColor" />
               Voir la démo AR
             </button>
           </motion.div>
@@ -305,19 +306,24 @@ function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
             initial="hidden"
             animate="visible"
             variants={stagger(0.4)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-3 lg:gap-[0.8vw]"
           >
             {HERO_FEATURES.map((feat) => {
               const Icon = feat.icon;
               return (
                 <div
                   key={feat.lines.join('-')}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/90 backdrop-blur border border-gray-200"
+                  className="flex items-center gap-2 lg:gap-[0.55vw] px-3 lg:px-[0.8vw] py-2 lg:py-[0.5vw] rounded-lg bg-white/90 backdrop-blur border border-gray-200"
                 >
-                  <Icon className="w-3 h-3 text-gray-600 shrink-0" strokeWidth={1.75} />
-                  <span className="text-[10px] leading-none text-gray-600 whitespace-nowrap">
-                    {feat.lines.join(' ')}
-                  </span>
+                  <Icon className="w-4 h-4 lg:w-[1.05vw] lg:h-[1.05vw] text-gray-700 shrink-0" strokeWidth={1.75} />
+                  <div className="flex flex-col leading-tight">
+                    <span className="text-[11px] lg:text-[0.65vw] font-semibold text-gray-900 whitespace-nowrap">
+                      {feat.lines[0]}
+                    </span>
+                    <span className="text-[11px] lg:text-[0.65vw] text-gray-500 whitespace-nowrap">
+                      {feat.lines[1]}
+                    </span>
+                  </div>
                 </div>
               );
             })}
