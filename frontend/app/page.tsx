@@ -50,14 +50,11 @@ function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <nav className="fixed top-0 inset-x-0 z-50">
+    <nav className="sticky top-0 inset-x-0 z-50 bg-white border-b border-gray-200">
       <div
         className={cn(
-          'mx-auto max-w-7xl mt-4 mx-4 lg:mx-auto px-6 py-4',
+          'mx-auto max-w-7xl px-6 py-4',
           'flex items-center justify-between',
-          'bg-white/85 backdrop-blur-xl',
-          'border border-gray-200 rounded-2xl',
-          'shadow-sm shadow-gray-900/[0.04]',
         )}
       >
         {/* Logo */}
@@ -121,7 +118,7 @@ function Navbar() {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="md:hidden mx-4 mt-2 p-4 bg-white/95 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-lg flex flex-col gap-3">
+        <div className="md:hidden px-6 py-4 bg-white border-t border-gray-200 flex flex-col gap-3">
           {['Features', 'How it works', 'Pricing'].map((item) => (
             <a
               key={item}
@@ -216,26 +213,27 @@ const HERO_FEATURES = [
 
 function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
   return (
-    <section className="relative min-h-screen flex items-center pt-32 pb-16 overflow-hidden bg-white">
+    <section className="relative min-h-screen flex items-start pt-8 pb-16 overflow-hidden bg-white">
       {/* Background image carousel — full section, white space in image aligns with text */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
+        initial={{ opacity: 0, scale: 0.88 }}
+        animate={{ opacity: 1, scale: 0.90 }}
         transition={{ duration: 0.9, delay: 0.15, ease: 'easeOut' }}
-        className="absolute inset-x-0 top-20 bottom-0 pointer-events-none"
+        className="absolute inset-x-0 top-10 bottom-0 pointer-events-none"
+        style={{ transformOrigin: 'center center', translateY: '-14%' }}
       >
         <HeroCarousel />
       </motion.div>
 
       {/* Foreground content — left text */}
       <div className="relative z-10 mx-auto max-w-7xl px-6 w-full">
-        <div className="max-w-sm">
+        <div className="max-w-lg">
           {/* Badge */}
           <motion.div
             initial="hidden"
             animate="visible"
             variants={stagger(0)}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 backdrop-blur border border-gray-200 text-gray-700 text-[10px] font-medium mb-6 uppercase tracking-[0.08em]"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 backdrop-blur border border-gray-200 text-gray-700 text-[10px] font-medium mb-8 uppercase tracking-[0.08em]"
           >
             <Hexagon className="w-3 h-3" strokeWidth={1.75} />
             Plateforme de reconstruction 3D & AR
@@ -246,11 +244,12 @@ function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
             initial="hidden"
             animate="visible"
             variants={stagger(0.1)}
-            className="text-3xl md:text-4xl lg:text-[2.75rem] font-bold leading-[1.1] tracking-tight text-gray-900 mb-5"
+            className="text-[2.1rem] lg:text-[2.5rem] font-bold leading-[1.08] tracking-tight text-gray-900 mb-6"
+            style={{ fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', fontWeight: 700, letterSpacing: '-0.025em' }}
           >
-            Donnez vie à vos<br />
-            produits en réalité<br />
-            augmentée
+            Transformez vos visiteurs<br />
+            en acheteurs, vendez<br />
+            30% de plus.
           </motion.h1>
 
           {/* Subtitle */}
@@ -258,11 +257,11 @@ function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
             initial="hidden"
             animate="visible"
             variants={stagger(0.2)}
-            className="text-sm text-gray-600 leading-relaxed mb-7"
+            className="text-sm text-gray-500 leading-relaxed mb-8"
           >
             Capturez. Reconstruisez. Partagez.<br />
-            Permettez à n&apos;importe qui de placer votre objet
-            dans le monde réel grâce à un simple QR code.
+            Permettez à quiconque de voir<br />
+            vos produits en AR.
           </motion.p>
 
           {/* CTA buttons */}
@@ -270,7 +269,7 @@ function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
             initial="hidden"
             animate="visible"
             variants={stagger(0.3)}
-            className="flex flex-wrap items-center gap-2.5 mb-8"
+            className="flex flex-wrap items-center gap-2.5 mb-12"
           >
             <Link
               href="/signup"
