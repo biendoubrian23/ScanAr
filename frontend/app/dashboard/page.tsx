@@ -46,15 +46,15 @@ interface KpiCardProps {
 
 function KpiCard({ label, value, delta, loading, rightSlot, footer }: KpiCardProps) {
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-6 flex flex-col gap-2 min-h-[130px]">
+    <div className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-6 flex flex-col gap-1.5 sm:gap-2 sm:min-h-[130px]">
       <div className="flex items-start justify-between gap-2">
-        <p className="text-sm text-gray-500">{label}</p>
+        <p className="text-xs sm:text-sm text-gray-500">{label}</p>
         {rightSlot}
       </div>
       {loading ? (
-        <div className="h-10 w-24 bg-gray-100 rounded animate-pulse mt-1" />
+        <div className="h-8 sm:h-10 w-20 sm:w-24 bg-gray-100 rounded animate-pulse" />
       ) : (
-        <p className="text-4xl font-semibold text-gray-900 tabular-nums leading-tight">
+        <p className="text-2xl sm:text-4xl font-semibold text-gray-900 tabular-nums leading-tight">
           {value}
         </p>
       )}
@@ -62,7 +62,7 @@ function KpiCard({ label, value, delta, loading, rightSlot, footer }: KpiCardPro
         delta && !loading && (
           <p
             className={cn(
-              'text-xs mt-auto',
+              'text-[11px] sm:text-xs mt-auto',
               delta.sign === 'pos'   && 'text-emerald-600',
               delta.sign === 'neg'   && 'text-red-600',
               delta.sign === 'zero'  && 'text-gray-400',
@@ -269,15 +269,15 @@ export default function DashboardPage() {
               <EmptyModels onUpload={() => setUploadOpen(true)} />
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full text-sm table-fixed sm:table-auto">
                   <thead>
                     <tr className="text-xs text-gray-500 border-b border-gray-100">
-                      <th className="text-left font-normal px-5 py-3">Modèle</th>
-                      <th className="text-left font-normal px-3 py-3">Statut</th>
+                      <th className="text-left font-normal px-3 sm:px-5 py-3">Modèle</th>
+                      <th className="text-left font-normal px-2 sm:px-3 py-3 w-[44px] sm:w-auto">Statut</th>
                       <th className="text-left font-normal px-3 py-3 hidden md:table-cell">Type</th>
                       <th className="text-left font-normal px-3 py-3 hidden md:table-cell">Créé</th>
-                      <th className="text-left font-normal px-3 py-3">AR</th>
-                      <th className="text-left font-normal px-3 py-3">QR</th>
+                      <th className="text-left font-normal px-2 sm:px-3 py-3 w-[60px] sm:w-auto">AR</th>
+                      <th className="text-left font-normal px-2 sm:px-3 py-3 w-[44px] sm:w-auto">QR</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -290,9 +290,9 @@ export default function DashboardPage() {
                           onClick={() => router.push(`/dashboard/models/${model.id}`)}
                           className="border-b border-gray-50 last:border-b-0 hover:bg-gray-50/70 transition-colors cursor-pointer"
                         >
-                          <td className="px-5 py-3">
-                            <div className="flex items-center gap-3 min-w-0">
-                              <div className="w-9 h-9 rounded-lg overflow-hidden bg-gray-100 shrink-0 flex items-center justify-center">
+                          <td className="px-3 sm:px-5 py-3 max-w-[150px] sm:max-w-none">
+                            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg overflow-hidden bg-gray-100 shrink-0 flex items-center justify-center">
                                 {model.image_url ? (
                                   // eslint-disable-next-line @next/next/no-img-element
                                   <img src={model.image_url} alt="" className="w-full h-full object-cover" />
@@ -301,12 +301,12 @@ export default function DashboardPage() {
                                 )}
                               </div>
                               <div className="min-w-0">
-                                <p className="text-sm text-gray-900 font-medium truncate">{model.name}</p>
-                                <p className="text-xs text-gray-400">{formatDateShort(model.created_at, true)}</p>
+                                <p className="text-xs sm:text-sm text-gray-900 font-medium truncate">{model.name}</p>
+                                <p className="text-[10px] sm:text-xs text-gray-400 truncate">{formatDateShort(model.created_at, true)}</p>
                               </div>
                             </div>
                           </td>
-                          <td className="px-3 py-3"><Badge status={model.status} /></td>
+                          <td className="px-2 sm:px-3 py-3"><Badge status={model.status} compact /></td>
                           <td className="px-3 py-3 text-gray-600 hidden md:table-cell">
                             {OBJECT_TYPE_LABELS[model.object_type ?? 'object']}
                           </td>

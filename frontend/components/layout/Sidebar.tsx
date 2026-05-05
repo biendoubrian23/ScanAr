@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -12,10 +12,10 @@ import {
   LogOut,
   ScanLine,
   X,
-  Menu,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
+import { useMobileSidebar } from '@/lib/stores/mobileSidebarStore';
 
 interface NavItem {
   label: string;
@@ -173,30 +173,15 @@ function SidebarContent({ pathname, onClose }: { pathname: string; onClose?: () 
 
 export function Sidebar() {
   const pathname = usePathname();
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const { isOpen, close } = useMobileSidebar();
 
   return (
     <>
-      {/* Mobile hamburger */}
-      <button
-        type="button"
-        onClick={() => setMobileOpen(true)}
-        aria-label="Ouvrir la barre latérale"
-        className={cn(
-          'fixed top-3 left-3 z-40 lg:hidden',
-          'flex items-center justify-center w-8 h-8 rounded-lg',
-          'bg-white border border-gray-200 shadow-sm',
-          'text-gray-500 hover:text-gray-700 transition-colors',
-        )}
-      >
-        <Menu className="w-4 h-4" aria-hidden="true" />
-      </button>
-
       {/* Mobile overlay */}
-      {mobileOpen && (
+      {isOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/20 lg:hidden"
-          onClick={() => setMobileOpen(false)}
+          onClick={close}
           aria-hidden="true"
         />
       )}
@@ -204,14 +189,14 @@ export function Sidebar() {
       {/* Mobile drawer */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-56',
+          'fixed inset-y-0 left-0 z-50 w-64',
           'bg-white border-r border-gray-200 shadow-lg',
           'transition-transform duration-200 ease-in-out lg:hidden',
-          mobileOpen ? 'translate-x-0' : '-translate-x-full',
+          isOpen ? 'translate-x-0' : '-translate-x-full',
         )}
         aria-label="Mobile navigation"
       >
-        <SidebarContent pathname={pathname} onClose={() => setMobileOpen(false)} />
+        <SidebarContent pathname={pathname} onClose={close} />
       </aside>
 
       {/* Desktop sidebar */}

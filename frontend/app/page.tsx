@@ -152,19 +152,25 @@ const HERO_IMAGES = [
   { src: '/images/herosection/plat.png', alt: 'Reconstruction 3D d\'un plat' },
 ];
 
-function HeroCarousel() {
+const HERO_IMAGES_MOBILE = [
+  { src: '/images/herosection/chaiseMobile.png', alt: 'Reconstruction 3D d\'une chaise' },
+  { src: '/images/herosection/dessertMobile.png', alt: 'Reconstruction 3D d\'un dessert' },
+  { src: '/images/herosection/platMobile.png', alt: 'Reconstruction 3D d\'un plat' },
+];
+
+function HeroCarousel({ images = HERO_IMAGES, objectPosition = '58% center' }: { images?: typeof HERO_IMAGES; objectPosition?: string }) {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
     const id = setInterval(() => {
-      setIndex((i) => (i + 1) % HERO_IMAGES.length);
+      setIndex((i) => (i + 1) % images.length);
     }, 5000);
     return () => clearInterval(id);
-  }, []);
+  }, [images.length]);
 
   return (
     <div className="relative w-full h-full">
-      {HERO_IMAGES.map((img, i) => (
+      {images.map((img, i) => (
         <motion.div
           key={img.src}
           initial={false}
@@ -179,14 +185,15 @@ function HeroCarousel() {
             fill
             priority={i === 0}
             sizes="(min-width: 1024px) 70vw, 100vw"
-            className="object-contain object-[58%_center]"
+            className="object-contain"
+            style={{ objectPosition }}
           />
         </motion.div>
       ))}
 
       {/* Pagination dots — absolute bottom */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10">
-        {HERO_IMAGES.map((_, i) => (
+        {images.map((_, i) => (
           <button
             key={i}
             type="button"
@@ -213,26 +220,26 @@ const HERO_FEATURES = [
 
 function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
   return (
-    <section className="relative min-h-[54rem] flex items-start pt-6 pb-12 overflow-hidden bg-white">
-      {/* Background image carousel — full section, white space in image aligns with text */}
+    <section className="relative lg:min-h-[54rem] flex items-start pt-6 pb-10 lg:pb-12 overflow-hidden bg-white">
+      {/* Desktop image carousel — absolute, hidden on mobile */}
       <motion.div
         initial={{ opacity: 0, y: '-5%' }}
         animate={{ opacity: 1, y: '-5%' }}
         transition={{ duration: 0.9, delay: 0.15, ease: 'easeOut' }}
-        className="absolute inset-x-0 top-[1.2rem] bottom-0 pointer-events-none scale-[0.90] origin-center"
+        className="hidden lg:block absolute inset-x-0 top-[0.6rem] bottom-0 pointer-events-none scale-[0.90] origin-center"
       >
         <HeroCarousel />
       </motion.div>
 
-      {/* Foreground content — left text */}
+      {/* Foreground content — stacked on mobile, left column on desktop */}
       <div className="relative z-10 mx-auto max-w-7xl px-6 w-full">
-        <div className="max-w-[33rem]">
+        <div className="lg:max-w-[33rem]">
           {/* Badge */}
           <motion.div
             initial="hidden"
             animate="visible"
             variants={stagger(0)}
-            className="inline-flex items-center gap-[0.55rem] px-[0.825rem] py-[0.4125rem] rounded-full bg-white/80 backdrop-blur border border-gray-200 text-gray-700 text-[11px] font-medium mb-[3.5rem] uppercase tracking-[0.08em]"
+            className="hidden lg:inline-flex items-center gap-[0.55rem] px-[0.825rem] py-[0.4125rem] rounded-full bg-white/80 backdrop-blur border border-gray-200 text-gray-700 text-[11px] font-medium mb-8 lg:mb-[3.5rem] uppercase tracking-[0.08em]"
           >
             <Hexagon className="w-[0.825rem] h-[0.825rem]" strokeWidth={1.75} />
             Plateforme de reconstruction 3D & AR
@@ -243,47 +250,89 @@ function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
             initial="hidden"
             animate="visible"
             variants={stagger(0.1)}
-            className="text-[3rem] leading-[1.0] text-gray-900 mb-[2.4rem] whitespace-nowrap"
+            className="text-[1.5rem] lg:text-[3rem] leading-[1.1] lg:leading-[1.0] text-gray-900 mb-6 lg:mb-[2.4rem] whitespace-nowrap"
             style={{ fontFamily: 'var(--font-unna), Georgia, serif', fontWeight: 400, letterSpacing: '0' }}
           >
             <span
               className="inline-block"
               style={{ transform: 'scaleY(1.2)', transformOrigin: 'bottom left' }}
             >
-              Transformez vos visiteurs<br />
-              en acheteurs grâce à la<br />
-              réalité augmentée :<br />
-              <span className="relative inline-block">
-                +30%
-                <svg
-                  aria-hidden
-                  className="absolute left-[-3%] right-[-3%] -bottom-1 w-[106%] h-3 pointer-events-none"
-                  viewBox="0 0 100 12"
-                  preserveAspectRatio="none"
-                >
-                  <path
-                    d="M3,8 C30,3 70,3 97,8"
-                    stroke="#dc2626"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    fill="none"
-                  />
-                </svg>
-              </span> de ventes.
+              {/* Mobile: 2-line marketing title */}
+              <span className="lg:hidden">
+                Transformez vos visiteurs<br />
+                <span className="relative inline-block">
+                  +30%
+                  <svg
+                    aria-hidden
+                    className="absolute left-[-3%] right-[-3%] -bottom-1 w-[106%] h-3 pointer-events-none"
+                    viewBox="0 0 100 12"
+                    preserveAspectRatio="none"
+                  >
+                    <path
+                      d="M3,8 C30,3 70,3 97,8"
+                      stroke="#dc2626"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      fill="none"
+                    />
+                  </svg>
+                </span> de ventes en AR.
+              </span>
+
+              {/* Desktop: full pyramid title */}
+              <span className="hidden lg:inline">
+                Transformez vos visiteurs<br />
+                en acheteurs grâce à la<br />
+                réalité augmentée :<br />
+                <span className="relative inline-block">
+                  +30%
+                  <svg
+                    aria-hidden
+                    className="absolute left-[-3%] right-[-3%] -bottom-1 w-[106%] h-3 pointer-events-none"
+                    viewBox="0 0 100 12"
+                    preserveAspectRatio="none"
+                  >
+                    <path
+                      d="M3,8 C30,3 70,3 97,8"
+                      stroke="#dc2626"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      fill="none"
+                    />
+                  </svg>
+                </span> de ventes.
+              </span>
             </span>
           </motion.h1>
+
+          {/* Mobile image carousel — uses mobile-suffixed images, full screen width */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2, ease: 'easeOut' }}
+            className="lg:hidden relative -mx-6 aspect-[5/4] mb-8"
+          >
+            <HeroCarousel images={HERO_IMAGES_MOBILE} objectPosition="center center" />
+          </motion.div>
 
           {/* Subtitle */}
           <motion.p
             initial="hidden"
             animate="visible"
             variants={stagger(0.2)}
-            className="text-[0.95rem] text-gray-500 leading-relaxed mb-[2.2rem]"
+            className="text-[0.95rem] text-gray-500 leading-relaxed mb-7 lg:mb-[2.2rem]"
           >
-            Offrez à vos clients une expérience d&apos;achat immersive<br />
-            depuis leur navigateur, sans aucune application.<br />
-            Réduisez les retours, doublez l&apos;engagement<br />
-            et concluez plus de ventes.
+            {/* Mobile: single paragraph */}
+            <span className="lg:hidden">
+              Offrez à vos clients une expérience d&apos;achat immersive depuis leur navigateur, sans aucune application. Réduisez les retours, doublez l&apos;engagement et concluez plus de ventes.
+            </span>
+            {/* Desktop: pyramid lines */}
+            <span className="hidden lg:inline">
+              Offrez à vos clients une expérience d&apos;achat immersive<br />
+              depuis leur navigateur, sans aucune application.<br />
+              Réduisez les retours, doublez l&apos;engagement<br />
+              et concluez plus de ventes.
+            </span>
           </motion.p>
 
           {/* CTA buttons */}
@@ -291,12 +340,13 @@ function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
             initial="hidden"
             animate="visible"
             variants={stagger(0.3)}
-            className="flex flex-wrap items-center gap-[0.69rem] mb-[2.75rem]"
+            className="flex flex-col lg:flex-row lg:flex-wrap items-stretch lg:items-center gap-3 lg:gap-[0.69rem] mb-8 lg:mb-[2.75rem]"
           >
             <Link
               href="/signup"
               className={cn(
-                'flex items-center gap-[0.55rem] px-[1.375rem] py-[0.825rem] rounded-xl text-[0.95rem] font-semibold',
+                'flex items-center justify-center gap-[0.55rem] px-[1.375rem] py-[0.9rem] lg:py-[0.825rem] rounded-xl text-[0.95rem] font-semibold',
+                'w-full lg:w-auto',
                 'bg-brand-700 text-white',
                 'shadow-md shadow-brand-700/20',
                 'hover:bg-brand-800 hover:shadow-brand-700/30',
@@ -311,7 +361,8 @@ function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
               type="button"
               onClick={onDemoClick}
               className={cn(
-                'flex items-center gap-[0.55rem] px-[1.375rem] py-[0.825rem] rounded-xl text-[0.95rem] font-medium',
+                'flex items-center justify-center gap-[0.55rem] px-[1.375rem] py-[0.9rem] lg:py-[0.825rem] rounded-xl text-[0.95rem] font-medium',
+                'w-full lg:w-auto',
                 'bg-white/90 backdrop-blur border border-gray-200 text-gray-900',
                 'hover:border-gray-300 hover:bg-white',
                 'transition-all duration-200',
@@ -327,21 +378,21 @@ function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
             initial="hidden"
             animate="visible"
             variants={stagger(0.4)}
-            className="flex items-center gap-[0.825rem]"
+            className="flex items-center gap-1.5 lg:gap-[0.825rem]"
           >
             {HERO_FEATURES.map((feat) => {
               const Icon = feat.icon;
               return (
                 <div
                   key={feat.lines.join('-')}
-                  className="flex items-center gap-[0.55rem] px-[0.825rem] py-[0.55rem] rounded-lg bg-white/90 backdrop-blur border border-gray-200"
+                  className="flex items-center gap-1 lg:gap-[0.55rem]"
                 >
-                  <Icon className="w-[1.1rem] h-[1.1rem] text-gray-700 shrink-0" strokeWidth={1.75} />
+                  <Icon className="w-3 h-3 lg:w-[1.1rem] lg:h-[1.1rem] text-gray-700 shrink-0" strokeWidth={1.75} />
                   <div className="flex flex-col leading-tight">
-                    <span className="text-[12px] font-semibold text-gray-900 whitespace-nowrap">
+                    <span className="text-[9px] lg:text-[12px] font-semibold text-gray-900 whitespace-nowrap">
                       {feat.lines[0]}
                     </span>
-                    <span className="text-[12px] text-gray-500 whitespace-nowrap">
+                    <span className="text-[9px] lg:text-[12px] text-gray-500 whitespace-nowrap">
                       {feat.lines[1]}
                     </span>
                   </div>
@@ -439,7 +490,7 @@ function ImmersiveSection() {
 
             {/* Description */}
             <p className="text-[1rem] text-gray-600 leading-relaxed mb-7">
-              Manipulez, tournez, placez à taille réelle — depuis n&apos;importe
+              Manipulez, tournez, placez à taille réelle, depuis n&apos;importe
               quel téléphone, sans installation ni friction. L&apos;expérience
               d&apos;une boutique physique, accessible en un seul clic.
             </p>
@@ -492,7 +543,7 @@ function ImmersiveSection() {
 
 function PipelineVisualSection() {
   return (
-    <section className="relative py-24 bg-white overflow-hidden">
+    <section className="relative py-24 bg-[#fafafa] overflow-hidden">
       <div className="mx-auto max-w-7xl px-6">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}

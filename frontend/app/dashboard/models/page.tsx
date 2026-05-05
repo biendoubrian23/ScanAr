@@ -232,17 +232,17 @@ export default function ModelsPage() {
             <EmptyState onUpload={() => setUploadOpen(true)} hasFilter={typeFilter !== 'all' || !!search.trim()} />
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm table-fixed sm:table-auto">
                 <thead>
                   <tr className="text-xs text-gray-500 border-b border-gray-100">
-                    <th className="text-left font-normal px-5 py-3">Modèle</th>
-                    <th className="text-left font-normal px-3 py-3">Statut</th>
+                    <th className="text-left font-normal px-3 sm:px-5 py-3">Modèle</th>
+                    <th className="text-left font-normal px-2 sm:px-3 py-3 w-[40px] sm:w-auto">Statut</th>
                     <th className="text-left font-normal px-3 py-3 hidden md:table-cell">Type</th>
                     <th className="text-left font-normal px-3 py-3 hidden lg:table-cell">Créé</th>
                     <th className="text-left font-normal px-3 py-3 hidden lg:table-cell">Taille</th>
-                    <th className="text-left font-normal px-3 py-3">AR</th>
-                    <th className="text-left font-normal px-3 py-3">QR Code</th>
-                    <th className="text-right font-normal px-5 py-3">Actions</th>
+                    <th className="text-left font-normal px-2 sm:px-3 py-3 w-[56px] sm:w-auto">AR</th>
+                    <th className="text-left font-normal px-2 sm:px-3 py-3 w-[40px] sm:w-auto"><span className="hidden sm:inline">QR Code</span><span className="sm:hidden">QR</span></th>
+                    <th className="text-right font-normal px-2 sm:px-5 py-3 w-[40px] sm:w-auto"><span className="hidden sm:inline">Actions</span></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -255,9 +255,9 @@ export default function ModelsPage() {
                         onClick={() => router.push(`/dashboard/models/${model.id}`)}
                         className="border-b border-gray-50 last:border-b-0 hover:bg-gray-50/70 transition-colors cursor-pointer"
                       >
-                        <td className="px-5 py-3">
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 shrink-0 flex items-center justify-center">
+                        <td className="px-3 sm:px-5 py-3 max-w-[140px] sm:max-w-none">
+                          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg overflow-hidden bg-gray-100 shrink-0 flex items-center justify-center">
                               {model.image_url ? (
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img src={model.image_url} alt="" className="w-full h-full object-cover" />
@@ -266,12 +266,12 @@ export default function ModelsPage() {
                               )}
                             </div>
                             <div className="min-w-0">
-                              <p className="text-sm font-medium text-gray-900 truncate">{model.name}</p>
-                              <p className="text-xs text-gray-400">{formatDate(model.created_at)}</p>
+                              <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">{model.name}</p>
+                              <p className="text-[10px] sm:text-xs text-gray-400 truncate">{formatDate(model.created_at)}</p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-3 py-3"><Badge status={model.status} /></td>
+                        <td className="px-2 sm:px-3 py-3"><Badge status={model.status} compact /></td>
                         <td className="px-3 py-3 text-gray-600 hidden md:table-cell">
                           {OBJECT_TYPE_LABELS[model.object_type ?? 'object']}
                         </td>
@@ -281,7 +281,7 @@ export default function ModelsPage() {
                         <td className="px-3 py-3 text-gray-500 hidden lg:table-cell">
                           {model.file_size_bytes ? formatBytes(model.file_size_bytes) : '—'}
                         </td>
-                        <td className="px-3 py-3">
+                        <td className="px-2 sm:px-3 py-3">
                           <Toggle
                             checked={Boolean(link?.is_active)}
                             disabled={!isCompleted}
@@ -289,7 +289,7 @@ export default function ModelsPage() {
                             label={link?.is_active ? 'Désactiver AR' : 'Activer AR'}
                           />
                         </td>
-                        <td className="px-3 py-3">
+                        <td className="px-2 sm:px-3 py-3">
                           <button
                             type="button"
                             disabled={!link}
@@ -308,7 +308,7 @@ export default function ModelsPage() {
                             <QrCodeIcon className="w-4 h-4" />
                           </button>
                         </td>
-                        <td className="px-5 py-3 text-right">
+                        <td className="px-2 sm:px-5 py-3 text-right">
                           <ActionsMenu
                             ariaLabel={`Actions pour ${model.name}`}
                             items={[

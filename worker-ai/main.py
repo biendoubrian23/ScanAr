@@ -8,7 +8,7 @@ import httpx
 import redis
 from dotenv import load_dotenv
 
-from core.processor import process_image_to_3d
+from core.processor import process_images_to_3d
 from core.hunyuan import check_health
 from utils.config import get_config
 from utils.logger import logger
@@ -76,10 +76,18 @@ async def wait_for_hunyuan3d():
 async def process_job(job_data: dict):
     model_id = job_data["id"]
     user_id = job_data["user_id"]
-    image_url = job_data["image_url"]
-    image_path = job_data["image_path"]
 
-    logger.info(f"Processing job {model_id} for user {user_id}")
+    # Multi-view: prefer the new image_urls array, fall back to legacy single image_url
+    image_urls = job_data.get("image_urls")
+    if not image_urls:
+        legacy = job_data.get("image_url")
+        image_urls = [legacy] if legacy else []
+    image_paths = job_data.get("image_paths") or [job_data.get("image_path")]
+
+    if not image_urls:
+        raise ValueError("Job has no image_urls / image_url")
+
+    logger.info(f"Processing job {model_id} for user {user_id} ({len(image_urls)} image(s))")
     start_time = time.time()
 
     # Reset steps_log for this run + mark as processing
@@ -100,11 +108,11 @@ async def process_job(job_data: dict):
         async def step_cb(step, progress, status, message):
             await update_step(model_id, step, progress, status, message)
 
-        result = await process_image_to_3d(
+        result = await process_images_to_3d(
             model_id=model_id,
             user_id=user_id,
-            image_url=image_url,
-            image_path=image_path,
+            image_urls=image_urls,
+            image_paths=image_paths,
             step_callback=step_cb,
         )
 

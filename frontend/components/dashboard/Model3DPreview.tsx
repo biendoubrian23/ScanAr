@@ -14,6 +14,7 @@ interface Model3DPreviewProps {
   glbUrl: string | null;
   usdzUrl?: string | null;
   imageUrl: string | null;
+  imageUrls?: string[] | null;
   alt: string;
   className?: string;
 }
@@ -33,16 +34,25 @@ export function Model3DPreview({
   glbUrl,
   usdzUrl,
   imageUrl,
+  imageUrls,
   alt,
   className,
 }: Model3DPreviewProps) {
   const has3D = Boolean(glbUrl);
   const viewerRef = useRef<HTMLElement | null>(null);
 
+  // Build the gallery: prefer imageUrls (multi-view) and fall back to imageUrl.
+  const gallery = (imageUrls && imageUrls.length > 0)
+    ? imageUrls
+    : (imageUrl ? [imageUrl] : []);
+  const hasMultiple = gallery.length > 1;
+
   const [showImage, setShowImage]     = useState(!has3D);
   const [mvLoaded, setMvLoaded]       = useState(false);
   const [hintVisible, setHintVisible] = useState(true);
   const [yaw, setYaw]                 = useState(0);     // degrees, 0 = facing camera
+  const [activeIdx, setActiveIdx]     = useState(0);
+  const activeImage = gallery[activeIdx] ?? null;
 
   // Lazy-load model-viewer once, only if a GLB is available
   useEffect(() => {
@@ -97,19 +107,50 @@ export function Model3DPreview({
       />
 
       {/* Background poster — visible in image mode and as a 3D loading state */}
-      {imageUrl ? (
+      {activeImage ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={imageUrl}
+          key={activeImage}
+          src={activeImage}
           alt={alt}
           className={cn(
             'absolute inset-0 w-full h-full object-contain p-4 transition-opacity duration-300',
             !showImage && mvLoaded ? 'opacity-0' : 'opacity-100',
+            // Leave room for the thumbnail strip when in image mode + multi
+            showImage && hasMultiple && 'pb-24',
           )}
         />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center">
           <ImageIcon className="w-10 h-10 text-slate-400" />
+        </div>
+      )}
+
+      {/* Source images thumbnail strip — shown only in image mode when there
+          are multiple source views (multi-view 3D reconstruction). */}
+      {showImage && hasMultiple && (
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 rounded-xl bg-white/90 backdrop-blur border border-gray-200 p-1.5 shadow-sm max-w-[calc(100%-1.5rem)] overflow-x-auto scrollbar-thin">
+          {gallery.map((url, i) => (
+            <button
+              key={url}
+              type="button"
+              onClick={() => setActiveIdx(i)}
+              aria-label={`Image source ${i + 1}`}
+              aria-pressed={i === activeIdx ? 'true' : 'false'}
+              className={cn(
+                'relative w-14 h-14 rounded-lg overflow-hidden shrink-0 border transition-all',
+                i === activeIdx
+                  ? 'border-brand-600 ring-2 ring-brand-500/30'
+                  : 'border-gray-200 hover:border-gray-300 opacity-80 hover:opacity-100',
+              )}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={url} alt="" className="w-full h-full object-cover" />
+              <span className="absolute top-0.5 left-0.5 text-[9px] font-bold text-white bg-black/60 rounded px-1 leading-tight">
+                {i + 1}
+              </span>
+            </button>
+          ))}
         </div>
       )}
 

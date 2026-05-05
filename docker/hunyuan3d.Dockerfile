@@ -40,6 +40,10 @@ RUN sed -i 's/@app.post("\/generate")/@app.get("\/health")\ndef health_check():\
 RUN sed -i 's/custom_pipeline=custom_pipeline_path, torch_dtype=torch.float16/custom_pipeline=custom_pipeline_path, torch_dtype=torch.float16, trust_remote_code=True/' \
     hy3dgen/texgen/utils/multiview_utils.py
 
+# Patch: accept `image` as a list[str] (multi-view) in api_server.generate()
+COPY docker/patch_hunyuan_api.py /tmp/patch_hunyuan_api.py
+RUN python /tmp/patch_hunyuan_api.py
+
 # Build CUDA texture extensions (custom_rasterizer)
 RUN cd hy3dgen/texgen/custom_rasterizer && \
     python setup.py install && \
@@ -55,12 +59,14 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=15s --start-period=300s --retries=5 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')" || exit 1
 
-# Launch the official API server with:
-#   - Hunyuan3D-2mini for shape generation (lighter, fits 16GB)
-#   - Hunyuan3D-2 for texture painting
-#   - low_vram_mode for sequential model loading
+# Launch the API server with:
+#   - Hunyuan3D-2mv (multi-view shape model — supports 1-4 input images)
+#   - Subfolder hunyuan3d-dit-v2-mv-turbo for fast inference
+#   - Hunyuan3D-2 for texture painting (unchanged)
 CMD ["python", "api_server.py", \
      "--host", "0.0.0.0", \
      "--port", "8080", \
+     "--model_path", "tencent/Hunyuan3D-2mv", \
+     "--subfolder", "hunyuan3d-dit-v2-mv-turbo", \
      "--enable_tex", \
      "--device", "cuda"]

@@ -1,7 +1,7 @@
 'use client';
 
-import { useRef, useState } from 'react';
-import { AlertCircle, Camera } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { AlertCircle, Camera, X } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 
 const ALLOWED_MIME: AllowedMimeType[] = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_BYTES = 10 * 1024 * 1024;
+const MAX_FILES = 4;
 
 interface UploadModalProps {
   isOpen: boolean;
@@ -28,20 +29,36 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
 
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
-  const [file, setFile]             = useState<File | null>(null);
+  const [files, setFiles]           = useState<File[]>([]);
+  const [previews, setPreviews]     = useState<string[]>([]);
   const [name, setName]             = useState('');
   const [objectType, setObjectType] = useState<ObjectType>('object');
   const [cameraError, setCameraError] = useState<string | null>(null);
 
-  const handleFileAccepted = (f: File) => {
+  // Manage object URL lifecycle so we don't leak memory across renders.
+  useEffect(() => {
+    const urls = files.map((f) => URL.createObjectURL(f));
+    setPreviews(urls);
+    return () => urls.forEach((u) => URL.revokeObjectURL(u));
+  }, [files]);
+
+  const handleFilesAccepted = (incoming: File[]) => {
     setCameraError(null);
-    setFile(f);
-    if (!name) setName(f.name.replace(/\.[^.]+$/, ''));
+    setFiles((prev) => {
+      const merged = [...prev, ...incoming].slice(0, MAX_FILES);
+      // Auto-name from the first file if name is empty
+      if (!name && merged[0]) {
+        setName(merged[0].name.replace(/\.[^.]+$/, ''));
+      }
+      return merged;
+    });
   };
 
-  // Camera capture path — uses a hidden <input capture="environment"> which
-  // opens the rear camera on mobile and the webcam on desktop. We validate
-  // type/size manually since react-dropzone isn't in the loop here.
+  const removeAt = (idx: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  // Camera capture (single shot per click — user can repeat)
   const handleCameraClick = () => {
     setCameraError(null);
     cameraInputRef.current?.click();
@@ -49,7 +66,7 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
 
   const handleCameraFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
-    e.target.value = ''; // allow re-shooting the same file
+    e.target.value = '';
     if (!f) return;
     if (!ALLOWED_MIME.includes(f.type as AllowedMimeType)) {
       setCameraError("Format invalide. Utilisez JPG, PNG ou WebP.");
@@ -59,11 +76,15 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
       setCameraError('La photo dépasse la limite de 10 Mo.');
       return;
     }
-    handleFileAccepted(f);
+    if (files.length >= MAX_FILES) {
+      setCameraError(`Maximum ${MAX_FILES} images.`);
+      return;
+    }
+    handleFilesAccepted([f]);
   };
 
   const reset = () => {
-    setFile(null);
+    setFiles([]);
     setName('');
     setObjectType('object');
     setCameraError(null);
@@ -76,10 +97,9 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
   };
 
   const handleSubmit = async () => {
-    if (!file) return;
-    const created = await startUpload(file, name || file.name);
+    if (files.length === 0) return;
+    const created = await startUpload(files, name || files[0].name);
     if (created) {
-      // Persist the chosen object_type immediately (best-effort, fire-and-forget)
       if (objectType !== 'object') {
         fetch(`/api/models/${created.id}`, {
           method: 'PATCH',
@@ -96,10 +116,6 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="Importer un modèle 3D" size="md">
       <div className="space-y-4">
-        {/* Hidden input wired to a separate "Prendre une photo" CTA. The
-            `capture="environment"` attribute makes mobile browsers open the
-            rear camera directly; on desktop most browsers fall back to the
-            webcam picker. */}
         <input
           ref={cameraInputRef}
           type="file"
@@ -111,7 +127,17 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
           onChange={handleCameraFile}
         />
 
-        <UploadZone onFileAccepted={handleFileAccepted} disabled={isUploading} />
+        <div className="text-xs text-gray-500 -mb-1">
+          Ajoutez 1 à {MAX_FILES} photos du même objet sous différents angles
+          pour un meilleur rendu 3D.
+        </div>
+
+        <UploadZone
+          onFilesAccepted={handleFilesAccepted}
+          maxFiles={MAX_FILES}
+          currentCount={files.length}
+          disabled={isUploading}
+        />
 
         <div className="relative flex items-center gap-3 text-xs text-gray-400">
           <div className="flex-1 h-px bg-gray-200" />
@@ -122,12 +148,12 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
         <button
           type="button"
           onClick={handleCameraClick}
-          disabled={isUploading}
+          disabled={isUploading || files.length >= MAX_FILES}
           className={cn(
             'w-full inline-flex items-center justify-center gap-2 h-11 rounded-xl',
             'bg-white border border-gray-200 hover:border-brand-300 hover:bg-brand-50/30',
             'text-sm font-medium text-gray-700 transition-colors',
-            isUploading && 'opacity-50 cursor-not-allowed',
+            (isUploading || files.length >= MAX_FILES) && 'opacity-50 cursor-not-allowed',
           )}
         >
           <Camera className="w-4 h-4 text-brand-600" />
@@ -138,25 +164,43 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
           <p className="text-xs text-red-600 text-center">{cameraError}</p>
         )}
 
-        {file && !isUploading && (
-          <div className="rounded-lg bg-gray-50 border border-gray-200 px-3 py-2.5 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-md overflow-hidden bg-white border border-gray-200 shrink-0">
-              <img
-                src={URL.createObjectURL(file)}
-                alt="preview"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm text-gray-800 truncate">{file.name}</p>
-              <p className="text-xs text-gray-500">
-                {(file.size / 1024 / 1024).toFixed(2)} Mo
-              </p>
-            </div>
+        {files.length > 0 && !isUploading && (
+          <div className="grid grid-cols-2 gap-2">
+            {files.map((f, idx) => (
+              <div
+                key={`${f.name}-${idx}`}
+                className="relative group rounded-lg bg-gray-50 border border-gray-200 px-2.5 py-2 flex items-center gap-2.5"
+              >
+                <div className="w-10 h-10 rounded-md overflow-hidden bg-white border border-gray-200 shrink-0">
+                  {previews[idx] && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={previews[idx]}
+                      alt={`Image ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-gray-800 truncate">{f.name}</p>
+                  <p className="text-[10px] text-gray-500">
+                    {(f.size / 1024 / 1024).toFixed(2)} Mo
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeAt(idx)}
+                  aria-label={`Retirer l'image ${idx + 1}`}
+                  className="shrink-0 w-6 h-6 rounded-md flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
           </div>
         )}
 
-        {file && (
+        {files.length > 0 && (
           <>
             <Input
               label="Nom du modèle"
@@ -167,7 +211,7 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
             />
 
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="upload-object-type" className="text-sm font-medium text-gray-700">Type d'objet</label>
+              <label htmlFor="upload-object-type" className="text-sm font-medium text-gray-700">Type d&apos;objet</label>
               <select
                 id="upload-object-type"
                 aria-label="Type d'objet"
@@ -205,7 +249,7 @@ export function UploadModal({ isOpen, onClose, onSuccess }: UploadModalProps) {
           <Button
             onClick={handleSubmit}
             loading={isUploading}
-            disabled={!file || isUploading}
+            disabled={files.length === 0 || isUploading}
             className="flex-1"
           >
             Générer le modèle 3D

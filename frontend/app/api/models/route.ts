@@ -65,7 +65,10 @@ export async function POST(
     );
   }
 
-  let body: { imagePath?: string; name?: string };
+  // Accept either:
+  //   { imagePath: string, name: string }            ← legacy, single image
+  //   { imagePaths: string[], name: string }          ← multi-view (1-4 images)
+  let body: { imagePath?: string; imagePaths?: string[]; name?: string };
   try {
     body = await req.json();
   } catch {
@@ -75,38 +78,56 @@ export async function POST(
     );
   }
 
-  const { imagePath, name } = body;
+  const { imagePath, imagePaths, name } = body;
 
-  if (!imagePath || !name) {
+  // Normalise to an array of paths (1-4 elements)
+  const paths: string[] = imagePaths && imagePaths.length > 0
+    ? imagePaths
+    : (imagePath ? [imagePath] : []);
+
+  if (paths.length === 0 || !name) {
     return NextResponse.json(
-      { data: null, error: 'imagePath and name are required', success: false },
+      { data: null, error: 'At least one imagePath (or imagePaths) and name are required', success: false },
+      { status: 400 },
+    );
+  }
+  if (paths.length > 4) {
+    return NextResponse.json(
+      { data: null, error: 'Maximum 4 images allowed per model', success: false },
       { status: 400 },
     );
   }
 
-  // Generate a long-lived signed URL so the worker (which has no auth) can
-  // download the image from the private 'images' bucket, and the UI can show
-  // the thumbnail for up to one year.
-  const { data: signedData, error: signedError } = await supabaseAdmin.storage
-    .from('images')
-    .createSignedUrl(imagePath, 365 * 24 * 60 * 60); // 1 year
-
-  if (signedError || !signedData?.signedUrl) {
-    return NextResponse.json(
-      { data: null, error: `Failed to sign image URL: ${signedError?.message ?? 'unknown'}`, success: false },
-      { status: 500 },
-    );
+  // Generate a long-lived signed URL for each image (worker has no auth, so
+  // it must download via signed URL from the private 'images' bucket).
+  const signedUrls: string[] = [];
+  for (const p of paths) {
+    const { data: signedData, error: signedError } = await supabaseAdmin.storage
+      .from('images')
+      .createSignedUrl(p, 365 * 24 * 60 * 60); // 1 year
+    if (signedError || !signedData?.signedUrl) {
+      return NextResponse.json(
+        { data: null, error: `Failed to sign image URL for ${p}: ${signedError?.message ?? 'unknown'}`, success: false },
+        { status: 500 },
+      );
+    }
+    signedUrls.push(signedData.signedUrl);
   }
 
-  const imageUrl = signedData.signedUrl;
+  const primaryUrl  = signedUrls[0];
+  const primaryPath = paths[0];
 
   // ── Create the models_3d record ──────────────────────────────────────────
+  // Legacy single-image columns mirror the first element so old code paths
+  // (UI thumbnails, downstream consumers) continue to work without changes.
   const { data: model, error: insertError } = await supabaseAdmin
     .from('models_3d')
     .insert({
       user_id: session.user.id,
-      image_url: imageUrl,
-      image_path: imagePath,
+      image_url: primaryUrl,
+      image_path: primaryPath,
+      image_urls: signedUrls,
+      image_paths: paths,
       name,
       status: 'pending',
       progress: 0,
@@ -126,8 +147,10 @@ export async function POST(
     id: model.id,
     model_id: model.id,
     user_id: session.user.id,
-    image_url: imageUrl,
-    image_path: imagePath,
+    image_url: primaryUrl,
+    image_path: primaryPath,
+    image_urls: signedUrls,
+    image_paths: paths,
     status: 'pending',
     created_at: model.created_at,
   };

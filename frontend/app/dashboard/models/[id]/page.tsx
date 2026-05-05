@@ -241,6 +241,7 @@ export default function ModelDetailPage() {
             glbUrl={model.glb_url}
             usdzUrl={model.usdz_url}
             imageUrl={model.image_url}
+            imageUrls={model.image_urls}
             alt={model.name}
           />
         </div>

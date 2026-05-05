@@ -6,7 +6,12 @@ import { Upload, ImagePlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface UploadZoneProps {
-  onFileAccepted: (file: File) => void;
+  /** Callback fired with all newly accepted files (1..maxFiles items). */
+  onFilesAccepted: (files: File[]) => void;
+  /** Maximum total files the parent currently accepts (already-selected included). */
+  maxFiles?: number;
+  /** How many files the parent already holds — used to compute remaining slots. */
+  currentCount?: number;
   disabled?: boolean;
   className?: string;
 }
@@ -19,21 +24,38 @@ const ACCEPT = {
 
 const MAX_SIZE = 10 * 1024 * 1024;
 
-export function UploadZone({ onFileAccepted, disabled, className }: UploadZoneProps) {
+export function UploadZone({
+  onFilesAccepted,
+  maxFiles = 4,
+  currentCount = 0,
+  disabled,
+  className,
+}: UploadZoneProps) {
+  const remaining = Math.max(0, maxFiles - currentCount);
+  const isFull = remaining === 0;
+
   const onDrop = useCallback(
-    (accepted: File[]) => { if (accepted.length > 0) onFileAccepted(accepted[0]); },
-    [onFileAccepted],
+    (accepted: File[]) => {
+      if (accepted.length > 0) onFilesAccepted(accepted);
+    },
+    [onFilesAccepted],
   );
 
   const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
-    onDrop, accept: ACCEPT, maxSize: MAX_SIZE, maxFiles: 1, disabled, multiple: false,
+    onDrop,
+    accept: ACCEPT,
+    maxSize: MAX_SIZE,
+    maxFiles: remaining,
+    disabled: disabled || isFull,
+    multiple: maxFiles > 1,
   });
 
   const rejection = fileRejections[0]?.errors[0];
   let errorMsg: string | null = null;
   if (rejection) {
-    if (rejection.code === 'file-too-large')         errorMsg = 'Le fichier dépasse la limite de 10 Mo';
+    if (rejection.code === 'file-too-large')         errorMsg = 'Un fichier dépasse la limite de 10 Mo';
     else if (rejection.code === 'file-invalid-type') errorMsg = 'Seuls les formats JPG, PNG et WebP sont acceptés';
+    else if (rejection.code === 'too-many-files')    errorMsg = `Maximum ${maxFiles} images au total`;
     else                                              errorMsg = rejection.message;
   }
 
@@ -49,7 +71,7 @@ export function UploadZone({ onFileAccepted, disabled, className }: UploadZonePr
           isDragActive
             ? 'border-brand-400 bg-brand-50'
             : 'border-gray-200 bg-gray-50 hover:border-brand-300 hover:bg-brand-50/30',
-          disabled && 'opacity-50 cursor-not-allowed pointer-events-none',
+          (disabled || isFull) && 'opacity-50 cursor-not-allowed pointer-events-none',
         )}
       >
         <input {...getInputProps()} />
@@ -66,15 +88,21 @@ export function UploadZone({ onFileAccepted, disabled, className }: UploadZonePr
         </div>
 
         <div className="text-center">
-          {isDragActive ? (
-            <p className="text-sm font-medium text-brand-600">Déposez votre image ici</p>
+          {isFull ? (
+            <p className="text-sm text-gray-500">
+              Limite atteinte ({maxFiles} images max)
+            </p>
+          ) : isDragActive ? (
+            <p className="text-sm font-medium text-brand-600">
+              Déposez {remaining > 1 ? 'vos images' : 'votre image'} ici
+            </p>
           ) : (
             <>
               <p className="text-sm text-gray-700">
                 <span className="font-medium text-brand-600">Cliquez pour choisir</span> ou glissez-déposez
               </p>
               <p className="text-xs text-gray-400 mt-0.5">
-                JPG, PNG ou WebP · 10 Mo max
+                JPG, PNG ou WebP · 10 Mo max · {currentCount}/{maxFiles} sélectionnées
               </p>
             </>
           )}

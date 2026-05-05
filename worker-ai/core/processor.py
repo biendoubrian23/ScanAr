@@ -74,15 +74,18 @@ def _extract_glb_metadata(glb_bytes: bytes) -> dict:
         return {}
 
 
-async def process_image_to_3d(
+async def process_images_to_3d(
     model_id: str,
     user_id: str,
-    image_url: str,
-    image_path: str,
+    image_urls: list[str],
+    image_paths: Optional[list[str]] = None,
     step_callback: Optional[Callable] = None,
 ) -> dict:
     """
-    Process an image into a 3D GLB+USDZ asset.
+    Process 1..4 images into a 3D GLB+USDZ asset (multi-view reconstruction).
+
+    The first URL is the front view (driver image); additional images become
+    back/left/right views fed to Hunyuan3D-2mv via `mv_image_dict`.
 
     `step_callback(step, progress, status="started"|"done"|"failed", message=None)`
     is invoked at every phase boundary so the frontend can render a live stepper.
@@ -93,11 +96,14 @@ async def process_image_to_3d(
         if step_callback:
             await step_callback(step, progress, status, message)
 
-    # ── 1. Download source image ────────────────────────────────────────
+    # ── 1. Download source images (parallel) ────────────────────────────
     await emit(STEP_DOWNLOAD, 5, "started")
-    logger.info(f"Downloading source image: {image_url}")
-    image_data = await download_image(image_url)
-    logger.info(f"Image downloaded: {len(image_data)} bytes")
+    logger.info(f"Downloading {len(image_urls)} source image(s)")
+
+    import asyncio as _asyncio
+    image_blobs = await _asyncio.gather(*(download_image(u) for u in image_urls))
+    total_bytes = sum(len(b) for b in image_blobs)
+    logger.info(f"Images downloaded: {len(image_blobs)} files, {total_bytes} bytes total")
     await emit(STEP_DOWNLOAD, 10, "done")
 
     # ── 2. Shape generation (Hunyuan3D shape model) ─────────────────────
@@ -105,11 +111,9 @@ async def process_image_to_3d(
     from core.hunyuan import generate_3d_with_usdz
 
     # ── 3. Texture generation happens inside generate_3d_with_usdz ─────
-    # We emit the texture step as "started" immediately so the UI shows it
-    # rolling; on done we'll mark both shape+texture done.
     await emit(STEP_TEXTURE, 35, "started")
 
-    result = await generate_3d_with_usdz(image_data)
+    result = await generate_3d_with_usdz(image_blobs)
     glb_bytes = result["glb_bytes"]
     usdz_bytes = result.get("usdz_bytes")
 

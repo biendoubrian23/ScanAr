@@ -36,6 +36,7 @@ services:
       - PYTHONHTTPSVERIFY=0
     volumes:
       - hf_cache:/root/.cache/huggingface
+      - ./docker/api_server_patched.py:/app/Hunyuan3D-2/api_server.py:ro
     deploy:
       resources:
         limits:

@@ -291,21 +291,18 @@ function TimeSeriesChart({ data }: { data: { date: string; count: number }[] }) 
 
 // ─── KPI card ──────────────────────────────────────────────────────────────
 
-function Kpi({ label, value, icon, accent }: {
+function Kpi({ label, value, icon }: {
   label: string;
   value: string | number;
   icon: React.ReactNode;
-  accent?: string;
 }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-6 min-h-[130px] flex flex-col">
+    <div className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-6 sm:min-h-[130px] flex flex-col gap-1.5 sm:gap-3">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-sm text-gray-500">{label}</p>
-        <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center', accent ?? 'bg-brand-50 text-brand-600')}>
-          {icon}
-        </div>
+        <p className="text-xs sm:text-sm text-gray-500">{label}</p>
+        <span className="text-gray-400 shrink-0" aria-hidden="true">{icon}</span>
       </div>
-      <p className="text-4xl font-semibold text-gray-900 tabular-nums leading-tight mt-3">{value}</p>
+      <p className="text-2xl sm:text-4xl font-semibold text-gray-900 tabular-nums leading-tight">{value}</p>
     </div>
   );
 }
@@ -388,39 +385,41 @@ export default function AnalyticsPage() {
           </div>
         )}
 
-        {/* KPIs */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Kpi
-            label="Scans AR"
-            value={loading ? '—' : summary?.total_scans ?? 0}
-            icon={<BarChart2 className="w-4 h-4" />}
-          />
-          <Kpi
-            label="Engagement"
-            value={loading ? '—' : `${engagement}`}
-            icon={<TrendingUp className="w-4 h-4" />}
-            accent="bg-emerald-50 text-emerald-600"
-          />
-          <Kpi
-            label="Vues uniques"
-            value={loading ? '—' : uniqueViews}
-            icon={<Eye className="w-4 h-4" />}
-            accent="bg-amber-50 text-amber-600"
-          />
-          <Kpi
-            label="Liens actifs"
-            value={activeLinks}
-            icon={<Smartphone className="w-4 h-4" />}
-            accent="bg-sky-50 text-sky-600"
-          />
-        </div>
-
-        {/* Two-col layout: chart on the left, stacked widgets on the right */}
+        {/* On mobile: Chart appears FIRST (order-1), KPIs second (order-2),
+            side widgets last (order-3). On desktop, the natural reading order
+            is restored: KPIs at the top, chart + side widgets in a 2-col grid
+            below. */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
 
-          {/* LEFT — Vues dans le temps (large) */}
-          <section className="lg:col-span-7 bg-white border border-gray-200 rounded-2xl p-5 flex flex-col">
-            <div className="flex items-center justify-between mb-5">
+          {/* KPIs row — full-width on desktop */}
+          <div className="order-2 lg:order-1 lg:col-span-12 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <Kpi
+              label="Scans AR"
+              value={loading ? '—' : summary?.total_scans ?? 0}
+              icon={<BarChart2 className="w-4 h-4" />}
+            />
+            <Kpi
+              label="Engagement"
+              value={loading ? '—' : `${engagement}`}
+              icon={<TrendingUp className="w-4 h-4" />}
+            />
+            <Kpi
+              label="Vues uniques"
+              value={loading ? '—' : uniqueViews}
+              icon={<Eye className="w-4 h-4" />}
+            />
+            <Kpi
+              label="Liens actifs"
+              value={activeLinks}
+              icon={<Smartphone className="w-4 h-4" />}
+            />
+          </div>
+
+          {/* Chart — order-1 on mobile (above KPIs), order-2 on desktop. On
+              mobile we shrink the vertical footprint so the chart reads as a
+              wide horizontal panel rather than dominating the fold. */}
+          <section className="order-1 lg:order-2 lg:col-span-7 bg-white border border-gray-200 rounded-2xl p-4 sm:p-5 flex flex-col">
+            <div className="flex items-center justify-between mb-3 sm:mb-5">
               <div>
                 <h2 className="text-sm font-semibold text-gray-900">Vues dans le temps</h2>
                 <p className="text-xs text-gray-500 mt-0.5">
@@ -428,7 +427,7 @@ export default function AnalyticsPage() {
                 </p>
               </div>
             </div>
-            <div className="flex-1 min-h-[260px]">
+            <div className="flex-1 h-[140px] sm:h-auto sm:min-h-[260px]">
               {loading ? (
                 <div className="h-full bg-gray-50 rounded-lg animate-pulse" />
               ) : (
@@ -438,7 +437,7 @@ export default function AnalyticsPage() {
           </section>
 
           {/* RIGHT — Top produits stacked above Répartition par appareil */}
-          <div className="lg:col-span-5 flex flex-col gap-5">
+          <div className="order-3 lg:col-span-5 flex flex-col gap-5">
 
             <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
               <div className="px-5 py-4 border-b border-gray-100">

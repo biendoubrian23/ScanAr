@@ -13,7 +13,13 @@ os.environ["HF_HUB_DISABLE_XET"] = "1"
 
 from huggingface_hub import snapshot_download
 
-print("=== Downloading tencent/Hunyuan3D-2mini (shape model) ===")
+# Multi-view shape model — supports 1..4 input images via mv_image_dict
+print("=== Downloading tencent/Hunyuan3D-2mv (multi-view shape model) ===")
+snapshot_download("tencent/Hunyuan3D-2mv", cache_dir="/root/.cache/huggingface/hub")
+print("=== DONE: Hunyuan3D-2mv ===")
+
+# Single-view lightweight shape model — kept for fallback / single-image scenarios
+print("=== Downloading tencent/Hunyuan3D-2mini (single-view shape model, fallback) ===")
 snapshot_download("tencent/Hunyuan3D-2mini", cache_dir="/root/.cache/huggingface/hub")
 print("=== DONE: Hunyuan3D-2mini ===")
 

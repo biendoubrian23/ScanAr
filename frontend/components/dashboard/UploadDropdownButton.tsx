@@ -28,7 +28,7 @@ export function UploadDropdownButton({ onSelectImage, className }: UploadDropdow
   }, [open]);
 
   return (
-    <div ref={containerRef} className={cn('relative inline-flex', className)}>
+    <div ref={containerRef} className={cn('relative hidden sm:inline-flex', className)}>
       <button
         type="button"
         onClick={onSelectImage}
@@ -83,6 +83,24 @@ export function UploadDropdownButton({ onSelectImage, className }: UploadDropdow
             </div>
           </button>
 
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              setOpen(false);
+              onSelectImage();
+            }}
+            className="w-full flex items-start gap-3 px-3 py-2.5 hover:bg-gray-50 text-left transition-colors"
+          >
+            <div className="w-8 h-8 rounded-lg bg-brand-50 flex items-center justify-center shrink-0">
+              <Layers className="w-4 h-4 text-brand-600" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-gray-900">Multi-photos</p>
+              <p className="text-xs text-gray-500">1 à 4 angles pour un meilleur rendu 3D</p>
+            </div>
+          </button>
+
           <div className="px-3 py-2.5 flex items-start gap-3 opacity-60 cursor-not-allowed">
             <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
               <Video className="w-4 h-4 text-gray-400" />
@@ -90,19 +108,6 @@ export function UploadDropdownButton({ onSelectImage, className }: UploadDropdow
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-gray-700">Depuis une vidéo</p>
               <p className="text-xs text-gray-400">Capture multi-angle automatique</p>
-            </div>
-            <span className="text-[10px] uppercase tracking-wide font-semibold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded shrink-0">
-              Bientôt
-            </span>
-          </div>
-
-          <div className="px-3 py-2.5 flex items-start gap-3 opacity-60 cursor-not-allowed">
-            <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-              <Layers className="w-4 h-4 text-gray-400" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-gray-700">Multi-photos</p>
-              <p className="text-xs text-gray-400">Plusieurs angles d'un même produit</p>
             </div>
             <span className="text-[10px] uppercase tracking-wide font-semibold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded shrink-0">
               Bientôt

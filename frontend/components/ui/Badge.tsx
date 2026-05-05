@@ -12,6 +12,8 @@ interface StatusBadgeProps {
   variant?: never;
   children?: never;
   className?: string;
+  /** When true, the text label is hidden on screens < sm (only the colored dot shows). */
+  compact?: boolean;
 }
 
 interface VariantBadgeProps {
@@ -19,6 +21,7 @@ interface VariantBadgeProps {
   variant?: BadgeVariant;
   children: React.ReactNode;
   className?: string;
+  compact?: boolean;
 }
 
 type BadgeProps = StatusBadgeProps | VariantBadgeProps;
@@ -63,11 +66,17 @@ export function Badge(props: BadgeProps) {
   const { className } = props;
 
   if ('status' in props && props.status !== undefined) {
-    const { status } = props;
+    const { status, compact } = props;
 
     return (
       <span
-        className={cn(baseStyles, statusStyles[status], className)}
+        className={cn(
+          baseStyles,
+          statusStyles[status],
+          // Compact: shrink to a square dot-only badge below the sm breakpoint.
+          compact && 'sm:px-2.5 sm:py-0.5 px-1.5 py-1.5 sm:gap-1.5 gap-0',
+          className,
+        )}
         role="status"
         aria-label={`Status: ${statusLabels[status]}`}
       >
@@ -75,15 +84,22 @@ export function Badge(props: BadgeProps) {
           className={cn('w-1.5 h-1.5 rounded-full shrink-0', statusDotStyles[status])}
           aria-hidden="true"
         />
-        {statusLabels[status]}
+        <span className={cn(compact && 'hidden sm:inline')}>{statusLabels[status]}</span>
       </span>
     );
   }
 
-  const { variant = 'default', children } = props as VariantBadgeProps;
+  const { variant = 'default', children, compact } = props as VariantBadgeProps;
 
   return (
-    <span className={cn(baseStyles, variantStyles[variant], className)}>
+    <span
+      className={cn(
+        baseStyles,
+        variantStyles[variant],
+        compact && 'sm:px-2.5 px-1.5',
+        className,
+      )}
+    >
       {children}
     </span>
   );

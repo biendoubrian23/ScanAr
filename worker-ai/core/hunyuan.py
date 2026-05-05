@@ -1,8 +1,9 @@
 import base64
 import io
 import os
+import subprocess
 import tempfile
-from typing import Optional
+from typing import Optional, Union
 
 import httpx
 
@@ -21,21 +22,48 @@ async def check_health() -> bool:
         return False
 
 
-async def generate_3d_from_image(image_data: bytes, with_texture: bool = True) -> dict:
+async def generate_3d_from_images(
+    image_blobs: Union[bytes, list[bytes]],
+    with_texture: bool = True,
+) -> dict:
     """
-    Calls the Hunyuan3D API server to generate a textured 3D model from an image.
-    API: POST /generate {"image": "<base64>", "texture": true}
-    Returns: binary GLB content
-    """
-    logger.info(f"Calling Hunyuan3D API at {HUNYUAN3D_API_URL}/generate (texture={with_texture})")
+    Calls the Hunyuan3D API server to generate a textured 3D model.
 
-    image_b64 = base64.b64encode(image_data).decode("utf-8")
+    Accepts 1..4 images:
+      - 1 image  → single-view diffusion (image=<b64>)
+      - 2..4     → multi-view diffusion  (image=[<b64>, <b64>, ...])
+                   First image is the front view, the rest fill back/left/right.
+
+    Backward-compatible: a raw bytes input is treated as a 1-image list.
+    Returns: {"glb_bytes": <binary GLB>}
+    """
+    # Normalise to list[bytes]
+    if isinstance(image_blobs, (bytes, bytearray)):
+        blobs = [bytes(image_blobs)]
+    else:
+        blobs = list(image_blobs)
+
+    if not blobs:
+        raise ValueError("No image data provided")
+    if len(blobs) > 4:
+        raise ValueError(f"Maximum 4 images supported, got {len(blobs)}")
+
+    image_b64_list = [base64.b64encode(d).decode("utf-8") for d in blobs]
+
+    # Single-image: send `image` as string for full backward compat.
+    # Multi-image:  send `image` as list (handled by patched api_server.py).
+    image_field = image_b64_list[0] if len(image_b64_list) == 1 else image_b64_list
 
     payload = {
-        "image": image_b64,
+        "image": image_field,
         "texture": with_texture,
         "seed": 1234,
     }
+
+    logger.info(
+        f"Calling Hunyuan3D API at {HUNYUAN3D_API_URL}/generate "
+        f"(views={len(blobs)}, texture={with_texture})"
+    )
 
     async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT) as client:
         resp = await client.post(
@@ -56,12 +84,17 @@ async def generate_3d_from_image(image_data: bytes, with_texture: bool = True) -
         return {"glb_bytes": glb_bytes}
 
 
-async def generate_3d_with_usdz(image_data: bytes) -> dict:
+# Legacy alias kept for any callers that might still pass a single bytes blob.
+async def generate_3d_from_image(image_data: bytes, with_texture: bool = True) -> dict:
+    return await generate_3d_from_images([image_data], with_texture=with_texture)
+
+
+async def generate_3d_with_usdz(image_blobs: Union[bytes, list[bytes]]) -> dict:
     """
     Generates GLB via Hunyuan3D API, then converts to USDZ locally.
     Falls back gracefully if USDZ conversion fails.
     """
-    result = await generate_3d_from_image(image_data, with_texture=True)
+    result = await generate_3d_from_images(image_blobs, with_texture=True)
     glb_bytes = result["glb_bytes"]
 
     usdz_bytes = _local_usdz_convert(glb_bytes)
@@ -72,25 +105,64 @@ async def generate_3d_with_usdz(image_data: bytes) -> dict:
     }
 
 
+_BLENDER_CONVERT_SCRIPT = """\
+import bpy, sys
+args = sys.argv[sys.argv.index("--") + 1:]
+glb_path, usdz_path = args[0], args[1]
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.import_scene.gltf(filepath=glb_path)
+bpy.ops.wm.usd_export(filepath=usdz_path, export_textures=True, overwrite_textures=True)
+"""
+
+
 def _local_usdz_convert(glb_bytes: bytes) -> Optional[bytes]:
-    """Attempt local GLB → USDZ conversion via trimesh."""
+    """Convert GLB → USDZ using Blender CLI (headless)."""
+    blender = _find_blender()
+    if blender is None:
+        logger.warning("Blender not found — skipping USDZ conversion")
+        return None
+
+    glb_path = usdz_path = script_path = None
     try:
-        import trimesh
+        with tempfile.NamedTemporaryFile(suffix=".glb", delete=False) as f:
+            f.write(glb_bytes)
+            glb_path = f.name
 
-        with tempfile.NamedTemporaryFile(suffix=".glb", delete=False) as tmp:
-            tmp.write(glb_bytes)
-            tmp_path = tmp.name
+        usdz_path = glb_path.replace(".glb", ".usdz")
+        script_path = glb_path.replace(".glb", "_usdz.py")
+        with open(script_path, "w") as f:
+            f.write(_BLENDER_CONVERT_SCRIPT)
 
-        scene = trimesh.load(tmp_path)
-        os.unlink(tmp_path)
+        result = subprocess.run(
+            [blender, "--background", "--python", script_path, "--", glb_path, usdz_path],
+            capture_output=True, text=True, timeout=180,
+        )
 
-        usdz_data = scene.export(file_type="usdz")
-        if usdz_data and len(usdz_data) > 100:
-            logger.info(f"USDZ conversion OK: {len(usdz_data)} bytes")
-            return usdz_data
-    except ImportError:
-        logger.warning("trimesh not available for USDZ conversion")
+        if result.returncode == 0 and os.path.exists(usdz_path):
+            with open(usdz_path, "rb") as f:
+                data = f.read()
+            if len(data) > 100:
+                logger.info(f"USDZ conversion OK: {len(data)} bytes")
+                return data
+        logger.warning(f"Blender USDZ failed (rc={result.returncode}): {result.stderr[-300:]}")
+
     except Exception as e:
-        logger.warning(f"USDZ conversion failed: {e}")
+        logger.warning(f"Blender USDZ conversion error: {e}")
+    finally:
+        for p in (glb_path, usdz_path, script_path):
+            if p:
+                try: os.unlink(p)
+                except OSError: pass
 
+    return None
+
+
+def _find_blender() -> Optional[str]:
+    for path in ["/usr/local/bin/blender", "/usr/bin/blender", "blender"]:
+        try:
+            r = subprocess.run([path, "--version"], capture_output=True, timeout=5)
+            if r.returncode == 0:
+                return path
+        except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+            continue
     return None
