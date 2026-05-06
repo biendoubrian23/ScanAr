@@ -25,7 +25,7 @@ export function ModelCard({
   const isCompleted  = model.status === 'completed';
 
   return (
-    <div className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.1)] transition-all duration-200 overflow-hidden">
+    <div className="bg-white/30 backdrop-blur-xl border border-white/50 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] hover:bg-white/45 hover:shadow-[0_12px_40px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] transition-all duration-200 overflow-hidden">
       {/* Image preview */}
       <div className="relative h-44 bg-gray-100 overflow-hidden">
         {model.image_url ? (

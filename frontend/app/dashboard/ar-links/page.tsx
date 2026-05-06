@@ -140,7 +140,7 @@ export default function ARLinksPage() {
       )}
 
       <div>
-        <section className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] overflow-hidden">
+        <section className="bg-white/30 backdrop-blur-xl border border-white/50 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] overflow-hidden">
           {loading ? (
             <div className="p-5 space-y-2">
               {[...Array(4)].map((_, i) => <div key={i} className="h-16 bg-gray-50 rounded-lg animate-pulse" />)}
@@ -176,7 +176,7 @@ export default function ARLinksPage() {
                   <col className="w-[14%]" />
                 </colgroup>
                 <thead>
-                  <tr className="text-sm text-gray-500 border-b border-gray-100">
+                  <tr className="text-sm text-gray-500 border-b border-white/30">
                     <th className="text-left font-normal px-5 py-4">Modèle</th>
                     <th className="text-left font-normal px-5 py-4">QR Code</th>
                     <th className="text-left font-normal px-5 py-4">Scans</th>
@@ -188,7 +188,7 @@ export default function ARLinksPage() {
                   {links.map((link) => {
                     const model = modelById(link.model_id);
                     return (
-                      <tr key={link.id} className="border-b border-gray-100/40 last:border-b-0 hover:bg-white/50 transition-colors">
+                      <tr key={link.id} className="border-b border-white/30/40 last:border-b-0 hover:bg-white/50 transition-colors">
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-3 min-w-0">
                             <div className="w-11 h-11 rounded-lg overflow-hidden bg-gray-100 shrink-0 flex items-center justify-center">

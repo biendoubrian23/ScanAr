@@ -90,7 +90,7 @@ function SidebarContent({ pathname, onClose }: { pathname: string; onClose?: () 
   return (
     <div className="flex flex-col h-full">
       {/* Logo header */}
-      <div className="flex items-center justify-between px-5 h-[81px] border-b border-gray-100/60 shrink-0">
+      <div className="flex items-center justify-between px-5 h-[81px] border-b border-white/30 shrink-0">
         <Link
           href="/dashboard"
           className="flex items-center gap-2.5 group"
@@ -134,7 +134,7 @@ function SidebarContent({ pathname, onClose }: { pathname: string; onClose?: () 
       </nav>
 
       {/* User card */}
-      <div className="px-3 py-4 border-t border-gray-100/60">
+      <div className="px-3 py-4 border-t border-white/30">
         <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-full hover:bg-white/60 transition-colors">
           <div
             className="flex items-center justify-center w-7 h-7 rounded-full shrink-0 bg-brand-600 text-white text-xs font-semibold shadow-[0_2px_6px_rgba(13,148,136,0.3)]"
@@ -188,7 +188,7 @@ export function Sidebar() {
       <aside
         className={cn(
           'fixed inset-y-0 left-0 z-50 w-64',
-          'bg-white/90 backdrop-blur-2xl border-r border-gray-100/50',
+          'bg-white/55 backdrop-blur-2xl border-r border-white/40',
           'shadow-[20px_0_60px_rgba(0,0,0,0.08)]',
           'transition-transform duration-200 ease-in-out lg:hidden',
           isOpen ? 'translate-x-0' : '-translate-x-full',
@@ -200,7 +200,7 @@ export function Sidebar() {
 
       {/* Desktop sidebar */}
       <aside
-        className="hidden lg:flex lg:flex-col w-56 shrink-0 bg-white/80 backdrop-blur-xl border-r border-gray-100/60"
+        className="hidden lg:flex lg:flex-col w-56 shrink-0 bg-white/40 backdrop-blur-2xl border-r border-white/40 shadow-[4px_0_24px_rgba(0,0,0,0.04)]"
         aria-label="Main navigation"
       >
         <SidebarContent pathname={pathname} />

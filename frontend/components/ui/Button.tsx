@@ -41,11 +41,11 @@ const variantStyles: Record<ButtonVariant, string> = {
   ].join(' '),
 
   secondary: [
-    'bg-white/70 backdrop-blur-sm text-gray-700',
-    'border border-gray-200/60',
-    'shadow-[0_2px_8px_rgba(0,0,0,0.06)]',
-    'hover:bg-white/90 hover:border-gray-300/60 hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]',
-    'active:bg-white/80',
+    'bg-white/40 backdrop-blur-md text-gray-700',
+    'border border-white/60',
+    'shadow-[0_4px_16px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.9)]',
+    'hover:bg-white/55 hover:shadow-[0_6px_20px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.95)]',
+    'active:bg-white/35',
   ].join(' '),
 
   danger: [

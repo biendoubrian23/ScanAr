@@ -99,8 +99,8 @@ export function MobileBottomNav() {
             role="menu"
             className={cn(
               'absolute left-1/2 -translate-x-1/2 bottom-full mb-3 w-[min(20rem,calc(100vw-1.5rem))]',
-              'rounded-3xl bg-white/85 backdrop-blur-2xl overflow-hidden',
-              'border border-white/40 shadow-[0_20px_60px_rgba(0,0,0,0.12)]',
+              'rounded-3xl bg-white/50 backdrop-blur-2xl overflow-hidden',
+              'border border-white/60 shadow-[0_20px_60px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.9)]',
               'animate-[fade-in-up_200ms_ease-out]',
             )}
           >
@@ -153,9 +153,9 @@ export function MobileBottomNav() {
         <nav
           aria-label="Navigation principale mobile"
           className={cn(
-            'bg-white/80 backdrop-blur-2xl',
-            'border-t border-white/30',
-            'shadow-[0_-4px_30px_rgba(0,0,0,0.06)]',
+            'bg-white/40 backdrop-blur-2xl',
+            'border-t border-white/50',
+            'shadow-[0_-8px_32px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.8)]',
             'rounded-t-3xl',
             'pb-[env(safe-area-inset-bottom)]',
           )}

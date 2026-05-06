@@ -46,7 +46,7 @@ interface KpiCardProps {
 
 function KpiCard({ label, value, delta, loading, rightSlot, footer }: KpiCardProps) {
   return (
-    <div className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] p-4 sm:p-6 flex flex-col gap-1.5 sm:gap-2 sm:min-h-[130px]">
+    <div className="bg-white/30 backdrop-blur-xl border border-white/50 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] p-4 sm:p-6 flex flex-col gap-1.5 sm:gap-2 sm:min-h-[130px]">
       <div className="flex items-start justify-between gap-2">
         <p className="text-xs sm:text-sm text-gray-500">{label}</p>
         {rightSlot}
@@ -250,8 +250,8 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
           {/* Recent models — spans 2 cols */}
-          <section className="lg:col-span-2 bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] overflow-hidden">
-            <header className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <section className="lg:col-span-2 bg-white/30 backdrop-blur-xl border border-white/50 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] overflow-hidden">
+            <header className="flex items-center justify-between px-5 py-4 border-b border-white/30">
               <h2 className="text-sm font-semibold text-gray-900">Modèles récents</h2>
               <Link
                 href="/dashboard/models"
@@ -271,7 +271,7 @@ export default function DashboardPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm table-fixed sm:table-auto">
                   <thead>
-                    <tr className="text-xs text-gray-500 border-b border-gray-100">
+                    <tr className="text-xs text-gray-500 border-b border-white/30">
                       <th className="text-left font-normal px-3 sm:px-5 py-3">Modèle</th>
                       <th className="text-left font-normal px-2 sm:px-3 py-3 w-[44px] sm:w-auto">Statut</th>
                       <th className="text-left font-normal px-3 py-3 hidden md:table-cell">Type</th>
@@ -288,7 +288,7 @@ export default function DashboardPage() {
                         <tr
                           key={model.id}
                           onClick={() => router.push(`/dashboard/models/${model.id}`)}
-                          className="border-b border-gray-100/40 last:border-b-0 hover:bg-white/50 transition-colors cursor-pointer"
+                          className="border-b border-white/30/40 last:border-b-0 hover:bg-white/50 transition-colors cursor-pointer"
                         >
                           <td className="px-3 sm:px-5 py-3 max-w-[150px] sm:max-w-none">
                             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -349,7 +349,7 @@ export default function DashboardPage() {
             )}
 
             {recentModels.length > 0 && (
-              <div className="text-center py-3 border-t border-gray-100">
+              <div className="text-center py-3 border-t border-white/30">
                 <Link
                   href="/dashboard/models"
                   className="inline-flex items-center gap-1.5 text-xs text-brand-600 hover:text-brand-700"
@@ -362,7 +362,7 @@ export default function DashboardPage() {
 
           {/* Right column: Quick actions + Storage */}
           <div className="space-y-4">
-            <section className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] p-2">
+            <section className="bg-white/30 backdrop-blur-xl border border-white/50 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] p-2">
               <h2 className="text-sm font-semibold text-gray-900 px-3 py-2">Actions rapides</h2>
               <div className="space-y-0.5">
                 <QuickActionRow
@@ -392,7 +392,7 @@ export default function DashboardPage() {
               </div>
             </section>
 
-            <section className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] p-5">
+            <section className="bg-white/30 backdrop-blur-xl border border-white/50 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] p-5">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-semibold text-gray-900">Stockage</h2>
                 <HardDrive className="w-4 h-4 text-gray-400" />

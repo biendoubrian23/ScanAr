@@ -126,7 +126,7 @@ export default function CataloguesPage() {
           ))}
         </div>
       ) : catalogues.length === 0 ? (
-        <div className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] flex flex-col items-center justify-center py-20 text-center px-6">
+        <div className="bg-white/30 backdrop-blur-xl border border-white/50 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] flex flex-col items-center justify-center py-20 text-center px-6">
           <div className="flex items-center justify-center w-16 h-16 rounded-2xl mb-4 bg-brand-50">
             <LayoutGrid className="w-7 h-7 text-brand-600" />
           </div>
@@ -234,8 +234,8 @@ function CatalogueCard({
   return (
     <div
       className={cn(
-        'group relative bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] overflow-hidden',
-        'hover:shadow-[0_8px_30px_rgba(0,0,0,0.1)] hover:bg-white/85 transition-all',
+        'group relative bg-white/30 backdrop-blur-xl border border-white/50 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] overflow-hidden',
+        'hover:bg-white/45 hover:shadow-[0_12px_40px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] transition-all',
         deleting && 'opacity-50 pointer-events-none',
       )}
     >
@@ -313,7 +313,7 @@ function CatalogueCard({
         <button
           type="button"
           onClick={onEdit}
-          className="mt-4 w-full inline-flex items-center justify-center gap-1.5 h-9 rounded-full bg-white/60 backdrop-blur-sm border border-white/40 text-gray-700 text-sm font-medium hover:bg-white/80 transition-all shadow-[0_2px_8px_rgba(0,0,0,0.06)]"
+          className="mt-4 w-full inline-flex items-center justify-center gap-1.5 h-9 rounded-full bg-white/30 backdrop-blur-md border border-white/60 text-gray-700 text-sm font-medium hover:bg-white/45 transition-all shadow-[0_4px_16px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.9)]"
         >
           Modifier le catalogue
           <ArrowRight className="w-3.5 h-3.5" />

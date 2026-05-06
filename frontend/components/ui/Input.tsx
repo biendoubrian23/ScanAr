@@ -83,12 +83,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             }
             className={cn(
               'w-full h-9 rounded-full text-sm',
-              'bg-white/70 backdrop-blur-sm text-gray-900 placeholder:text-gray-400',
-              'border border-gray-200/50',
-              'shadow-[0_1px_4px_rgba(0,0,0,0.04)]',
+              'bg-white/40 backdrop-blur-md text-gray-900 placeholder:text-gray-400',
+              'border border-white/60',
+              'shadow-[0_2px_8px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.9)]',
               'transition-all duration-150',
-              'focus:outline-none focus:border-brand-400/60 focus:ring-2 focus:ring-brand-500/15 focus:bg-white/90',
-              'hover:border-gray-300/60 hover:bg-white/85',
+              'focus:outline-none focus:border-brand-400/50 focus:ring-2 focus:ring-brand-500/15 focus:bg-white/55',
+              'hover:border-white/80 hover:bg-white/50',
               'disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-50/60',
               hasError && 'border-red-400/60 focus:border-red-500/60 focus:ring-red-500/15',
               icon ? 'pl-9 pr-4' : 'px-4',

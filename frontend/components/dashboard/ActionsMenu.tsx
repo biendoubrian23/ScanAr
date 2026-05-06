@@ -122,7 +122,7 @@ export function ActionsMenu({ items, ariaLabel = 'Actions', className }: Actions
           ref={menuRef}
           role="menu"
           className={cn(
-            'fixed z-[60] bg-white/85 backdrop-blur-2xl rounded-2xl border border-white/40 shadow-[0_20px_60px_rgba(0,0,0,0.12)] overflow-hidden',
+            'fixed z-[60] bg-white/50 backdrop-blur-2xl rounded-2xl border border-white/60 shadow-[0_20px_60px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.9)] overflow-hidden',
           )}
           style={{ top: coords.top, left: coords.left, width: MENU_WIDTH }}
           onClick={(e) => e.stopPropagation()}

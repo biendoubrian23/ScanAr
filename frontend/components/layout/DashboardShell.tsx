@@ -33,8 +33,8 @@ export function DashboardShell({
       <header
         className={cn(
           'flex items-center gap-3 shrink-0',
-          'px-4 lg:px-8 h-[81px] border-b border-gray-100/60',
-          'bg-white/80 backdrop-blur-xl',
+          'px-3 lg:px-8 h-[81px] border-b border-white/30',
+          'bg-white/40 backdrop-blur-xl shadow-[0_1px_0_rgba(255,255,255,0.5)]',
         )}
       >
         {/* Mobile burger — integrated into the header layout (no overlap). */}
@@ -67,7 +67,7 @@ export function DashboardShell({
           large screens. Pages can still wrap individual sections if needed. */}
       <main
         className={cn(
-          'flex-1 overflow-y-auto px-6 lg:px-8 py-6 scrollbar-thin',
+          'flex-1 overflow-y-auto px-3 lg:px-8 py-6 scrollbar-thin',
           // Reserve space for the floating mobile bottom nav (h-16 + margins)
           'pb-28 lg:pb-6',
           className,

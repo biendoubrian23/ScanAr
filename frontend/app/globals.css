@@ -82,6 +82,14 @@
 /* ─── Component Classes ──────────────────────────────────────────────────────── */
 
 @layer components {
+  /* Dashboard background — two-blob radial gradient (teal top-left + violet bottom-right) */
+  .dash-bg {
+    background:
+      radial-gradient(ellipse 80% 60% at 15% 0%,   rgba(13,148,136,0.18) 0%, transparent 65%),
+      radial-gradient(ellipse 70% 55% at 85% 100%, rgba(139,92,246,0.14) 0%, transparent 65%),
+      #f1f5f9;
+  }
+
   /* Light card — style Linear */
   .card {
     @apply bg-white border border-gray-200 rounded-xl shadow-sm;

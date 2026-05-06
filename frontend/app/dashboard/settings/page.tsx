@@ -121,8 +121,8 @@ export default function SettingsPage() {
 
       <div className="space-y-8 max-w-3xl">
         {/* Profile Section */}
-        <section className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] overflow-hidden">
-          <div className="flex items-center gap-2.5 px-6 py-4 border-b border-gray-100">
+        <section className="bg-white/30 backdrop-blur-xl border border-white/50 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] overflow-hidden">
+          <div className="flex items-center gap-2.5 px-6 py-4 border-b border-white/30">
             <User className="w-4 h-4 text-brand-400" />
             <h2 className="text-sm font-semibold text-gray-900">Profile</h2>
           </div>
@@ -157,8 +157,8 @@ export default function SettingsPage() {
         </section>
 
         {/* Security Section */}
-        <section className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] overflow-hidden">
-          <div className="flex items-center gap-2.5 px-6 py-4 border-b border-gray-100">
+        <section className="bg-white/30 backdrop-blur-xl border border-white/50 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] overflow-hidden">
+          <div className="flex items-center gap-2.5 px-6 py-4 border-b border-white/30">
             <Shield className="w-4 h-4 text-brand-400" />
             <h2 className="text-sm font-semibold text-gray-900">Security</h2>
           </div>
@@ -198,8 +198,8 @@ export default function SettingsPage() {
         </section>
 
         {/* Plan Section */}
-        <section className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] overflow-hidden">
-          <div className="flex items-center gap-2.5 px-6 py-4 border-b border-gray-100">
+        <section className="bg-white/30 backdrop-blur-xl border border-white/50 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] overflow-hidden">
+          <div className="flex items-center gap-2.5 px-6 py-4 border-b border-white/30">
             <CreditCard className="w-4 h-4 text-brand-400" />
             <h2 className="text-sm font-semibold text-gray-900">Plan & Billing</h2>
           </div>
@@ -230,8 +230,8 @@ export default function SettingsPage() {
                     className={cn(
                       'rounded-2xl p-5 border transition-all',
                       isCurrent
-                        ? 'bg-brand-500/10 border-brand-500/20 shadow-[0_4px_20px_rgba(13,148,136,0.1)]'
-                        : 'bg-white/60 backdrop-blur-sm border-white/30 hover:bg-white/80 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)]',
+                        ? 'bg-brand-500/15 border-brand-400/30 shadow-[0_8px_32px_rgba(13,148,136,0.12),inset_0_1px_0_rgba(255,255,255,0.9)]'
+                        : 'bg-white/25 backdrop-blur-xl border-white/50 shadow-[0_4px_16px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.8)] hover:bg-white/40 hover:shadow-[0_8px_24px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)]',
                       plan.popular && !isCurrent && 'ring-1 ring-brand-500/20',
                     )}
                   >

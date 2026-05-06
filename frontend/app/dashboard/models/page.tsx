@@ -198,7 +198,7 @@ export default function ModelsPage() {
               )}
             </Button>
             {filterOpen && (
-              <div className="absolute right-0 top-full mt-2 w-56 z-30 bg-white/85 backdrop-blur-2xl rounded-2xl border border-white/40 shadow-[0_20px_60px_rgba(0,0,0,0.12)] p-2 overflow-hidden">
+              <div className="absolute right-0 top-full mt-2 w-56 z-30 bg-white/50 backdrop-blur-2xl rounded-2xl border border-white/60 shadow-[0_20px_60px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.9)] p-2 overflow-hidden">
                 <p className="text-xs font-medium text-gray-500 px-2 py-1.5">Type d'objet</p>
                 <div className="space-y-0.5">
                   {TYPE_FILTERS.map((t) => (
@@ -223,7 +223,7 @@ export default function ModelsPage() {
         </div>
 
         {/* Table */}
-        <section className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] overflow-hidden">
+        <section className="bg-white/30 backdrop-blur-xl border border-white/50 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] overflow-hidden">
           {loading ? (
             <div className="p-5 space-y-2">
               {[...Array(6)].map((_, i) => <div key={i} className="h-14 bg-gray-50 rounded-lg animate-pulse" />)}
@@ -234,7 +234,7 @@ export default function ModelsPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm table-fixed sm:table-auto">
                 <thead>
-                  <tr className="text-xs text-gray-500 border-b border-gray-100">
+                  <tr className="text-xs text-gray-500 border-b border-white/30">
                     <th className="text-left font-normal px-3 sm:px-5 py-3">Modèle</th>
                     <th className="text-left font-normal px-2 sm:px-3 py-3 w-[40px] sm:w-auto">Statut</th>
                     <th className="text-left font-normal px-3 py-3 hidden md:table-cell">Type</th>
@@ -253,7 +253,7 @@ export default function ModelsPage() {
                       <tr
                         key={model.id}
                         onClick={() => router.push(`/dashboard/models/${model.id}`)}
-                        className="border-b border-gray-100/40 last:border-b-0 hover:bg-white/50 transition-colors cursor-pointer"
+                        className="border-b border-white/30/40 last:border-b-0 hover:bg-white/50 transition-colors cursor-pointer"
                       >
                         <td className="px-3 sm:px-5 py-3 max-w-[140px] sm:max-w-none">
                           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
