@@ -7,7 +7,8 @@ import { cn, getDeviceType } from '@/lib/utils';
 type ARPlacement = 'floor' | 'wall';
 
 interface ARViewerClientProps {
-  arLinkId: string;
+  /** When omitted, analytics tracking is skipped (catalogue AR launcher case). */
+  arLinkId?: string;
   slug: string;
   title: string;
   glbUrl: string;
@@ -36,6 +37,7 @@ export function ARViewerClient({
   }, []);
 
   useEffect(() => {
+    if (!arLinkId) return;                     // catalogue AR — skip per-item tracking
     if (analyticsLogged.current) return;
     analyticsLogged.current = true;
 

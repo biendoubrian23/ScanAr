@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import {
   BarChart2,
   Smartphone,
@@ -11,6 +12,10 @@ import {
   Calendar,
   Eye,
   ChevronDown,
+  LayoutGrid,
+  ScanSearch,
+  MousePointerClick,
+  Box as BoxIcon,
 } from 'lucide-react';
 import { DashboardShell } from '@/components/layout/DashboardShell';
 import { ProgressBar } from '@/components/ui/ProgressBar';
@@ -18,6 +23,7 @@ import { useArLinks } from '@/lib/stores/arLinksStore';
 import { useModels } from '@/lib/stores/modelsStore';
 import { cn } from '@/lib/utils';
 import type { AnalyticsSummary } from '@/lib/types';
+import type { CatalogueAnalyticsSummary } from '@/app/api/catalogues/analytics/route';
 
 // ─── Range presets ─────────────────────────────────────────────────────────
 
@@ -313,10 +319,12 @@ export default function AnalyticsPage() {
   const { models } = useModels();
   const { links }  = useArLinks();
 
-  const [range, setRange]       = useState<DateRange>(buildPreset('7d'));
-  const [summary, setSummary]   = useState<AnalyticsSummary | null>(null);
-  const [loading, setLoading]   = useState(true);
-  const [error, setError]       = useState<string | null>(null);
+  const [range, setRange]                 = useState<DateRange>(buildPreset('7d'));
+  const [summary, setSummary]             = useState<AnalyticsSummary | null>(null);
+  const [catSummary, setCatSummary]       = useState<CatalogueAnalyticsSummary | null>(null);
+  const [loading, setLoading]             = useState(true);
+  const [catLoading, setCatLoading]       = useState(true);
+  const [error, setError]                 = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -332,6 +340,26 @@ export default function AnalyticsPage() {
         setError(e instanceof Error ? e.message : 'Erreur de chargement.');
       } finally {
         setLoading(false);
+      }
+    };
+    load();
+  }, [range]);
+
+  useEffect(() => {
+    const load = async () => {
+      setCatLoading(true);
+      try {
+        const res = await fetch(`/api/catalogues/analytics?from=${range.from}&to=${range.to}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const { data, error: apiError } = await res.json();
+        if (apiError) throw new Error(apiError);
+        setCatSummary(data);
+      } catch (e) {
+        // Don't block the AR analytics block on catalogue errors — surface a side toast instead.
+        console.error('[catalogue analytics]', e);
+        setCatSummary(null);
+      } finally {
+        setCatLoading(false);
       }
     };
     load();
@@ -513,7 +541,180 @@ export default function AnalyticsPage() {
             </section>
           </div>
         </div>
+
+        {/* ─── Catalogues block ─────────────────────────────────────────── */}
+        <CataloguesBlock summary={catSummary} loading={catLoading} />
       </div>
     </DashboardShell>
+  );
+}
+
+// ─── Catalogues block ──────────────────────────────────────────────────────
+function CataloguesBlock({
+  summary, loading,
+}: {
+  summary: CatalogueAnalyticsSummary | null;
+  loading: boolean;
+}) {
+  const top    = summary?.top_catalogues ?? [];
+  const items  = summary?.top_items ?? [];
+  const social = summary?.social_breakdown ?? {};
+  const socialEntries = Object.entries(social).sort((a, b) => b[1] - a[1]);
+
+  return (
+    <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+      <header className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <LayoutGrid className="w-4 h-4 text-brand-600" />
+          <h2 className="text-sm font-semibold text-gray-900">Catalogues</h2>
+        </div>
+        <Link
+          href="/dashboard/catalogues"
+          className="text-xs text-brand-600 hover:text-brand-700"
+        >
+          Gérer mes catalogues →
+        </Link>
+      </header>
+
+      <div className="p-5 space-y-5">
+        {/* KPIs */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <Kpi
+            label="Vues catalogues"
+            value={loading ? '—' : summary?.total_catalogue_views ?? 0}
+            icon={<Eye className="w-4 h-4" />}
+          />
+          <Kpi
+            label="Ouvertures AR"
+            value={loading ? '—' : summary?.total_ar_opens ?? 0}
+            icon={<ScanSearch className="w-4 h-4" />}
+          />
+          <Kpi
+            label="Clics sociaux"
+            value={loading ? '—' : summary?.total_social_clicks ?? 0}
+            icon={<MousePointerClick className="w-4 h-4" />}
+          />
+          <Kpi
+            label="Catalogues actifs"
+            value={loading ? '—' : summary?.active_catalogues ?? 0}
+            icon={<LayoutGrid className="w-4 h-4" />}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {/* Top catalogues */}
+          <div className="bg-gray-50/60 border border-gray-100 rounded-xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-gray-100">
+              <h3 className="text-sm font-semibold text-gray-900">Top catalogues</h3>
+              <p className="text-xs text-gray-500 mt-0.5">Vues sur la période sélectionnée</p>
+            </div>
+            {loading ? (
+              <div className="p-4 space-y-3">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="h-8 bg-gray-100 rounded animate-pulse" />
+                ))}
+              </div>
+            ) : top.length === 0 ? (
+              <div className="flex items-center justify-center py-10 text-sm text-gray-400">
+                Aucune vue enregistrée
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-100">
+                {top.map((c, i) => {
+                  const max = top[0]?.view_count || 1;
+                  const pct = Math.round((c.view_count / max) * 100);
+                  return (
+                    <div key={c.id} className="px-4 py-3 flex items-center gap-3">
+                      <span className="text-xs font-mono text-gray-400 w-4 shrink-0">#{i + 1}</span>
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <Link
+                            href={`/c/${c.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-gray-900 truncate hover:text-brand-700"
+                          >
+                            {c.title}
+                          </Link>
+                          <span className="text-sm font-semibold text-gray-900 tabular-nums">
+                            {c.view_count}
+                          </span>
+                        </div>
+                        <ProgressBar value={pct} color="brand" />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Top items + Social breakdown */}
+          <div className="space-y-4">
+            <div className="bg-gray-50/60 border border-gray-100 rounded-xl overflow-hidden">
+              <div className="px-4 py-3 border-b border-gray-100">
+                <h3 className="text-sm font-semibold text-gray-900">Top produits AR</h3>
+                <p className="text-xs text-gray-500 mt-0.5">Ouvertures AR sur la période</p>
+              </div>
+              {loading ? (
+                <div className="p-4 space-y-3">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="h-8 bg-gray-100 rounded animate-pulse" />
+                  ))}
+                </div>
+              ) : items.length === 0 ? (
+                <div className="flex items-center justify-center py-8 text-sm text-gray-400">
+                  Aucune ouverture AR
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-100">
+                  {items.map((it, i) => (
+                    <div key={it.id} className="px-4 py-3 flex items-center gap-3">
+                      <span className="text-xs font-mono text-gray-400 w-4 shrink-0">#{i + 1}</span>
+                      {it.image_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={it.image_url} alt="" className="w-8 h-8 rounded-lg object-cover bg-gray-100 shrink-0" />
+                      ) : (
+                        <BoxIcon className="w-8 h-8 p-1.5 rounded-lg bg-gray-100 text-gray-400 shrink-0" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-900 truncate">{it.label}</p>
+                        <Link
+                          href={`/c/${it.catalogue_slug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[11px] text-gray-500 hover:text-brand-700 truncate font-mono"
+                        >
+                          /c/{it.catalogue_slug}
+                        </Link>
+                      </div>
+                      <span className="text-sm font-semibold text-gray-900 tabular-nums shrink-0">
+                        {it.ar_open_count}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {socialEntries.length > 0 && (
+              <div className="bg-gray-50/60 border border-gray-100 rounded-xl overflow-hidden">
+                <div className="px-4 py-3 border-b border-gray-100">
+                  <h3 className="text-sm font-semibold text-gray-900">Clics par réseau</h3>
+                </div>
+                <div className="p-4 grid grid-cols-2 gap-x-4 gap-y-2">
+                  {socialEntries.map(([key, count]) => (
+                    <div key={key} className="flex items-center justify-between text-xs">
+                      <span className="text-gray-600 capitalize">{key}</span>
+                      <span className="font-semibold text-gray-900 tabular-nums">{count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }

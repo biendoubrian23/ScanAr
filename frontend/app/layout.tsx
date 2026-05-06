@@ -1,20 +1,31 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Unna } from 'next/font/google';
+import localFont from 'next/font/local';
 import './globals.css';
 import { AuthProvider } from '@/lib/stores/authStore';
 
-const inter = Inter({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800', '900'],
+// Self-hosted woff2 in `app/fonts/` (sourced from @fontsource).
+// Avoids the build-time fetch to fonts.googleapis.com which fails behind
+// corporate SSL inspection (self-signed root CA in the chain).
+const inter = localFont({
+  src: [
+    { path: './fonts/inter-latin-400-normal.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/inter-latin-500-normal.woff2', weight: '500', style: 'normal' },
+    { path: './fonts/inter-latin-600-normal.woff2', weight: '600', style: 'normal' },
+    { path: './fonts/inter-latin-700-normal.woff2', weight: '700', style: 'normal' },
+    { path: './fonts/inter-latin-800-normal.woff2', weight: '800', style: 'normal' },
+    { path: './fonts/inter-latin-900-normal.woff2', weight: '900', style: 'normal' },
+  ],
   variable: '--font-inter',
-  display: 'swap',
+  display:  'swap',
 });
 
-const unna = Unna({
-  subsets: ['latin'],
-  weight: ['400', '700'],
+const unna = localFont({
+  src: [
+    { path: './fonts/unna-latin-400-normal.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/unna-latin-700-normal.woff2', weight: '700', style: 'normal' },
+  ],
   variable: '--font-unna',
-  display: 'swap',
+  display:  'swap',
 });
 
 // ─── Metadata ─────────────────────────────────────────────────────────────────

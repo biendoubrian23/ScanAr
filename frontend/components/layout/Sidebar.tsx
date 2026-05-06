@@ -12,6 +12,7 @@ import {
   LogOut,
   ScanLine,
   X,
+  LayoutGrid,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -32,9 +33,10 @@ const NAV_SECTIONS: NavSection[] = [
   {
     label: 'Espace de travail',
     items: [
-      { label: 'Tableau de bord', href: '/dashboard',          icon: LayoutDashboard },
-      { label: 'Modèles',         href: '/dashboard/models',   icon: Box },
-      { label: 'Liens AR',        href: '/dashboard/ar-links', icon: Link2 },
+      { label: 'Tableau de bord', href: '/dashboard',             icon: LayoutDashboard },
+      { label: 'Modèles',         href: '/dashboard/models',      icon: Box },
+      { label: 'Mes catalogues',  href: '/dashboard/catalogues',  icon: LayoutGrid },
+      { label: 'Liens AR',        href: '/dashboard/ar-links',    icon: Link2 },
     ],
   },
   {

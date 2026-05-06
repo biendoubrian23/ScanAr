@@ -20,6 +20,10 @@ interface QRCodeModalProps {
   slug: string;
   qrUrl: string | null;
   isActive: boolean;
+  /** Optional override of the public URL. Defaults to `${APP_URL}/ar/${slug}` for AR links. */
+  publicUrl?: string;
+  /** Override the inactive warning copy (e.g. "Liens AR" vs "catalogue"). */
+  inactiveLabel?: string;
 }
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
@@ -31,11 +35,13 @@ export function QRCodeModal({
   slug,
   qrUrl,
   isActive,
+  publicUrl,
+  inactiveLabel,
 }: QRCodeModalProps) {
   const [copied, setCopied] = useState(false);
   const [shared, setShared] = useState(false);
 
-  const arUrl = `${APP_URL}/ar/${slug}`;
+  const arUrl = publicUrl ?? `${APP_URL}/ar/${slug}`;
 
   const handleCopy = async () => {
     try {
@@ -101,7 +107,7 @@ export function QRCodeModal({
         {!isActive && (
           <div className="flex items-start gap-2 rounded-lg px-3 py-2.5 bg-amber-50 border border-amber-200 text-amber-700 text-xs">
             <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-            Ce lien AR est désactivé. Réactivez-le depuis la page Liens AR pour qu'il redevienne scannable.
+            {inactiveLabel ?? "Ce lien AR est désactivé. Réactivez-le depuis la page Liens AR pour qu'il redevienne scannable."}
           </div>
         )}
 

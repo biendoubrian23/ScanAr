@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   Box,
-  BarChart2,
+  LayoutGrid,
   Settings,
   Plus,
   ImagePlus,
@@ -28,8 +28,8 @@ const NAV_LEFT: NavItem[] = [
 ];
 
 const NAV_RIGHT: NavItem[] = [
-  { label: 'Stats',    href: '/dashboard/analytics', icon: BarChart2 },
-  { label: 'Réglages', href: '/dashboard/settings',  icon: Settings },
+  { label: 'Catalogues', href: '/dashboard/catalogues', icon: LayoutGrid },
+  { label: 'Réglages',   href: '/dashboard/settings',   icon: Settings },
 ];
 
 function NavTab({ item, active }: { item: NavItem; active: boolean }) {

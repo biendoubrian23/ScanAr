@@ -22,6 +22,15 @@ import {
   Share2,
   Camera,
   Hexagon,
+  Link2,
+  ScanSearch,
+  Instagram,
+  Facebook,
+  Mail,
+  Store,
+  MessageCircle,
+  Music2,
+  Plus,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -480,7 +489,14 @@ function ImmersiveSection() {
               style={{ fontFamily: 'var(--font-unna), Georgia, serif', fontWeight: 400, letterSpacing: '0' }}
             >
               <span
-                className="inline-block"
+                className="inline-block lg:hidden"
+                style={{ transform: 'scaleY(1.2)', transformOrigin: 'bottom left' }}
+              >
+                Vos produits, entre les mains<br />
+                de vos clients.
+              </span>
+              <span
+                className="hidden lg:inline-block"
                 style={{ transform: 'scaleY(1.2)', transformOrigin: 'bottom left' }}
               >
                 Vos produits,<br />
@@ -543,8 +559,8 @@ function ImmersiveSection() {
 
 function PipelineVisualSection() {
   return (
-    <section className="relative py-24 bg-[#fafafa] overflow-hidden">
-      <div className="mx-auto max-w-7xl px-6">
+    <section className="relative py-24 bg-[#fafafa] overflow-hidden hidden lg:block">
+      <div className="mx-auto max-w-[100rem] px-6">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -570,9 +586,296 @@ function PipelineVisualSection() {
             alt="Pipeline ScanAR : capturer, reconstruire, optimiser, générer le QR code, voir en AR"
             width={2172}
             height={724}
-            className="w-full h-auto"
-            sizes="(min-width: 1024px) 90vw, 100vw"
+            className="w-full h-auto lg:scale-[1.1] origin-center"
+            sizes="(min-width: 1024px) 95vw, 100vw"
           />
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Catalogues AR Section (Section 4) ────────────────────────────────────────
+
+const CATALOGUE_FEATURES = [
+  { icon: Box, label: 'Vos produits en 3D et en AR' },
+  { icon: Smartphone, label: 'Consultation facile depuis un simple lien' },
+  { icon: BarChart2, label: 'Boostez l’engagement et vos ventes' },
+];
+
+function CataloguesARSection() {
+  const titleMobile = (
+    <span
+      className="inline-block"
+      style={{ transform: 'scaleY(1.2)', transformOrigin: 'bottom left' }}
+    >
+      Des catalogues qui se<br />
+      vivent en réalité<br />
+      augmentée.
+    </span>
+  );
+  const titleDesktop = (
+    <span
+      className="inline-block"
+      style={{ transform: 'scaleY(1.2)', transformOrigin: 'bottom left' }}
+    >
+      Des catalogues qui se vivent<br />
+      en réalité augmentée.
+    </span>
+  );
+
+  return (
+    <section className="relative py-20 lg:py-28 bg-white overflow-hidden">
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+          {/* Mobile-only title (appears first on mobile) */}
+          <h2
+            className="lg:hidden order-1 text-[2rem] leading-[1.05] text-gray-900"
+            style={{ fontFamily: 'var(--font-unna), Georgia, serif', fontWeight: 400 }}
+          >
+            {titleMobile}
+          </h2>
+
+          {/* Image — second on mobile, right column on desktop */}
+          <motion.div
+            initial={{ opacity: 0, x: 24 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.7, ease: 'easeOut' }}
+            className="relative w-full order-2 lg:order-2"
+          >
+            <Image
+              src="/images/section/section4.png"
+              alt="Quatre téléphones présentant des catalogues en réalité augmentée"
+              width={1400}
+              height={1100}
+              sizes="(min-width: 1024px) 55vw, 100vw"
+              className="w-full h-auto object-contain lg:scale-110 origin-center"
+              priority={false}
+            />
+          </motion.div>
+
+          {/* Content — third on mobile, left column on desktop */}
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-80px' }}
+            variants={fadeUp}
+            transition={{ duration: 0.55 }}
+            className="order-3 lg:order-1"
+          >
+            {/* Desktop-only title */}
+            <h2
+              className="hidden lg:block text-[2.9rem] leading-[1.05] text-gray-900 mb-6"
+              style={{ fontFamily: 'var(--font-unna), Georgia, serif', fontWeight: 400 }}
+            >
+              {titleDesktop}
+            </h2>
+
+            {/* Subtitle */}
+            <p className="text-[0.95rem] text-gray-500 leading-relaxed mb-8 max-w-md">
+              Transformez vos produits en expériences 3D immersives.
+              Offrez à vos clients une nouvelle façon de découvrir,
+              d’interagir et d’acheter.
+            </p>
+
+            {/* Feature list */}
+            <ul className="space-y-4 mb-9">
+              {CATALOGUE_FEATURES.map(({ icon: Icon, label }) => (
+                <li key={label} className="flex items-center gap-3.5">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-gray-200 shadow-sm shrink-0">
+                    <Icon className="w-[1.05rem] h-[1.05rem] text-gray-700" strokeWidth={1.75} />
+                  </div>
+                  <span className="text-[0.95rem] text-gray-700">{label}</span>
+                </li>
+              ))}
+            </ul>
+
+            {/* CTA */}
+            <div>
+              <Link
+                href="/signup"
+                className={cn(
+                  'inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-[0.95rem] font-semibold',
+                  'bg-brand-700 text-white',
+                  'shadow-md shadow-brand-700/20',
+                  'hover:bg-brand-800 hover:shadow-brand-700/30',
+                  'transition-all duration-200 group',
+                )}
+              >
+                Créer mon catalogue AR
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Créez. Partagez. Vendez. Section (Section 5) ─────────────────────────────
+
+const CREATION_STEPS = [
+  {
+    icon: Box,
+    title: '1. Importez ou créez vos produits 3D',
+    desc: 'Transformez vos visuels 2D en modèles\n3D optimisés pour la réalité augmentée.',
+  },
+  {
+    icon: Link2,
+    title: '2. Générez votre catalogue AR',
+    desc: 'Obtenez un lien unique pour accéder à votre\ncatalogue interactif, prêt à être partagé.',
+  },
+  {
+    icon: ScanSearch,
+    title: '3. Vos clients vivent l’expérience',
+    desc: 'Ils scannent, explorent et visualisent vos\nproduits dans leur environnement.',
+  },
+];
+
+const DIFFUSION_CHANNELS = [
+  { icon: Globe,         label: 'Site web',       iconClass: 'text-sky-500',        bgClass: 'bg-gradient-to-br from-white/95 to-white/55' },
+  { icon: Instagram,     label: 'Instagram',      iconClass: 'text-white',          bgClass: 'bg-gradient-to-br from-amber-400 via-pink-500 to-purple-600' },
+  { icon: Facebook,      label: 'Facebook',       iconClass: 'text-[#1877F2]',      bgClass: 'bg-gradient-to-br from-white/95 to-white/55' },
+  { icon: Music2,        label: 'TikTok',         iconClass: 'text-black',          bgClass: 'bg-gradient-to-br from-white/95 to-white/55' },
+  { icon: MessageCircle, label: 'WhatsApp',       iconClass: 'text-[#25D366]',      bgClass: 'bg-gradient-to-br from-white/95 to-white/55' },
+  { icon: Mail,          label: 'Email',          iconClass: 'text-[#EA4335]',      bgClass: 'bg-gradient-to-br from-white/95 to-white/55' },
+  { icon: Store,         label: 'Boutique',       iconClass: 'text-amber-600',      bgClass: 'bg-gradient-to-br from-white/95 to-white/55' },
+  { icon: Plus,          label: 'Et plus encore', iconClass: 'text-gray-500',       bgClass: 'bg-gradient-to-br from-white/95 to-white/55' },
+];
+
+function CreationFlowSection() {
+  return (
+    <section className="relative py-20 lg:py-28 bg-white overflow-hidden">
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center mb-16 lg:mb-24">
+          {/* Mobile-only title (appears first on mobile) */}
+          <h2
+            className="lg:hidden order-1 text-[1.5rem] leading-[1.05] text-gray-900 whitespace-nowrap"
+            style={{ fontFamily: 'var(--font-unna), Georgia, serif', fontWeight: 400 }}
+          >
+            <span
+              className="inline-block"
+              style={{ transform: 'scaleY(1.2)', transformOrigin: 'bottom left' }}
+            >
+              Créez. Partagez. Vendez.
+            </span>
+          </h2>
+
+          {/* Image — second on mobile, right column on desktop */}
+          <motion.div
+            initial={{ opacity: 0, x: 24 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.7, ease: 'easeOut' }}
+            className="relative w-full order-2 lg:order-2"
+          >
+            <Image
+              src="/images/section/section5.png"
+              alt="Trois étapes pour créer, générer et partager un catalogue AR"
+              width={1400}
+              height={1100}
+              sizes="(min-width: 1024px) 60vw, 100vw"
+              className="w-full h-auto object-contain lg:scale-[1.32] origin-center"
+            />
+          </motion.div>
+
+          {/* Content — third on mobile, left column on desktop */}
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-80px' }}
+            variants={fadeUp}
+            transition={{ duration: 0.55 }}
+            className="order-3 lg:order-1"
+          >
+            {/* Desktop-only title */}
+            <h2
+              className="hidden lg:block text-[2.9rem] leading-[1.05] text-gray-900 mb-6"
+              style={{ fontFamily: 'var(--font-unna), Georgia, serif', fontWeight: 400 }}
+            >
+              <span
+                className="inline-block"
+                style={{ transform: 'scaleY(1.2)', transformOrigin: 'bottom left' }}
+              >
+                Créez. Partagez.<br />
+                Vendez.
+              </span>
+            </h2>
+
+            {/* Subtitle */}
+            <p className="text-[0.95rem] text-gray-500 leading-relaxed mb-8 max-w-md">
+              Créez votre catalogue 3D en quelques minutes<br />
+              et laissez vos clients vivre l’expérience en AR.
+            </p>
+
+            {/* Steps */}
+            <ul className="space-y-5 mb-9">
+              {CREATION_STEPS.map(({ icon: Icon, title, desc }) => (
+                <li key={title} className="flex items-start gap-3.5">
+                  <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-white border border-gray-200 shadow-sm shrink-0">
+                    <Icon className="w-[1.05rem] h-[1.05rem] text-gray-700" strokeWidth={1.75} />
+                  </div>
+                  <div>
+                    <p className="text-[0.95rem] font-semibold text-gray-900 leading-snug">{title}</p>
+                    <p className="text-[0.875rem] text-gray-500 leading-snug mt-0.5 whitespace-pre-line">{desc}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            {/* CTA */}
+            <div>
+              <Link
+                href="/signup"
+                className={cn(
+                  'inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-[0.95rem] font-semibold',
+                  'bg-brand-700 text-white',
+                  'shadow-md shadow-brand-700/20',
+                  'hover:bg-brand-800 hover:shadow-brand-700/30',
+                  'transition-all duration-200 group',
+                )}
+              >
+                Commencer gratuitement
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+              <p className="mt-3 text-xs text-gray-400">Aucune carte bancaire requise</p>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Diffusion row — liquid-glass style */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+          className="text-center"
+        >
+          <h3 className="text-[1.25rem] lg:text-[1.4rem] font-semibold text-gray-900 mb-8">
+            Diffusez votre catalogue partout
+          </h3>
+
+          <div className="flex flex-wrap items-start justify-center gap-x-6 gap-y-6 lg:gap-x-10">
+            {DIFFUSION_CHANNELS.map(({ icon: Icon, label, iconClass, bgClass }) => (
+              <div key={label} className="flex flex-col items-center gap-2">
+                <div
+                  className={cn(
+                    'flex items-center justify-center w-14 h-14 rounded-2xl backdrop-blur-xl',
+                    bgClass,
+                    'border border-white/70',
+                    'shadow-[0_8px_24px_-8px_rgba(15,23,42,0.18),inset_0_1px_0_rgba(255,255,255,0.9)]',
+                    'ring-1 ring-gray-200/60',
+                    'transition-transform duration-200 hover:-translate-y-0.5',
+                  )}
+                >
+                  <Icon className={cn('w-5 h-5', iconClass)} strokeWidth={1.75} />
+                </div>
+                <span className="text-[11px] text-gray-500 font-medium">{label}</span>
+              </div>
+            ))}
+          </div>
         </motion.div>
       </div>
     </section>
@@ -607,469 +910,6 @@ const PIPELINE_STEPS = [
     description: 'Customers tap or scan and see the model in their real space — no app download required.',
   },
 ];
-
-function PipelineSection() {
-  return (
-    <section id="how-it-works" className="py-24 relative">
-      <div className="mx-auto max-w-7xl px-6">
-        {/* Header */}
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-16"
-        >
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-600/15 border border-brand-500/30 text-brand-300 text-xs font-medium mb-4">
-            <Zap className="w-3.5 h-3.5" />
-            How it works
-          </div>
-          <h2 className="text-4xl md:text-5xl font-display font-normal text-zinc-100 leading-[1.0]">
-            <span className="text-stretched-center">
-              From photo to AR in{' '}
-              <span className="gradient-text">four steps</span>
-            </span>
-          </h2>
-          <p className="mt-4 text-zinc-500 max-w-xl mx-auto">
-            No 3D skills needed. Our fully automated pipeline handles everything.
-          </p>
-        </motion.div>
-
-        {/* Steps */}
-        <div className="relative">
-          {/* Connector lines — desktop only */}
-          <div className="hidden lg:block absolute top-10 left-[calc(12.5%+2rem)] right-[calc(12.5%+2rem)] h-px">
-            <div className="w-full connector-line" />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-4">
-            {PIPELINE_STEPS.map((s, i) => {
-              const Icon = s.icon;
-              return (
-                <motion.div
-                  key={s.step}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  variants={stagger(i * 0.1)}
-                  className="flex flex-col items-center text-center"
-                >
-                  {/* Icon circle */}
-                  <div className="relative mb-5">
-                    {/* Outer glow ring */}
-                    <div className="absolute inset-0 rounded-full bg-brand-600/20 blur-xl scale-150" />
-                    <div
-                      className={cn(
-                        'relative flex items-center justify-center w-20 h-20 rounded-full',
-                        'bg-gradient-to-br from-brand-600/30 to-brand-500/20',
-                        'border border-brand-500/40',
-                        'shadow-lg shadow-brand-600/20',
-                      )}
-                    >
-                      <Icon className="w-8 h-8 text-brand-300" strokeWidth={1.5} />
-                    </div>
-                    {/* Step number badge */}
-                    <div
-                      className={cn(
-                        'absolute -top-1 -right-1',
-                        'flex items-center justify-center w-6 h-6 rounded-full',
-                        'bg-brand-600 text-white text-[10px] font-bold',
-                        'shadow-md shadow-brand-600/40',
-                      )}
-                    >
-                      {s.step}
-                    </div>
-                  </div>
-                  <h3 className="text-sm font-semibold text-zinc-200 mb-2">{s.title}</h3>
-                  <p className="text-xs text-zinc-500 leading-relaxed">{s.description}</p>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Features Grid ────────────────────────────────────────────────────────────
-
-const FEATURES = [
-  {
-    icon: Sparkles,
-    title: 'Photorealistic 3D',
-    description: 'Hunyuan3D generates textured meshes with physically-based materials that match your original photo.',
-    color: 'from-purple-500/20 to-brand-600/20',
-    border: 'hover:border-brand-500/30',
-  },
-  {
-    icon: Globe,
-    title: 'iOS & Android AR',
-    description: 'USDZ for iOS Quick Look, GLB for Android Scene Viewer. Every device supported, no app needed.',
-    color: 'from-blue-500/20 to-cyan-500/20',
-    border: 'hover:border-blue-500/30',
-  },
-  {
-    icon: QrCode,
-    title: 'QR Code ready',
-    description: 'Auto-generated QR code for every model. Print on packaging, display at POS, or embed online.',
-    color: 'from-green-500/20 to-teal-500/20',
-    border: 'hover:border-green-500/30',
-  },
-  {
-    icon: Zap,
-    title: 'Real-time processing',
-    description: 'Watch your model build in real time. Live progress bar keeps you informed every step of the way.',
-    color: 'from-yellow-500/20 to-orange-500/20',
-    border: 'hover:border-yellow-500/30',
-  },
-  {
-    icon: BarChart2,
-    title: 'Analytics',
-    description: 'Track every AR scan by device, region, and time. Understand how customers engage with your products.',
-    color: 'from-indigo-500/20 to-brand-500/20',
-    border: 'hover:border-indigo-500/30',
-  },
-  {
-    icon: Code2,
-    title: 'API access',
-    description: 'RESTful API for programmatic model creation. Integrate ScanAR directly into your product or pipeline.',
-    color: 'from-pink-500/20 to-rose-500/20',
-    border: 'hover:border-pink-500/30',
-  },
-];
-
-function FeaturesGrid() {
-  return (
-    <section id="features" className="py-24 relative">
-      {/* Background subtle glow */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-brand-600/5 to-transparent pointer-events-none" />
-
-      <div className="relative mx-auto max-w-7xl px-6">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-14"
-        >
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-600/15 border border-brand-500/30 text-brand-300 text-xs font-medium mb-4">
-            <Box className="w-3.5 h-3.5" />
-            Features
-          </div>
-          <h2 className="text-4xl md:text-5xl font-display font-normal text-zinc-100 leading-[1.0]">
-            <span className="text-stretched-center">
-              Everything you need to{' '}
-              <span className="gradient-text">go spatial</span>
-            </span>
-          </h2>
-          <p className="mt-4 text-zinc-500 max-w-xl mx-auto">
-            From generation to distribution — ScanAR handles the full AR lifecycle.
-          </p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {FEATURES.map((feat, i) => {
-            const Icon = feat.icon;
-            return (
-              <motion.div
-                key={feat.title}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                variants={stagger(i * 0.07)}
-                className={cn(
-                  'group relative p-6 rounded-2xl',
-                  'bg-white/[0.03] backdrop-blur border border-white/8',
-                  'transition-all duration-300',
-                  feat.border,
-                  'hover:bg-white/[0.05] hover:shadow-xl hover:shadow-black/20',
-                )}
-              >
-                {/* Icon */}
-                <div
-                  className={cn(
-                    'flex items-center justify-center w-11 h-11 rounded-xl mb-4',
-                    `bg-gradient-to-br ${feat.color}`,
-                    'border border-white/10',
-                  )}
-                >
-                  <Icon className="w-5 h-5 text-zinc-300" strokeWidth={1.5} />
-                </div>
-                <h3 className="text-base font-semibold text-zinc-200 mb-2">
-                  {feat.title}
-                </h3>
-                <p className="text-sm text-zinc-500 leading-relaxed">
-                  {feat.description}
-                </p>
-              </motion.div>
-            );
-          })}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Use Cases Section ────────────────────────────────────────────────────────
-
-type UseCase = 'e-commerce' | 'restaurant' | 'marketing';
-
-const USE_CASES: { id: UseCase; label: string; icon: React.ElementType; headline: string; description: string; mockStats: { label: string; value: string }[] }[] = [
-  {
-    id: 'e-commerce',
-    label: 'E-commerce',
-    icon: Box,
-    headline: 'Let shoppers see products in their space before buying',
-    description:
-      'Reduce returns by up to 40%. Customers who use AR are 94% more likely to make a purchase. Add an AR button to any product page in minutes.',
-    mockStats: [
-      { label: 'Conversion uplift', value: '+94%' },
-      { label: 'Return rate drop', value: '-40%' },
-      { label: 'Avg. session time', value: '3.2×' },
-    ],
-  },
-  {
-    id: 'restaurant',
-    label: 'Restaurant',
-    icon: QrCode,
-    headline: 'Menu items that come alive on the table',
-    description:
-      'Print QR codes on menus or table cards. Customers scan to see a 3D preview of any dish before ordering. Increase upsell and delight guests.',
-    mockStats: [
-      { label: 'Order value uplift', value: '+28%' },
-      { label: 'Guest satisfaction', value: '4.9★' },
-      { label: 'Setup time', value: '< 10 min' },
-    ],
-  },
-  {
-    id: 'marketing',
-    label: 'Marketing',
-    icon: Share2,
-    headline: 'Campaigns that people actually stop for',
-    description:
-      'Embed AR experiences in print, OOH, social, and email. Every scan is tracked. Build immersive brand moments that are impossible to scroll past.',
-    mockStats: [
-      { label: 'Engagement vs static', value: '6×' },
-      { label: 'Shareability', value: '+210%' },
-      { label: 'Brand recall', value: '+65%' },
-    ],
-  },
-];
-
-function UseCasesSection() {
-  const [active, setActive] = useState<UseCase>('e-commerce');
-  const current = USE_CASES.find((u) => u.id === active)!;
-  const Icon = current.icon;
-
-  return (
-    <section className="py-24">
-      <div className="mx-auto max-w-7xl px-6">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-12"
-        >
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-600/15 border border-brand-500/30 text-brand-300 text-xs font-medium mb-4">
-            <Globe className="w-3.5 h-3.5" />
-            Use cases
-          </div>
-          <h2 className="text-4xl md:text-5xl font-display font-normal text-zinc-100 leading-[1.0]">
-            <span className="text-stretched-center">
-              Built for every{' '}
-              <span className="gradient-text">industry</span>
-            </span>
-          </h2>
-        </motion.div>
-
-        {/* Tabs */}
-        <div className="flex items-center justify-center gap-2 mb-10 flex-wrap">
-          {USE_CASES.map((u) => (
-            <button
-              key={u.id}
-              onClick={() => setActive(u.id)}
-              className={cn(
-                'px-5 py-2 rounded-xl text-sm font-medium transition-all duration-200',
-                active === u.id
-                  ? 'bg-brand-600/25 text-brand-300 border border-brand-500/40 shadow-sm'
-                  : 'text-zinc-400 hover:text-zinc-200 border border-transparent hover:border-white/10 hover:bg-white/5',
-              )}
-            >
-              {u.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Content card */}
-        <motion.div
-          key={active}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, ease: 'easeOut' }}
-          className={cn(
-            'grid grid-cols-1 lg:grid-cols-2 gap-8',
-            'p-8 rounded-3xl',
-            'bg-white/[0.03] border border-white/10',
-            'backdrop-blur',
-          )}
-        >
-          {/* Left */}
-          <div className="flex flex-col justify-center gap-6">
-            <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-brand-600/20 border border-brand-500/30">
-              <Icon className="w-7 h-7 text-brand-300" strokeWidth={1.5} />
-            </div>
-            <div>
-              <h3 className="text-2xl font-bold text-zinc-100 mb-3 leading-snug">
-                {current.headline}
-              </h3>
-              <p className="text-zinc-500 leading-relaxed">{current.description}</p>
-            </div>
-            <Link
-              href="/signup"
-              className={cn(
-                'self-start flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium',
-                'bg-gradient-to-r from-brand-600 to-brand-500 text-white',
-                'shadow-md shadow-brand-600/30 hover:shadow-brand-500/40',
-                'hover:from-brand-500 hover:to-brand-400 transition-all duration-200 group',
-              )}
-            >
-              Try it free
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-            </Link>
-          </div>
-
-          {/* Right — mock dashboard card */}
-          <div className="glass rounded-2xl overflow-hidden">
-            {/* Mock top bar */}
-            <div className="flex items-center justify-between px-4 py-3 bg-white/5 border-b border-white/8">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                <span className="text-xs text-zinc-400 font-mono">live dashboard</span>
-              </div>
-              <span className="text-xs text-zinc-600 font-mono">ScanAR</span>
-            </div>
-
-            <div className="p-5 space-y-4">
-              {/* Stats row */}
-              <div className="grid grid-cols-3 gap-3">
-                {current.mockStats.map((stat) => (
-                  <div
-                    key={stat.label}
-                    className="bg-white/5 rounded-xl p-3 border border-white/8"
-                  >
-                    <div className="text-xl font-bold gradient-text mb-0.5">
-                      {stat.value}
-                    </div>
-                    <div className="text-[10px] text-zinc-500 leading-tight">
-                      {stat.label}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Mock bar chart */}
-              <div className="bg-white/5 rounded-xl p-4 border border-white/8">
-                <div className="text-xs text-zinc-500 mb-3">AR scans — last 7 days</div>
-                <div className="flex items-end gap-1.5 h-16">
-                  {[40, 65, 45, 80, 60, 90, 75].map((h, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ height: 0 }}
-                      animate={{ height: `${h}%` }}
-                      transition={{ delay: i * 0.06, duration: 0.5, ease: 'easeOut' }}
-                      className="flex-1 rounded-t-sm bg-gradient-to-t from-brand-700 to-brand-400 opacity-80"
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Mock model list */}
-              <div className="space-y-2">
-                {['Chair model', 'Sneaker 3D', 'Lamp preview'].map((name, i) => (
-                  <div
-                    key={name}
-                    className="flex items-center gap-3 p-2.5 rounded-lg bg-white/[0.03] border border-white/6"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-600/30 to-brand-400/20 border border-brand-500/20 flex items-center justify-center shrink-0">
-                      <Box className="w-4 h-4 text-brand-400" strokeWidth={1.5} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs font-medium text-zinc-300 truncate">{name}</div>
-                      <div className="text-[10px] text-zinc-600">{(i + 1) * 47} scans</div>
-                    </div>
-                    <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/15 border border-green-500/30">
-                      <div className="w-1 h-1 rounded-full bg-green-400" />
-                      <span className="text-[10px] text-green-300">Live</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      </div>
-    </section>
-  );
-}
-
-// ─── CTA Section ──────────────────────────────────────────────────────────────
-
-function CTASection() {
-  return (
-    <section className="py-24">
-      <div className="mx-auto max-w-7xl px-6">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeIn}
-          className={cn(
-            'relative text-center p-12 rounded-3xl overflow-hidden',
-            'bg-gradient-to-br from-brand-600/20 via-brand-500/10 to-transparent',
-            'border border-brand-500/25',
-          )}
-        >
-          {/* Glow */}
-          <div className="absolute inset-0 bg-gradient-radial from-brand-600/20 via-transparent to-transparent pointer-events-none" />
-
-          <motion.div variants={stagger(0.1)} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-            <h2 className="text-4xl md:text-5xl font-display font-normal text-zinc-100 mb-6 leading-[1.0]">
-              <span className="text-stretched-center">
-                Ready to go <span className="gradient-text">spatial</span>?
-              </span>
-            </h2>
-            <p className="text-zinc-400 text-lg mb-8 max-w-lg mx-auto">
-              Join hundreds of brands already using ScanAR to create immersive AR experiences that convert.
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-center gap-3 justify-center">
-              <Link
-                href="/signup"
-                className={cn(
-                  'flex items-center gap-2 px-8 py-4 rounded-xl text-base font-semibold',
-                  'bg-gradient-to-r from-brand-600 to-brand-500 text-white',
-                  'shadow-xl shadow-brand-600/40',
-                  'hover:shadow-brand-500/50 hover:from-brand-500 hover:to-brand-400',
-                  'transition-all duration-200 group',
-                )}
-              >
-                Start for free — no card needed
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-              </Link>
-            </div>
-
-            <p className="mt-6 text-sm text-zinc-600">3 free models · No credit card · Cancel anytime</p>
-          </motion.div>
-        </motion.div>
-      </div>
-    </section>
-  );
-}
 
 // ─── Footer ───────────────────────────────────────────────────────────────────
 
@@ -1222,10 +1062,8 @@ export default function LandingPage() {
         <HeroSection onDemoClick={() => setDemoOpen(true)} />
         <ImmersiveSection />
         <PipelineVisualSection />
-        <PipelineSection />
-        <FeaturesGrid />
-        <UseCasesSection />
-        <CTASection />
+        <CataloguesARSection />
+        <CreationFlowSection />
       </main>
       <Footer />
       <DemoModal isOpen={demoOpen} onClose={() => setDemoOpen(false)} />

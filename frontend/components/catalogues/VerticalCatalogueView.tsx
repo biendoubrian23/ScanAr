@@ -1,0 +1,359 @@
+'use client';
+
+import { useEffect } from 'react';
+import Link from 'next/link';
+import {
+  Box as BoxIcon,
+  Globe,
+  Mail,
+  Instagram,
+  Facebook,
+  MessageCircle,
+  Music2,
+  Store,
+  ScanSearch,
+  CheckCircle2,
+  Image as ImageIcon,
+  Sparkles,
+  ScanLine,
+  Eye,
+  TrendingUp,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { trackCatalogueEvent } from '@/lib/catalogueTracking';
+import type { Catalogue, CatalogueItemWithModel, CatalogueSocials } from '@/lib/types';
+import { THEME_TOKENS, type ThemeTokens } from './theme';
+import { PublicStatsPanel } from './PublicStatsPanel';
+
+interface VerticalCatalogueViewProps {
+  catalogue:    Catalogue;
+  items:        CatalogueItemWithModel[];
+  /** When true, renders interactive elements as inert buttons (used inside dashboard preview). */
+  previewMode?: boolean;
+}
+
+const SOCIAL_ICONS: Record<keyof CatalogueSocials, React.ElementType> = {
+  instagram: Instagram,
+  website:   Globe,
+  email:     Mail,
+  store:     Store,
+  whatsapp:  MessageCircle,
+  tiktok:    Music2,
+  facebook:  Facebook,
+};
+
+const SOCIAL_ORDER: (keyof CatalogueSocials)[] = [
+  'instagram', 'website', 'email', 'store', 'whatsapp', 'tiktok', 'facebook',
+];
+
+export function VerticalCatalogueView({ catalogue, items, previewMode = false }: VerticalCatalogueViewProps) {
+  const t = THEME_TOKENS[catalogue.theme];
+
+  // Fire `catalogue_view` once per public mount (skipped in dashboard preview).
+  useEffect(() => {
+    if (previewMode) return;
+    trackCatalogueEvent(catalogue.slug, 'catalogue_view');
+  }, [previewMode, catalogue.slug]);
+
+  // Filter visible socials
+  const socials = SOCIAL_ORDER
+    .map((k) => ({ key: k, value: catalogue.socials[k] }))
+    .filter((s) => !!s.value);
+
+  return (
+    <main className={cn('min-h-screen w-full relative overflow-x-hidden', t.pageBg)}>
+      {/* Decorative orbs */}
+      <div className={cn('pointer-events-none absolute -top-32 -left-32 w-96 h-96 rounded-full blur-3xl opacity-70', t.orbColor)} />
+      <div className={cn('pointer-events-none absolute -top-20 right-[-6rem] w-72 h-72 rounded-full blur-3xl opacity-70', t.orbColor)} />
+
+      <div className="relative max-w-[34rem] mx-auto px-4 sm:px-6 pt-10 pb-16">
+        {/* Header — avatar centered above name */}
+        <header className="flex flex-col items-center text-center mb-8">
+          <div className="relative mb-7">
+            {/* Gradient ring */}
+            <div
+              className="rounded-full p-[3px] bg-gradient-to-tr from-fuchsia-400 via-indigo-400 to-blue-400 shadow-[0_8px_30px_-6px_rgba(99,102,241,0.45)]"
+            >
+              <div className="w-28 h-28 rounded-full bg-white overflow-hidden flex items-center justify-center">
+                {catalogue.avatar_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={catalogue.avatar_url} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <Sparkles className={cn('w-10 h-10', t.mutedColor)} />
+                )}
+              </div>
+            </div>
+
+            {/* AR pill — overlaps avatar bottom */}
+            <span
+              className={cn(
+                'absolute -bottom-2 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold shadow-md ring-2 ring-white',
+                t.badgeBg,
+                t.badgeText,
+              )}
+            >
+              <BoxIcon className="w-3 h-3" />
+              AR
+            </span>
+          </div>
+
+          <h1 className={cn('text-3xl font-bold tracking-tight flex items-center justify-center gap-2', t.titleColor)}>
+            {catalogue.title}
+            <CheckCircle2 className="w-5 h-5 text-blue-500 fill-blue-500/15" aria-hidden="true" />
+          </h1>
+          {catalogue.subtitle && (
+            <p className={cn('text-sm mt-2', t.bodyColor)}>{catalogue.subtitle}</p>
+          )}
+          {catalogue.location && (
+            <p className={cn('text-xs mt-2 inline-flex items-center gap-1', t.mutedColor)}>
+              <span aria-hidden="true">📍</span>
+              {catalogue.location}
+            </p>
+          )}
+        </header>
+
+        {/* Socials — single-row horizontal scroll carousel */}
+        {socials.length > 0 && (
+          <nav aria-label="Liens sociaux" className="flex gap-4 overflow-x-auto pb-2 mb-7 justify-center scrollbar-none">
+            {socials.map(({ key, value }) => {
+              const Icon = SOCIAL_ICONS[key];
+              return (
+                <a
+                  key={key}
+                  href={ensureUrl(key, value!)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => {
+                    if (!previewMode) {
+                      trackCatalogueEvent(catalogue.slug, 'social_click', { metadata: { key } });
+                    }
+                  }}
+                  className="flex flex-col items-center group"
+                >
+                  <div className={cn(
+                    'w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm border transition-transform group-hover:-translate-y-0.5',
+                    t.cardBg,
+                    t.cardBorder,
+                  )}>
+                    <Icon className={cn('w-5 h-5', t.bodyColor)} strokeWidth={1.75} />
+                  </div>
+                  <span className={cn('mt-1 text-[10px] font-medium', t.mutedColor)}>
+                    {labelFor(key)}
+                  </span>
+                </a>
+              );
+            })}
+          </nav>
+        )}
+
+        {/* Products card */}
+        <section
+          className={cn(
+            'rounded-2xl border shadow-sm overflow-hidden',
+            t.cardBg,
+            t.cardBorder,
+          )}
+        >
+          <header className="px-4 py-3.5 border-b border-current/10">
+            <h2 className={cn('text-sm font-semibold inline-flex items-center gap-1.5', t.titleColor)}>
+              Explorer en AR
+              <Sparkles className="w-3.5 h-3.5 text-yellow-500" />
+            </h2>
+            <p className={cn('text-xs mt-0.5', t.mutedColor)}>
+              Visualisez nos produits dans votre espace
+            </p>
+          </header>
+
+          {items.length === 0 ? (
+            <div className="px-4 py-10 text-center">
+              <ImageIcon className={cn('w-8 h-8 mx-auto mb-2 opacity-40', t.mutedColor)} />
+              <p className={cn('text-sm', t.mutedColor)}>Aucun produit pour le moment.</p>
+            </div>
+          ) : (
+            <ul className="divide-y divide-current/10">
+              {items.map((it) => (
+                <ProductRow
+                  key={it.id}
+                  catalogueSlug={catalogue.slug}
+                  item={it}
+                  tokens={t}
+                  previewMode={previewMode}
+                />
+              ))}
+            </ul>
+          )}
+        </section>
+
+        {/* Optional configurable stats panel (owner-controlled) */}
+        <PublicStatsPanel catalogue={catalogue} items={items} tokens={t} />
+
+        {/* QR + analytics row */}
+        <div className="grid grid-cols-2 gap-3 mt-4">
+          <div className={cn('rounded-2xl border p-3.5', t.cardBg, t.cardBorder)}>
+            <p className={cn('text-xs font-semibold mb-0.5', t.titleColor)}>Scan to Explore</p>
+            <p className={cn('text-[10px] mb-2', t.mutedColor)}>Ouvrir ce profil en AR</p>
+            <div className="rounded-lg p-1.5 bg-white border border-gray-200">
+              {catalogue.qr_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={catalogue.qr_url} alt="QR code du catalogue" className="w-full h-auto" />
+              ) : (
+                <div className="aspect-square flex items-center justify-center text-xs text-gray-400">
+                  QR…
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className={cn('rounded-2xl border p-3.5', t.cardBg, t.cardBorder)}>
+            <p className={cn('text-xs font-semibold mb-3 inline-flex items-center gap-1.5', t.titleColor)}>
+              Live Analytics
+            </p>
+            <div className="space-y-2">
+              <Stat icon={<Eye className="w-3.5 h-3.5" />} label="Vues" value={catalogue.view_count} tokens={t} />
+              <Stat icon={<BoxIcon className="w-3.5 h-3.5" />} label="Produits" value={items.length} tokens={t} />
+              <Stat icon={<TrendingUp className="w-3.5 h-3.5" />} label="Catégories" value={catalogue.categories.length} tokens={t} />
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <footer className="text-center mt-10">
+          {previewMode ? (
+            <span className={cn('inline-flex items-center gap-2 text-xs', t.mutedColor)}>
+              <ScanLine className="w-3.5 h-3.5" />
+              Créé avec ScanAR
+            </span>
+          ) : (
+            <Link href="/" className={cn('inline-flex items-center gap-2 text-xs', t.mutedColor)}>
+              <ScanLine className="w-3.5 h-3.5" />
+              Créé avec ScanAR
+            </Link>
+          )}
+        </footer>
+      </div>
+    </main>
+  );
+}
+
+// ─── Product row ──────────────────────────────────────────────────────────────
+function ProductRow({
+  catalogueSlug,
+  item,
+  tokens,
+  previewMode,
+}: {
+  catalogueSlug: string;
+  item:          CatalogueItemWithModel;
+  tokens:        ThemeTokens;
+  previewMode:   boolean;
+}) {
+  const t = tokens;
+  const label       = item.custom_label       || item.model.name;
+  const description = item.custom_description || (item.model.description ?? '');
+
+  return (
+    <li className="px-4 py-3.5 flex items-center gap-3.5">
+      {/* Thumb */}
+      <div className="relative shrink-0">
+        <div className="w-16 h-16 rounded-xl bg-white/60 border border-current/10 overflow-hidden flex items-center justify-center">
+          {item.model.image_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={item.model.image_url} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <BoxIcon className={cn('w-6 h-6', t.mutedColor)} />
+          )}
+        </div>
+        {item.badge && (
+          <span className={cn(
+            'absolute -top-1.5 -left-1.5 px-1.5 py-0.5 rounded-full text-[9px] font-semibold shadow-sm',
+            t.badgeBg,
+            t.badgeText,
+          )}>
+            {item.badge}
+          </span>
+        )}
+      </div>
+
+      {/* Body */}
+      <div className="flex-1 min-w-0">
+        <p className={cn('text-sm font-semibold truncate', t.titleColor)}>{label}</p>
+        {description && (
+          <p className={cn('text-xs mt-0.5 line-clamp-2', t.mutedColor)}>{description}</p>
+        )}
+        {item.price && (
+          <p className={cn('text-sm font-semibold mt-1', t.titleColor)}>{item.price}</p>
+        )}
+      </div>
+
+      {/* AR button */}
+      {previewMode ? (
+        <span
+          className={cn(
+            'shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold shadow-sm',
+            t.arButtonBg,
+            t.arButtonText,
+          )}
+        >
+          <ScanSearch className="w-3.5 h-3.5" />
+          Voir en AR
+        </span>
+      ) : (
+        <Link
+          href={`/c/${catalogueSlug}/ar/${item.id}`}
+          onClick={() => trackCatalogueEvent(catalogueSlug, 'item_ar_open', { itemId: item.id })}
+          className={cn(
+            'shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold shadow-sm transition-all',
+            t.arButtonBg,
+            t.arButtonText,
+          )}
+        >
+          <ScanSearch className="w-3.5 h-3.5" />
+          Voir en AR
+        </Link>
+      )}
+    </li>
+  );
+}
+
+// ─── Mini stat row ────────────────────────────────────────────────────────────
+function Stat({
+  icon, label, value, tokens,
+}: {
+  icon:   React.ReactNode;
+  label:  string;
+  value:  number;
+  tokens: ThemeTokens;
+}) {
+  return (
+    <div className="flex items-center justify-between text-xs">
+      <span className={cn('inline-flex items-center gap-1.5', tokens.mutedColor)}>
+        {icon}
+        {label}
+      </span>
+      <span className={cn('font-bold tabular-nums', tokens.titleColor)}>{value}</span>
+    </div>
+  );
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function ensureUrl(key: keyof CatalogueSocials, raw: string): string {
+  if (key === 'email')    return raw.startsWith('mailto:') ? raw : `mailto:${raw}`;
+  if (key === 'whatsapp') {
+    if (raw.startsWith('http')) return raw;
+    return `https://wa.me/${raw.replace(/[^0-9]/g, '')}`;
+  }
+  if (raw.startsWith('http')) return raw;
+  return `https://${raw}`;
+}
+
+function labelFor(key: keyof CatalogueSocials): string {
+  switch (key) {
+    case 'instagram': return 'Instagram';
+    case 'website':   return 'Site web';
+    case 'email':     return 'Email';
+    case 'store':     return 'Boutique';
+    case 'whatsapp':  return 'WhatsApp';
+    case 'tiktok':    return 'TikTok';
+    case 'facebook':  return 'Facebook';
+  }
+}
