@@ -74,101 +74,118 @@ const fadeIn = {
 
 // ─── Navbar ───────────────────────────────────────────────────────────────────
 
+const NAV_LINKS = [
+  { label: 'Fonctionnalités', href: '#fonctionnalites' },
+  { label: 'Comment ça marche', href: '#comment-ca-marche' },
+  { label: 'Catalogues AR', href: '#catalogues' },
+];
+
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <nav className="sticky top-0 inset-x-0 z-50 bg-white border-b border-gray-200">
-      <div
-        className={cn(
-          'mx-auto max-w-7xl px-6 py-4',
-          'flex items-center justify-between',
-        )}
-      >
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-brand-600 to-brand-500 shadow-md shadow-brand-600/25 group-hover:shadow-brand-500/35 transition-shadow">
-            <ScanLine className="w-4 h-4 text-white" />
-          </div>
-          <span className="text-lg font-bold text-gray-900">ScanAR</span>
-        </Link>
-
-        {/* Desktop nav links */}
-        <div className="hidden md:flex items-center gap-7">
-          {['Features', 'How it works', 'Pricing'].map((item) => (
-            <a
-              key={item}
-              href={`#${item.toLowerCase().replace(/\s+/g, '-')}`}
-              className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors duration-150"
-            >
-              {item}
-            </a>
-          ))}
-        </div>
-
-        {/* CTAs */}
-        <div className="hidden md:flex items-center gap-2">
-          <Link
-            href="/login"
-            className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            Login
+    <>
+      <nav className="sticky top-0 inset-x-0 z-50 bg-white border-b border-gray-200">
+        <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-brand-600 to-brand-500 shadow-md shadow-brand-600/25 group-hover:shadow-brand-500/35 transition-shadow">
+              <ScanLine className="w-4 h-4 text-white" />
+            </div>
+            <span className="text-lg font-bold text-gray-900">ScanAR</span>
           </Link>
-          <Link
-            href="/signup"
-            className={cn(
-              'flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-xl',
-              'bg-brand-700 text-white',
-              'shadow-md shadow-brand-700/20',
-              'hover:bg-brand-800 hover:shadow-brand-700/30',
-              'transition-all duration-200',
-            )}
-          >
-            Get Started
-            <ChevronRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
 
-        {/* Mobile hamburger */}
-        <button
-          type="button"
-          className="md:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-          onClick={() => setMenuOpen((v) => !v)}
-          aria-label="Toggle menu"
-        >
-          <div className="w-4 h-3.5 flex flex-col justify-between">
-            <span className={cn('block h-0.5 bg-current transition-all', menuOpen && 'rotate-45 translate-y-[6px]')} />
-            <span className={cn('block h-0.5 bg-current transition-all', menuOpen && 'opacity-0')} />
-            <span className={cn('block h-0.5 bg-current transition-all', menuOpen && '-rotate-45 -translate-y-[6px]')} />
+          {/* Desktop nav links */}
+          <div className="hidden md:flex items-center gap-7">
+            {NAV_LINKS.map(({ label, href }) => (
+              <a
+                key={label}
+                href={href}
+                className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors duration-150"
+              >
+                {label}
+              </a>
+            ))}
           </div>
-        </button>
-      </div>
 
-      {/* Mobile menu */}
-      {menuOpen && (
-        <div className="md:hidden px-6 py-4 bg-white border-t border-gray-200 flex flex-col gap-3">
-          {['Features', 'How it works', 'Pricing'].map((item) => (
-            <a
-              key={item}
-              href={`#${item.toLowerCase().replace(/\s+/g, '-')}`}
-              className="text-sm font-medium text-gray-700 hover:text-gray-900 py-1.5"
-              onClick={() => setMenuOpen(false)}
+          {/* CTAs */}
+          <div className="hidden md:flex items-center gap-2">
+            <Link
+              href="/login"
+              className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
             >
-              {item}
-            </a>
-          ))}
-          <div className="pt-2 border-t border-gray-200 flex flex-col gap-2">
-            <Link href="/login" className="text-sm text-gray-600 py-1.5">Login</Link>
+              Connexion
+            </Link>
             <Link
               href="/signup"
-              className="flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium rounded-xl bg-brand-700 text-white hover:bg-brand-800 transition-colors"
+              className={cn(
+                'flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-xl',
+                'bg-brand-700 text-white',
+                'shadow-md shadow-brand-700/20',
+                'hover:bg-brand-800 hover:shadow-brand-700/30',
+                'transition-all duration-200',
+              )}
             >
-              Get Started <ChevronRight className="w-3.5 h-3.5" />
+              Commencer
+              <ChevronRight className="w-3.5 h-3.5" />
             </Link>
           </div>
+
+          {/* Mobile hamburger */}
+          <button
+            type="button"
+            className="md:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label="Toggle menu"
+            aria-expanded={menuOpen ? 'true' : 'false'}
+          >
+            <div className="w-4 h-3.5 flex flex-col justify-between">
+              <span className={cn('block h-0.5 bg-current transition-all duration-300', menuOpen && 'rotate-45 translate-y-[6px]')} />
+              <span className={cn('block h-0.5 bg-current transition-all duration-300', menuOpen && 'opacity-0')} />
+              <span className={cn('block h-0.5 bg-current transition-all duration-300', menuOpen && '-rotate-45 -translate-y-[6px]')} />
+            </div>
+          </button>
         </div>
+      </nav>
+
+      {/* Mobile menu — fixed overlay, jamais inline dans le nav */}
+      {menuOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/20 md:hidden"
+            onClick={() => setMenuOpen(false)}
+          />
+          <div className="fixed top-[69px] inset-x-0 z-50 md:hidden bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-xl px-6 py-5 flex flex-col gap-3">
+            {NAV_LINKS.map(({ label, href }) => (
+              <a
+                key={label}
+                href={href}
+                className="text-sm font-medium text-gray-700 hover:text-gray-900 py-1.5 transition-colors"
+                onClick={() => setMenuOpen(false)}
+              >
+                {label}
+              </a>
+            ))}
+            <div className="pt-3 border-t border-gray-100 flex flex-col gap-2">
+              <Link
+                href="/login"
+                className="text-sm text-gray-600 py-1.5"
+                onClick={() => setMenuOpen(false)}
+              >
+                Connexion
+              </Link>
+              <Link
+                href="/signup"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium rounded-xl bg-brand-700 text-white hover:bg-brand-800 transition-colors"
+              >
+                Commencer <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          </div>
+        </>
       )}
-    </nav>
+    </>
   );
 }
 
@@ -458,7 +475,7 @@ const IMMERSIVE_FEATURES = [
 
 function ImmersiveSection() {
   return (
-    <section className="relative py-24 bg-white overflow-hidden">
+    <section id="fonctionnalites" className="relative py-24 bg-white overflow-hidden">
       <div className="mx-auto max-w-7xl px-6">
         {/* Centered section title */}
         <motion.h2
@@ -581,7 +598,7 @@ function ImmersiveSection() {
 
 function PipelineVisualSection() {
   return (
-    <section className="relative py-24 bg-[#fafafa] overflow-hidden hidden lg:block">
+    <section id="comment-ca-marche" className="relative py-24 bg-[#fafafa] overflow-hidden hidden lg:block">
       <div className="mx-auto max-w-[100rem] px-6">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
@@ -608,7 +625,7 @@ function PipelineVisualSection() {
             alt="Pipeline ScanAR : capturer, reconstruire, optimiser, générer le QR code, voir en AR"
             width={2172}
             height={724}
-            className="w-full h-auto lg:scale-[1.1] origin-center"
+            className="w-full h-auto lg:scale-[0.99] origin-center"
             sizes="(min-width: 1024px) 95vw, 100vw"
             quality={92}
           />
@@ -648,7 +665,7 @@ function CataloguesARSection() {
   );
 
   return (
-    <section className="relative py-20 lg:py-28 bg-white overflow-hidden">
+    <section id="catalogues" className="relative py-20 lg:py-28 bg-white overflow-hidden">
       <div className="mx-auto max-w-7xl px-6">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
           {/* Mobile-only title (appears first on mobile) */}
@@ -918,7 +935,7 @@ function CreationFlowSection() {
 
 function FinalCtaSection() {
   return (
-    <section className="relative bg-white pt-32 sm:pt-44 lg:pt-56 pb-12 lg:pb-16">
+    <section className="relative bg-white pt-10 sm:pt-28 lg:pt-40 pb-12 lg:pb-16 overflow-x-clip">
       <div className="mx-auto max-w-7xl px-4 lg:px-6">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -958,7 +975,7 @@ function FinalCtaSection() {
                   'transition-all duration-200 group',
                 )}
               >
-                Commencer en 3D
+                Essayer gratuitement
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
               </Link>
             </div>
@@ -973,7 +990,7 @@ function FinalCtaSection() {
                 className="absolute inset-x-0 -top-24 sm:-top-32 lg:-top-44 -bottom-2 lg:-bottom-6"
                 style={{ filter: 'drop-shadow(0 30px 40px rgba(15,23,42,0.18))' }}
               >
-                <div className="relative w-full h-full lg:scale-[1.4] origin-center">
+                <div className="relative w-full h-full scale-[1.5] lg:scale-[1.47] origin-center">
                   <Image
                     src="/images/section/section6.png"
                     alt="Aperçu d'un produit en réalité augmentée avec QR code"
