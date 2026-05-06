@@ -332,6 +332,16 @@ export default function CatalogueEditPage() {
       subtitle={`/c/${catalogue.slug}`}
       action={
         <div className="flex items-center gap-2">
+          {/* Aperçu — ouvre en plein écran dans un nouvel onglet sur mobile, modal sur desktop */}
+          <a
+            href={`/c/${catalogue.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="sm:hidden inline-flex items-center justify-center w-10 h-10 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+            title="Voir l'aperçu"
+          >
+            <Smartphone className="w-4 h-4" />
+          </a>
           <button
             type="button"
             onClick={() => setPhonePreviewOpen(true)}
@@ -340,19 +350,21 @@ export default function CatalogueEditPage() {
             <Smartphone className="w-4 h-4" />
             Voir la page
           </button>
+          {/* Sauvegarder — icon-only sur mobile, icon+texte sur desktop */}
           <button
             type="button"
             onClick={handleSave}
             disabled={saving}
             className={cn(
-              'inline-flex items-center gap-2 h-10 px-4 rounded-xl',
+              'inline-flex items-center justify-center gap-2 h-10 rounded-xl',
+              'w-10 sm:w-auto sm:px-4',
               'bg-brand-600 text-white text-sm font-medium shadow-sm',
               'hover:bg-brand-700 active:bg-brand-800 transition-colors',
               saving && 'opacity-70 cursor-wait',
             )}
           >
-            <Save className="w-4 h-4" />
-            {saving ? 'Sauvegarde…' : 'Sauvegarder'}
+            <Save className="w-4 h-4 shrink-0" />
+            <span className="hidden sm:inline">{saving ? 'Sauvegarde…' : 'Sauvegarder'}</span>
           </button>
         </div>
       }

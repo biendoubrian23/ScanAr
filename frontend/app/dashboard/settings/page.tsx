@@ -121,7 +121,7 @@ export default function SettingsPage() {
 
       <div className="space-y-8 max-w-3xl">
         {/* Profile Section */}
-        <section className="bg-white border border-gray-200 shadow-sm rounded-2xl overflow-hidden">
+        <section className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] overflow-hidden">
           <div className="flex items-center gap-2.5 px-6 py-4 border-b border-gray-100">
             <User className="w-4 h-4 text-brand-400" />
             <h2 className="text-sm font-semibold text-gray-900">Profile</h2>
@@ -157,7 +157,7 @@ export default function SettingsPage() {
         </section>
 
         {/* Security Section */}
-        <section className="bg-white border border-gray-200 shadow-sm rounded-2xl overflow-hidden">
+        <section className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] overflow-hidden">
           <div className="flex items-center gap-2.5 px-6 py-4 border-b border-gray-100">
             <Shield className="w-4 h-4 text-brand-400" />
             <h2 className="text-sm font-semibold text-gray-900">Security</h2>
@@ -198,7 +198,7 @@ export default function SettingsPage() {
         </section>
 
         {/* Plan Section */}
-        <section className="bg-white border border-gray-200 shadow-sm rounded-2xl overflow-hidden">
+        <section className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] overflow-hidden">
           <div className="flex items-center gap-2.5 px-6 py-4 border-b border-gray-100">
             <CreditCard className="w-4 h-4 text-brand-400" />
             <h2 className="text-sm font-semibold text-gray-900">Plan & Billing</h2>
@@ -228,10 +228,10 @@ export default function SettingsPage() {
                   <div
                     key={plan.id}
                     className={cn(
-                      'rounded-xl p-5 border transition-colors',
+                      'rounded-2xl p-5 border transition-all',
                       isCurrent
-                        ? 'bg-brand-600/10 border-brand-500/30'
-                        : 'bg-white border-gray-200 hover:border-gray-300',
+                        ? 'bg-brand-500/10 border-brand-500/20 shadow-[0_4px_20px_rgba(13,148,136,0.1)]'
+                        : 'bg-white/60 backdrop-blur-sm border-white/30 hover:bg-white/80 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)]',
                       plan.popular && !isCurrent && 'ring-1 ring-brand-500/20',
                     )}
                   >
@@ -265,7 +265,7 @@ export default function SettingsPage() {
                     </ul>
 
                     {isCurrent ? (
-                      <div className="flex items-center justify-center h-9 rounded-lg bg-brand-600/15 border border-brand-500/25 text-xs font-medium text-brand-300">
+                      <div className="flex items-center justify-center h-9 rounded-full bg-brand-600/15 border border-brand-500/25 text-xs font-medium text-brand-600">
                         Current plan
                       </div>
                     ) : (

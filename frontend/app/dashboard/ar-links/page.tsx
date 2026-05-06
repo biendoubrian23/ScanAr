@@ -110,10 +110,9 @@ export default function ARLinksPage() {
           onClick={() => setGenerateOpen(true)}
           disabled={eligibleModels.length === 0}
           className={cn(
-            'inline-flex items-center gap-2 h-10 px-4 rounded-xl',
-            'bg-brand-600 text-white text-sm font-medium shadow-sm',
-            'hover:bg-brand-700 active:bg-brand-800 transition-colors',
-            'border border-brand-600',
+            'inline-flex items-center gap-2 h-10 px-5 rounded-full',
+            'bg-brand-500 text-white text-sm font-medium shadow-[0_4px_14px_rgba(13,148,136,0.35)]',
+            'hover:bg-brand-600 hover:shadow-[0_6px_20px_rgba(13,148,136,0.4)] active:bg-brand-700 transition-all',
             eligibleModels.length === 0 && 'opacity-50 cursor-not-allowed pointer-events-none',
           )}
         >
@@ -141,7 +140,7 @@ export default function ARLinksPage() {
       )}
 
       <div>
-        <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+        <section className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] overflow-hidden">
           {loading ? (
             <div className="p-5 space-y-2">
               {[...Array(4)].map((_, i) => <div key={i} className="h-16 bg-gray-50 rounded-lg animate-pulse" />)}
@@ -189,7 +188,7 @@ export default function ARLinksPage() {
                   {links.map((link) => {
                     const model = modelById(link.model_id);
                     return (
-                      <tr key={link.id} className="border-b border-gray-50 last:border-b-0 hover:bg-gray-50/70 transition-colors">
+                      <tr key={link.id} className="border-b border-gray-100/40 last:border-b-0 hover:bg-white/50 transition-colors">
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-3 min-w-0">
                             <div className="w-11 h-11 rounded-lg overflow-hidden bg-gray-100 shrink-0 flex items-center justify-center">
@@ -213,7 +212,7 @@ export default function ARLinksPage() {
                             type="button"
                             onClick={() => setQrModal(link)}
                             className={cn(
-                              'w-12 h-12 rounded-lg bg-white border border-gray-200 p-1 hover:border-brand-500 transition-colors',
+                              'w-12 h-12 rounded-2xl bg-white/70 backdrop-blur-sm border border-white/30 p-1 hover:border-brand-400/40 hover:shadow-[0_4px_12px_rgba(13,148,136,0.12)] transition-all',
                               !link.is_active && 'opacity-50 grayscale',
                             )}
                           >
@@ -324,10 +323,10 @@ export default function ARLinksPage() {
                   onClick={() => handleGenerate(m.id)}
                   disabled={generatingId !== null}
                   className={cn(
-                    'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors',
+                    'w-full flex items-center gap-3 px-3 py-2.5 rounded-full text-left transition-colors',
                     generatingId === m.id
                       ? 'bg-brand-50'
-                      : 'hover:bg-gray-50',
+                      : 'hover:bg-white/60',
                     generatingId !== null && generatingId !== m.id && 'opacity-50 cursor-not-allowed',
                   )}
                 >

@@ -198,7 +198,7 @@ export default function ModelsPage() {
               )}
             </Button>
             {filterOpen && (
-              <div className="absolute right-0 top-full mt-2 w-56 z-30 bg-white rounded-xl border border-gray-200 shadow-lg p-2">
+              <div className="absolute right-0 top-full mt-2 w-56 z-30 bg-white/85 backdrop-blur-2xl rounded-2xl border border-white/40 shadow-[0_20px_60px_rgba(0,0,0,0.12)] p-2 overflow-hidden">
                 <p className="text-xs font-medium text-gray-500 px-2 py-1.5">Type d'objet</p>
                 <div className="space-y-0.5">
                   {TYPE_FILTERS.map((t) => (
@@ -207,10 +207,10 @@ export default function ModelsPage() {
                       type="button"
                       onClick={() => { setTypeFilter(t); setPage(1); setFilterOpen(false); }}
                       className={cn(
-                        'w-full text-left px-2 py-1.5 rounded-md text-sm transition-colors',
+                        'w-full text-left px-2 py-1.5 rounded-full text-sm transition-colors',
                         typeFilter === t
                           ? 'bg-brand-50 text-brand-700 font-medium'
-                          : 'text-gray-700 hover:bg-gray-50',
+                          : 'text-gray-700 hover:bg-white/60',
                       )}
                     >
                       {t === 'all' ? 'Tous les types' : OBJECT_TYPE_LABELS[t]}
@@ -223,7 +223,7 @@ export default function ModelsPage() {
         </div>
 
         {/* Table */}
-        <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+        <section className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] overflow-hidden">
           {loading ? (
             <div className="p-5 space-y-2">
               {[...Array(6)].map((_, i) => <div key={i} className="h-14 bg-gray-50 rounded-lg animate-pulse" />)}
@@ -253,7 +253,7 @@ export default function ModelsPage() {
                       <tr
                         key={model.id}
                         onClick={() => router.push(`/dashboard/models/${model.id}`)}
-                        className="border-b border-gray-50 last:border-b-0 hover:bg-gray-50/70 transition-colors cursor-pointer"
+                        className="border-b border-gray-100/40 last:border-b-0 hover:bg-white/50 transition-colors cursor-pointer"
                       >
                         <td className="px-3 sm:px-5 py-3 max-w-[140px] sm:max-w-none">
                           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -299,9 +299,9 @@ export default function ModelsPage() {
                               if (link) setQrModal({ link, model });
                             }}
                             className={cn(
-                              'inline-flex items-center justify-center w-8 h-8 rounded-md transition-colors',
+                              'inline-flex items-center justify-center w-8 h-8 rounded-full transition-colors',
                               link
-                                ? 'text-gray-700 hover:bg-gray-100'
+                                ? 'text-gray-700 hover:bg-white/60'
                                 : 'text-gray-300 cursor-not-allowed',
                             )}
                           >
@@ -348,7 +348,7 @@ export default function ModelsPage() {
 
           {/* Pagination */}
           {!loading && filtered.length > 0 && (
-            <div className="flex items-center justify-between px-5 py-3 border-t border-gray-100">
+            <div className="flex items-center justify-between px-5 py-3 border-t border-gray-100/40">
               <p className="text-xs text-gray-500">
                 Affichage {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filtered.length)} sur {filtered.length} résultats
               </p>
@@ -358,7 +358,7 @@ export default function ModelsPage() {
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={safePage === 1}
                   aria-label="Page précédente"
-                  className="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="inline-flex items-center justify-center w-7 h-7 rounded-full text-gray-500 hover:bg-white/60 disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
@@ -368,10 +368,10 @@ export default function ModelsPage() {
                     type="button"
                     onClick={() => setPage(n)}
                     className={cn(
-                      'inline-flex items-center justify-center min-w-[28px] h-7 px-2 rounded-md text-xs',
+                      'inline-flex items-center justify-center min-w-[28px] h-7 px-2 rounded-full text-xs',
                       safePage === n
-                        ? 'border border-brand-600 text-brand-600 font-medium'
-                        : 'text-gray-500 hover:bg-gray-100',
+                        ? 'bg-brand-500/10 border border-brand-500/30 text-brand-600 font-medium'
+                        : 'text-gray-500 hover:bg-white/60',
                     )}
                   >
                     {n}
@@ -383,7 +383,7 @@ export default function ModelsPage() {
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={safePage === totalPages}
                   aria-label="Page suivante"
-                  className="inline-flex items-center justify-center w-7 h-7 rounded-md text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="inline-flex items-center justify-center w-7 h-7 rounded-full text-gray-500 hover:bg-white/60 disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>

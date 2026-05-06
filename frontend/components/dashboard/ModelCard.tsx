@@ -25,7 +25,7 @@ export function ModelCard({
   const isCompleted  = model.status === 'completed';
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+    <div className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.1)] transition-all duration-200 overflow-hidden">
       {/* Image preview */}
       <div className="relative h-44 bg-gray-100 overflow-hidden">
         {model.image_url ? (
@@ -78,9 +78,9 @@ export function ModelCard({
                 onClick={onCreateARLink}
                 disabled={creatingLink}
                 className={cn(
-                  'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium',
-                  'bg-brand-50 text-brand-700 border border-brand-100',
-                  'hover:bg-brand-100 transition-colors',
+                  'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium',
+                  'bg-brand-500/10 text-brand-700 shadow-[0_2px_6px_rgba(13,148,136,0.12)]',
+                  'hover:bg-brand-500/18 transition-all duration-150',
                   'disabled:opacity-50 disabled:cursor-not-allowed',
                 )}
               >
@@ -93,7 +93,7 @@ export function ModelCard({
                   href={model.glb_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center w-7 h-7 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                  className="flex items-center justify-center w-7 h-7 rounded-full text-gray-400 hover:text-gray-700 hover:bg-white/70 transition-all duration-150"
                   title="Preview 3D model"
                 >
                   <Eye className="w-3.5 h-3.5" />
@@ -106,8 +106,8 @@ export function ModelCard({
             onClick={onDelete}
             disabled={deleting}
             className={cn(
-              'flex items-center justify-center w-7 h-7 rounded-md ml-auto',
-              'text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors',
+              'flex items-center justify-center w-7 h-7 rounded-full ml-auto',
+              'text-gray-400 hover:text-red-600 hover:bg-red-50/60 transition-all duration-150',
               'disabled:opacity-50 disabled:cursor-not-allowed',
             )}
             title="Delete model"

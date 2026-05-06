@@ -33,7 +33,8 @@ export function DashboardShell({
       <header
         className={cn(
           'flex items-center gap-3 shrink-0',
-          'px-4 lg:px-8 h-[81px] border-b border-gray-200 bg-white',
+          'px-4 lg:px-8 h-[81px] border-b border-gray-100/60',
+          'bg-white/80 backdrop-blur-xl',
         )}
       >
         {/* Mobile burger — integrated into the header layout (no overlap). */}
@@ -43,8 +44,9 @@ export function DashboardShell({
           aria-label="Ouvrir la barre latérale"
           className={cn(
             'lg:hidden inline-flex items-center justify-center shrink-0',
-            'w-11 h-11 rounded-xl bg-white border border-gray-200 shadow-sm',
-            'text-gray-700 hover:bg-gray-50 active:scale-95 transition-all',
+            'w-11 h-11 rounded-full bg-white/70 backdrop-blur-sm',
+            'border border-gray-200/50 shadow-[0_2px_8px_rgba(0,0,0,0.06)]',
+            'text-gray-700 hover:bg-white/90 active:scale-95 transition-all',
           )}
         >
           <Menu className="w-5 h-5" aria-hidden="true" />

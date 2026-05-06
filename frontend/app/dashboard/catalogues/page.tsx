@@ -91,9 +91,9 @@ export default function CataloguesPage() {
           type="button"
           onClick={() => setCreateOpen(true)}
           className={cn(
-            'inline-flex items-center gap-2 h-10 px-4 rounded-xl',
-            'bg-brand-600 text-white text-sm font-medium shadow-sm',
-            'hover:bg-brand-700 active:bg-brand-800 transition-colors',
+            'inline-flex items-center gap-2 h-10 px-5 rounded-full',
+            'bg-brand-500 text-white text-sm font-medium shadow-[0_4px_14px_rgba(13,148,136,0.35)]',
+            'hover:bg-brand-600 hover:shadow-[0_6px_20px_rgba(13,148,136,0.4)] active:bg-brand-700 transition-all',
           )}
         >
           <Plus className="w-4 h-4" />
@@ -126,7 +126,7 @@ export default function CataloguesPage() {
           ))}
         </div>
       ) : catalogues.length === 0 ? (
-        <div className="bg-white border border-gray-200 rounded-2xl flex flex-col items-center justify-center py-20 text-center px-6">
+        <div className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] flex flex-col items-center justify-center py-20 text-center px-6">
           <div className="flex items-center justify-center w-16 h-16 rounded-2xl mb-4 bg-brand-50">
             <LayoutGrid className="w-7 h-7 text-brand-600" />
           </div>
@@ -234,8 +234,8 @@ function CatalogueCard({
   return (
     <div
       className={cn(
-        'group relative bg-white border border-gray-200 rounded-2xl overflow-hidden',
-        'hover:border-brand-300 hover:shadow-md hover:shadow-gray-200/50 transition-all',
+        'group relative bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] overflow-hidden',
+        'hover:shadow-[0_8px_30px_rgba(0,0,0,0.1)] hover:bg-white/85 transition-all',
         deleting && 'opacity-50 pointer-events-none',
       )}
     >
@@ -313,7 +313,7 @@ function CatalogueCard({
         <button
           type="button"
           onClick={onEdit}
-          className="mt-4 w-full inline-flex items-center justify-center gap-1.5 h-9 rounded-lg bg-gray-50 text-gray-700 text-sm font-medium hover:bg-gray-100 transition-colors"
+          className="mt-4 w-full inline-flex items-center justify-center gap-1.5 h-9 rounded-full bg-white/60 backdrop-blur-sm border border-white/40 text-gray-700 text-sm font-medium hover:bg-white/80 transition-all shadow-[0_2px_8px_rgba(0,0,0,0.06)]"
         >
           Modifier le catalogue
           <ArrowRight className="w-3.5 h-3.5" />

@@ -59,11 +59,11 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
     <Link
       href={item.href}
       className={cn(
-        'flex items-center gap-3 px-3 py-2.5 rounded-lg text-[15px]',
-        'transition-colors duration-100',
+        'flex items-center gap-3 px-3.5 py-2.5 rounded-full text-[14px]',
+        'transition-all duration-150',
         isActive
-          ? 'bg-brand-50 text-brand-700 font-semibold'
-          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium',
+          ? 'bg-brand-500/12 text-brand-700 font-semibold shadow-[0_2px_8px_rgba(13,148,136,0.12)]'
+          : 'text-gray-600 hover:bg-white/60 hover:text-gray-900 font-medium',
       )}
       aria-current={isActive ? 'page' : undefined}
     >
@@ -89,18 +89,14 @@ function SidebarContent({ pathname, onClose }: { pathname: string; onClose?: () 
 
   return (
     <div className="flex flex-col h-full">
-
-      {/* Workspace header — fixed h-[81px] matches the DashboardShell header
-          height pixel-perfect (1px border included), so the horizontal
-          divider in the sidebar reads as a perfect continuation of the page
-          header bottom border. */}
-      <div className="flex items-center justify-between px-5 h-[81px] border-b border-gray-200 shrink-0">
+      {/* Logo header */}
+      <div className="flex items-center justify-between px-5 h-[81px] border-b border-gray-100/60 shrink-0">
         <Link
           href="/dashboard"
           className="flex items-center gap-2.5 group"
           onClick={onClose}
         >
-          <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-brand-600 shadow-sm">
+          <div className="flex items-center justify-center w-7 h-7 rounded-full bg-brand-600 shadow-[0_2px_8px_rgba(13,148,136,0.35)]">
             <ScanLine className="w-4 h-4 text-white" aria-hidden="true" />
           </div>
           <span className="text-sm font-semibold text-gray-900 tracking-tight">ScanAR</span>
@@ -111,24 +107,24 @@ function SidebarContent({ pathname, onClose }: { pathname: string; onClose?: () 
             type="button"
             onClick={onClose}
             aria-label="Fermer la barre latérale"
-            className="p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors lg:hidden"
+            className="p-1.5 rounded-full text-gray-400 hover:text-gray-600 hover:bg-white/60 transition-colors lg:hidden"
           >
             <X className="w-4 h-4" aria-hidden="true" />
           </button>
         )}
       </div>
 
-      {/* Nav — grouped sections with section labels for visual hierarchy. */}
+      {/* Nav */}
       <nav
         className="flex-1 px-3 py-6 space-y-7 overflow-y-auto"
         aria-label="Navigation principale"
       >
         {NAV_SECTIONS.map((section) => (
           <div key={section.label}>
-            <p className="px-3 mb-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+            <p className="px-3.5 mb-2.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
               {section.label}
             </p>
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               {section.items.map((item) => (
                 <NavLink key={item.href} item={item} pathname={pathname} />
               ))}
@@ -137,11 +133,11 @@ function SidebarContent({ pathname, onClose }: { pathname: string; onClose?: () 
         ))}
       </nav>
 
-      {/* Bottom: user — same border-color as the top to mirror the divider. */}
-      <div className="px-3 py-4 border-t border-gray-200">
-        <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-md hover:bg-gray-50 transition-colors">
+      {/* User card */}
+      <div className="px-3 py-4 border-t border-gray-100/60">
+        <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-full hover:bg-white/60 transition-colors">
           <div
-            className="flex items-center justify-center w-7 h-7 rounded-full shrink-0 bg-brand-600 text-white text-xs font-semibold"
+            className="flex items-center justify-center w-7 h-7 rounded-full shrink-0 bg-brand-600 text-white text-xs font-semibold shadow-[0_2px_6px_rgba(13,148,136,0.3)]"
             aria-hidden="true"
           >
             {avatarInitial}
@@ -160,9 +156,9 @@ function SidebarContent({ pathname, onClose }: { pathname: string; onClose?: () 
           type="button"
           onClick={signOut}
           className={cn(
-            'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg mt-1',
-            'text-[15px] text-gray-600 hover:text-red-600 hover:bg-red-50',
-            'transition-colors duration-100',
+            'w-full flex items-center gap-3 px-3.5 py-2.5 rounded-full mt-1',
+            'text-[14px] text-gray-600 hover:text-red-600 hover:bg-red-50/60',
+            'transition-colors duration-150',
           )}
         >
           <LogOut className="w-[18px] h-[18px] shrink-0" aria-hidden="true" />
@@ -182,7 +178,7 @@ export function Sidebar() {
       {/* Mobile overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/20 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm lg:hidden"
           onClick={close}
           aria-hidden="true"
         />
@@ -192,7 +188,8 @@ export function Sidebar() {
       <aside
         className={cn(
           'fixed inset-y-0 left-0 z-50 w-64',
-          'bg-white border-r border-gray-200 shadow-lg',
+          'bg-white/90 backdrop-blur-2xl border-r border-gray-100/50',
+          'shadow-[20px_0_60px_rgba(0,0,0,0.08)]',
           'transition-transform duration-200 ease-in-out lg:hidden',
           isOpen ? 'translate-x-0' : '-translate-x-full',
         )}
@@ -203,7 +200,7 @@ export function Sidebar() {
 
       {/* Desktop sidebar */}
       <aside
-        className="hidden lg:flex lg:flex-col w-56 shrink-0 bg-white border-r border-gray-200"
+        className="hidden lg:flex lg:flex-col w-56 shrink-0 bg-white/80 backdrop-blur-xl border-r border-gray-100/60"
         aria-label="Main navigation"
       >
         <SidebarContent pathname={pathname} />

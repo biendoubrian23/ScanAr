@@ -5,8 +5,6 @@ import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
@@ -34,51 +32,40 @@ interface ButtonWithHref extends BaseButtonProps {
 
 type ButtonProps = ButtonWithClick | ButtonWithHref;
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
-
 const variantStyles: Record<ButtonVariant, string> = {
   primary: [
-    'bg-brand-500',
-    'text-white',
-    'shadow-sm',
-    'hover:bg-brand-600',
-    'active:bg-brand-700',
-    'border border-brand-500',
+    'bg-brand-500 text-white',
+    'shadow-[0_4px_14px_rgba(13,148,136,0.35)]',
+    'hover:bg-brand-600 hover:shadow-[0_6px_20px_rgba(13,148,136,0.4)]',
+    'active:bg-brand-700 active:shadow-[0_2px_8px_rgba(13,148,136,0.3)]',
   ].join(' '),
 
   secondary: [
-    'bg-white',
-    'text-gray-700',
-    'border border-gray-200',
-    'shadow-sm',
-    'hover:bg-gray-50',
-    'hover:border-gray-300',
-    'active:bg-gray-100',
+    'bg-white/70 backdrop-blur-sm text-gray-700',
+    'border border-gray-200/60',
+    'shadow-[0_2px_8px_rgba(0,0,0,0.06)]',
+    'hover:bg-white/90 hover:border-gray-300/60 hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]',
+    'active:bg-white/80',
   ].join(' '),
 
   danger: [
-    'bg-red-500',
-    'text-white',
-    'shadow-sm',
-    'hover:bg-red-600',
+    'bg-red-500 text-white',
+    'shadow-[0_4px_14px_rgba(239,68,68,0.3)]',
+    'hover:bg-red-600 hover:shadow-[0_6px_20px_rgba(239,68,68,0.35)]',
     'active:bg-red-700',
-    'border border-red-500',
   ].join(' '),
 
   ghost: [
-    'bg-transparent',
-    'text-gray-600',
-    'border border-transparent',
-    'hover:bg-gray-100',
-    'hover:text-gray-900',
-    'active:bg-gray-200',
+    'bg-transparent text-gray-600',
+    'hover:bg-white/60 hover:text-gray-900',
+    'active:bg-white/80',
   ].join(' '),
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
-  sm: 'h-8 px-3 text-xs gap-1.5 rounded-lg',
-  md: 'h-10 px-4 text-sm gap-2 rounded-xl',
-  lg: 'h-12 px-6 text-base gap-2.5 rounded-xl',
+  sm: 'h-8  px-4  text-xs  gap-1.5 rounded-full',
+  md: 'h-10 px-5  text-sm  gap-2   rounded-full',
+  lg: 'h-12 px-7  text-base gap-2.5 rounded-full',
 };
 
 const baseStyles = [
@@ -95,8 +82,6 @@ const baseStyles = [
 ].join(' ');
 
 const disabledStyles = 'opacity-50 cursor-not-allowed pointer-events-none';
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export function Button(props: ButtonProps) {
   const {
@@ -150,7 +135,7 @@ export function Button(props: ButtonProps) {
       disabled={isDisabled}
       className={classes}
       title={props.title}
-      aria-disabled={isDisabled || undefined}
+      aria-disabled={isDisabled ? 'true' : undefined}
     >
       {content}
     </button>

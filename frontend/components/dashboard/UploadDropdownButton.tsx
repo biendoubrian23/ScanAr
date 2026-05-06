@@ -33,10 +33,10 @@ export function UploadDropdownButton({ onSelectImage, className }: UploadDropdow
         type="button"
         onClick={onSelectImage}
         className={cn(
-          'inline-flex items-center gap-2 h-10 pl-4 pr-3 rounded-l-xl rounded-r-none',
-          'bg-brand-600 text-white text-sm font-medium shadow-sm',
-          'hover:bg-brand-700 active:bg-brand-800 transition-colors',
-          'border border-brand-600',
+          'inline-flex items-center gap-2 h-10 pl-5 pr-3 rounded-l-full rounded-r-none',
+          'bg-brand-500 text-white text-sm font-medium',
+          'shadow-[0_4px_14px_rgba(13,148,136,0.35)]',
+          'hover:bg-brand-600 active:bg-brand-700 transition-all',
         )}
       >
         <Plus className="w-4 h-4 sm:hidden" />
@@ -47,9 +47,10 @@ export function UploadDropdownButton({ onSelectImage, className }: UploadDropdow
         onClick={() => setOpen((o) => !o)}
         aria-label="Ouvrir le menu d'import"
         className={cn(
-          'inline-flex items-center justify-center h-10 w-10 rounded-r-xl rounded-l-none',
-          'bg-brand-600 text-white border border-l-0 border-brand-600',
-          'hover:bg-brand-700 active:bg-brand-800 transition-colors',
+          'inline-flex items-center justify-center h-10 w-10 rounded-r-full rounded-l-none',
+          'bg-brand-500 text-white border-l border-brand-400/30',
+          'hover:bg-brand-600 active:bg-brand-700 transition-all',
+          'shadow-[0_4px_14px_rgba(13,148,136,0.35)]',
         )}
       >
         <ChevronDown
@@ -62,7 +63,7 @@ export function UploadDropdownButton({ onSelectImage, className }: UploadDropdow
           role="menu"
           className={cn(
             'absolute top-full right-0 mt-2 w-64 z-30',
-            'bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden',
+            'bg-white/85 backdrop-blur-2xl rounded-2xl border border-white/40 shadow-[0_20px_60px_rgba(0,0,0,0.12)] overflow-hidden',
           )}
         >
           <button
@@ -72,9 +73,9 @@ export function UploadDropdownButton({ onSelectImage, className }: UploadDropdow
               setOpen(false);
               onSelectImage();
             }}
-            className="w-full flex items-start gap-3 px-3 py-2.5 hover:bg-gray-50 text-left transition-colors"
+            className="w-full flex items-start gap-3 px-3 py-2.5 hover:bg-white/60 text-left transition-colors"
           >
-            <div className="w-8 h-8 rounded-lg bg-brand-50 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-2xl bg-brand-50 flex items-center justify-center shrink-0">
               <ImagePlus className="w-4 h-4 text-brand-600" />
             </div>
             <div className="min-w-0">
@@ -90,9 +91,9 @@ export function UploadDropdownButton({ onSelectImage, className }: UploadDropdow
               setOpen(false);
               onSelectImage();
             }}
-            className="w-full flex items-start gap-3 px-3 py-2.5 hover:bg-gray-50 text-left transition-colors"
+            className="w-full flex items-start gap-3 px-3 py-2.5 hover:bg-white/60 text-left transition-colors border-t border-gray-100/40"
           >
-            <div className="w-8 h-8 rounded-lg bg-brand-50 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-2xl bg-brand-50 flex items-center justify-center shrink-0">
               <Layers className="w-4 h-4 text-brand-600" />
             </div>
             <div className="min-w-0">
@@ -101,15 +102,15 @@ export function UploadDropdownButton({ onSelectImage, className }: UploadDropdow
             </div>
           </button>
 
-          <div className="px-3 py-2.5 flex items-start gap-3 opacity-60 cursor-not-allowed">
-            <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+          <div className="px-3 py-2.5 flex items-start gap-3 opacity-50 cursor-not-allowed border-t border-gray-100/40">
+            <div className="w-8 h-8 rounded-2xl bg-gray-100/60 flex items-center justify-center shrink-0">
               <Video className="w-4 h-4 text-gray-400" />
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-gray-700">Depuis une vidéo</p>
               <p className="text-xs text-gray-400">Capture multi-angle automatique</p>
             </div>
-            <span className="text-[10px] uppercase tracking-wide font-semibold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded shrink-0">
+            <span className="text-[10px] uppercase tracking-wide font-semibold text-gray-400 bg-gray-100/70 px-1.5 py-0.5 rounded-full shrink-0">
               Bientôt
             </span>
           </div>

@@ -109,8 +109,8 @@ export function ActionsMenu({ items, ariaLabel = 'Actions', className }: Actions
           setOpen((o) => !o);
         }}
         className={cn(
-          'inline-flex items-center justify-center w-8 h-8 rounded-md',
-          'text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors',
+          'inline-flex items-center justify-center w-8 h-8 rounded-full',
+          'text-gray-400 hover:text-gray-700 hover:bg-white/70 transition-colors',
           className,
         )}
       >
@@ -122,7 +122,7 @@ export function ActionsMenu({ items, ariaLabel = 'Actions', className }: Actions
           ref={menuRef}
           role="menu"
           className={cn(
-            'fixed z-[60] bg-white rounded-lg border border-gray-200 shadow-lg overflow-hidden',
+            'fixed z-[60] bg-white/85 backdrop-blur-2xl rounded-2xl border border-white/40 shadow-[0_20px_60px_rgba(0,0,0,0.12)] overflow-hidden',
           )}
           style={{ top: coords.top, left: coords.left, width: MENU_WIDTH }}
           onClick={(e) => e.stopPropagation()}
@@ -140,8 +140,8 @@ export function ActionsMenu({ items, ariaLabel = 'Actions', className }: Actions
               className={cn(
                 'w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left transition-colors',
                 item.variant === 'danger'
-                  ? 'text-red-600 hover:bg-red-50'
-                  : 'text-gray-700 hover:bg-gray-50',
+                  ? 'text-red-600 hover:bg-red-50/60'
+                  : 'text-gray-700 hover:bg-white/60',
                 item.disabled && 'opacity-40 cursor-not-allowed',
               )}
             >

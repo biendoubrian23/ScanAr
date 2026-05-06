@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { Camera, Loader2, Trash2, User } from 'lucide-react';
+import { AlertCircle, Camera, CheckCircle2, Loader2, Trash2, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Catalogue } from '@/lib/types';
 
@@ -19,17 +19,29 @@ export function AvatarUploader({
   catalogueId, avatarUrl, onChange, onError,
 }: AvatarUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [busy, setBusy] = useState<'upload' | 'remove' | null>(null);
+  const [busy, setBusy]           = useState<'upload' | 'remove' | null>(null);
+  const [localError, setLocalError] = useState<string | null>(null);
+  const [justUploaded, setJustUploaded] = useState(false);
 
-  const pickFile = () => inputRef.current?.click();
+  const pickFile = () => {
+    setLocalError(null);
+    inputRef.current?.click();
+  };
 
   const handleFile = async (file: File) => {
+    setLocalError(null);
+    setJustUploaded(false);
+
     if (file.size > MAX_BYTES) {
-      onError('Fichier trop lourd (max 3 MB).');
+      const msg = `Fichier trop lourd — ${(file.size / 1024 / 1024).toFixed(1)} MB (max 3 MB).`;
+      setLocalError(msg);
+      onError(msg);
       return;
     }
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-      onError('Format non supporté (JPG, PNG ou WebP).');
+      const msg = `Format non supporté : ${file.type || 'inconnu'}. Utilisez JPG, PNG ou WebP.`;
+      setLocalError(msg);
+      onError(msg);
       return;
     }
 
@@ -43,8 +55,12 @@ export function AvatarUploader({
       const body = await res.json();
       if (!body.success) throw new Error(body.error ?? 'Upload échoué.');
       onChange(body.data as Catalogue);
+      setJustUploaded(true);
+      setTimeout(() => setJustUploaded(false), 3000);
     } catch (err) {
-      onError(err instanceof Error ? err.message : 'Erreur upload.');
+      const msg = err instanceof Error ? err.message : 'Erreur upload.';
+      setLocalError(msg);
+      onError(msg);
     } finally {
       setBusy(null);
       if (inputRef.current) inputRef.current.value = '';
@@ -52,6 +68,7 @@ export function AvatarUploader({
   };
 
   const handleRemove = async () => {
+    setLocalError(null);
     setBusy('remove');
     try {
       const res  = await fetch(`/api/catalogues/${catalogueId}/avatar`, { method: 'DELETE' });
@@ -59,14 +76,16 @@ export function AvatarUploader({
       if (!body.success) throw new Error(body.error ?? 'Suppression échouée.');
       onChange(body.data as Catalogue);
     } catch (err) {
-      onError(err instanceof Error ? err.message : 'Erreur suppression.');
+      const msg = err instanceof Error ? err.message : 'Erreur suppression.';
+      setLocalError(msg);
+      onError(msg);
     } finally {
       setBusy(null);
     }
   };
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-start gap-4">
       <button
         type="button"
         onClick={pickFile}
@@ -99,11 +118,12 @@ export function AvatarUploader({
         </span>
       </button>
 
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 pt-1">
         <p className="text-sm font-medium text-gray-900">Avatar du catalogue</p>
         <p className="text-xs text-gray-500 mt-0.5">
           JPG, PNG ou WebP — max 3 MB. Recadré en carré.
         </p>
+
         <div className="flex items-center gap-2 mt-2">
           <button
             type="button"
@@ -115,7 +135,10 @@ export function AvatarUploader({
               busy && 'opacity-70 cursor-wait',
             )}
           >
-            <Camera className="w-3.5 h-3.5" />
+            {busy === 'upload'
+              ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              : <Camera className="w-3.5 h-3.5" />
+            }
             {avatarUrl ? 'Changer' : 'Téléverser'}
           </button>
           {avatarUrl && (
@@ -136,12 +159,27 @@ export function AvatarUploader({
             </button>
           )}
         </div>
+
+        {/* Inline feedback */}
+        {localError && (
+          <p className="mt-2 flex items-start gap-1.5 text-xs text-red-600">
+            <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-px" />
+            {localError}
+          </p>
+        )}
+        {justUploaded && !localError && (
+          <p className="mt-2 flex items-center gap-1.5 text-xs text-green-600">
+            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+            Avatar mis à jour.
+          </p>
+        )}
       </div>
 
       <input
         ref={inputRef}
         type="file"
         accept="image/jpeg,image/png,image/webp"
+        aria-label="Choisir une image pour l'avatar"
         className="hidden"
         onChange={(e) => {
           const f = e.target.files?.[0];
@@ -156,20 +194,19 @@ export function AvatarUploader({
 async function squareCropToBlob(file: File, size: number): Promise<Blob> {
   const url = URL.createObjectURL(file);
   try {
-    const img = await loadImage(url);
+    const img  = await loadImage(url);
     const side = Math.min(img.width, img.height);
     const sx   = (img.width  - side) / 2;
     const sy   = (img.height - side) / 2;
 
-    const canvas = document.createElement('canvas');
-    canvas.width  = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d');
+    const canvas       = document.createElement('canvas');
+    canvas.width       = size;
+    canvas.height      = size;
+    const ctx          = canvas.getContext('2d');
     if (!ctx) throw new Error('Canvas non supporté.');
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(img, sx, sy, side, side, 0, 0, size, size);
 
-    // PNG preserves transparency; WebP is smaller. Use WebP when source isn't PNG.
     const mime    = file.type === 'image/png' ? 'image/png' : 'image/webp';
     const quality = mime === 'image/webp' ? 0.9 : undefined;
 
@@ -185,9 +222,9 @@ async function squareCropToBlob(file: File, size: number): Promise<Blob> {
 
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload  = () => resolve(img);
-    img.onerror = () => reject(new Error('Image illisible.'));
-    img.src = src;
+    const img    = new Image();
+    img.onload   = () => resolve(img);
+    img.onerror  = () => reject(new Error('Image illisible.'));
+    img.src      = src;
   });
 }

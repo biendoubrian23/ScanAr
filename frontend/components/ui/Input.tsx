@@ -82,20 +82,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               hasError ? errorId : helperText ? helperId : undefined
             }
             className={cn(
-              // Base
-              'w-full h-9 rounded-lg text-sm',
-              'bg-white text-gray-900 placeholder:text-gray-400',
-              'border border-gray-200',
+              'w-full h-9 rounded-full text-sm',
+              'bg-white/70 backdrop-blur-sm text-gray-900 placeholder:text-gray-400',
+              'border border-gray-200/50',
+              'shadow-[0_1px_4px_rgba(0,0,0,0.04)]',
               'transition-all duration-150',
-              // Focus
-              'focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20',
-              // Hover
-              'hover:border-gray-300',
-              // Disabled
-              'disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-50',
-              // Error
-              hasError && 'border-red-400 focus:border-red-500 focus:ring-red-500/20',
-              // Icon padding
+              'focus:outline-none focus:border-brand-400/60 focus:ring-2 focus:ring-brand-500/15 focus:bg-white/90',
+              'hover:border-gray-300/60 hover:bg-white/85',
+              'disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-50/60',
+              hasError && 'border-red-400/60 focus:border-red-500/60 focus:ring-red-500/15',
               icon ? 'pl-9 pr-4' : 'px-4',
               inputClassName,
             )}
