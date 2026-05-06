@@ -28,13 +28,32 @@ import {
   Facebook,
   Mail,
   Store,
-  MessageCircle,
-  Music2,
   Plus,
+  Youtube,
+  Linkedin,
+  X,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Modal } from '@/components/ui/Modal';
+
+// ─── Custom Brand Icons ───────────────────────────────────────────────────────
+
+function TikTokIcon({ className }: { className?: string; strokeWidth?: number }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.79 1.52V6.75a4.84 4.84 0 01-1.02-.06z" />
+    </svg>
+  );
+}
+
+function WhatsAppIcon({ className }: { className?: string; strokeWidth?: number }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+    </svg>
+  );
+}
 
 // ─── Animation Helpers ────────────────────────────────────────────────────────
 
@@ -194,6 +213,7 @@ function HeroCarousel({ images = HERO_IMAGES, objectPosition = '58% center' }: {
             fill
             priority={i === 0}
             sizes="(min-width: 1024px) 70vw, 100vw"
+            quality={92}
             className="object-contain"
             style={{ objectPosition }}
           />
@@ -268,9 +288,9 @@ function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
             >
               {/* Mobile: 2-line marketing title */}
               <span className="lg:hidden">
-                Transformez vos visiteurs<br />
+                Augmentez vos{' '}
                 <span className="relative inline-block">
-                  +30%
+                  ventes
                   <svg
                     aria-hidden
                     className="absolute left-[-3%] right-[-3%] -bottom-1 w-[106%] h-3 pointer-events-none"
@@ -285,7 +305,8 @@ function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
                       fill="none"
                     />
                   </svg>
-                </span> de ventes en AR.
+                </span> grâce<br />
+                à la réalité augmentée.
               </span>
 
               {/* Desktop: full pyramid title */}
@@ -387,7 +408,7 @@ function HeroSection({ onDemoClick }: { onDemoClick: () => void }) {
             initial="hidden"
             animate="visible"
             variants={stagger(0.4)}
-            className="flex items-center gap-1.5 lg:gap-[0.825rem]"
+            className="flex flex-nowrap items-center justify-between lg:justify-start gap-2 lg:gap-[0.825rem] w-full lg:w-auto"
           >
             {HERO_FEATURES.map((feat) => {
               const Icon = feat.icon;
@@ -470,6 +491,7 @@ function ImmersiveSection() {
               alt="Tablette affichant un produit en réalité augmentée à taille réelle"
               fill
               sizes="(min-width: 1024px) 50vw, 100vw"
+              quality={92}
               className="object-cover"
             />
           </motion.div>
@@ -492,8 +514,8 @@ function ImmersiveSection() {
                 className="inline-block lg:hidden"
                 style={{ transform: 'scaleY(1.2)', transformOrigin: 'bottom left' }}
               >
-                Vos produits, entre les mains<br />
-                de vos clients.
+                Vos produits, entre les<br />
+                mains de vos clients.
               </span>
               <span
                 className="hidden lg:inline-block"
@@ -588,6 +610,7 @@ function PipelineVisualSection() {
             height={724}
             className="w-full h-auto lg:scale-[1.1] origin-center"
             sizes="(min-width: 1024px) 95vw, 100vw"
+            quality={92}
           />
         </motion.div>
       </div>
@@ -650,6 +673,7 @@ function CataloguesARSection() {
               width={1400}
               height={1100}
               sizes="(min-width: 1024px) 55vw, 100vw"
+              quality={92}
               className="w-full h-auto object-contain lg:scale-110 origin-center"
               priority={false}
             />
@@ -735,14 +759,16 @@ const CREATION_STEPS = [
 ];
 
 const DIFFUSION_CHANNELS = [
-  { icon: Globe,         label: 'Site web',       iconClass: 'text-sky-500',        bgClass: 'bg-gradient-to-br from-white/95 to-white/55' },
-  { icon: Instagram,     label: 'Instagram',      iconClass: 'text-white',          bgClass: 'bg-gradient-to-br from-amber-400 via-pink-500 to-purple-600' },
-  { icon: Facebook,      label: 'Facebook',       iconClass: 'text-[#1877F2]',      bgClass: 'bg-gradient-to-br from-white/95 to-white/55' },
-  { icon: Music2,        label: 'TikTok',         iconClass: 'text-black',          bgClass: 'bg-gradient-to-br from-white/95 to-white/55' },
-  { icon: MessageCircle, label: 'WhatsApp',       iconClass: 'text-[#25D366]',      bgClass: 'bg-gradient-to-br from-white/95 to-white/55' },
-  { icon: Mail,          label: 'Email',          iconClass: 'text-[#EA4335]',      bgClass: 'bg-gradient-to-br from-white/95 to-white/55' },
-  { icon: Store,         label: 'Boutique',       iconClass: 'text-amber-600',      bgClass: 'bg-gradient-to-br from-white/95 to-white/55' },
-  { icon: Plus,          label: 'Et plus encore', iconClass: 'text-gray-500',       bgClass: 'bg-gradient-to-br from-white/95 to-white/55' },
+  { icon: Globe,         label: 'Site web',    iconClass: 'text-sky-500',      bgClass: 'bg-gradient-to-br from-white/95 to-white/55' },
+  { icon: Instagram,     label: 'Instagram',   iconClass: 'text-white',        bgClass: 'bg-gradient-to-br from-amber-400 via-pink-500 to-purple-600' },
+  { icon: Facebook,      label: 'Facebook',    iconClass: 'text-[#1877F2]',    bgClass: 'bg-gradient-to-br from-white/95 to-white/55' },
+  { icon: TikTokIcon,    label: 'TikTok',      iconClass: 'text-black',        bgClass: 'bg-gradient-to-br from-white/95 to-white/55' },
+  { icon: WhatsAppIcon,  label: 'WhatsApp',    iconClass: 'text-[#25D366]',    bgClass: 'bg-gradient-to-br from-white/95 to-white/55' },
+  { icon: Youtube,       label: 'YouTube',     iconClass: 'text-[#FF0000]',    bgClass: 'bg-gradient-to-br from-white/95 to-white/55' },
+  { icon: X,             label: 'X / Twitter', iconClass: 'text-gray-900',     bgClass: 'bg-gradient-to-br from-white/95 to-white/55' },
+  { icon: Linkedin,      label: 'LinkedIn',    iconClass: 'text-[#0A66C2]',    bgClass: 'bg-gradient-to-br from-white/95 to-white/55' },
+  { icon: Mail,          label: 'Email',       iconClass: 'text-[#EA4335]',    bgClass: 'bg-gradient-to-br from-white/95 to-white/55' },
+  { icon: Store,         label: 'Boutique',    iconClass: 'text-amber-600',    bgClass: 'bg-gradient-to-br from-white/95 to-white/55' },
 ];
 
 function CreationFlowSection() {
@@ -752,7 +778,7 @@ function CreationFlowSection() {
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center mb-16 lg:mb-24">
           {/* Mobile-only title (appears first on mobile) */}
           <h2
-            className="lg:hidden order-1 text-[1.5rem] leading-[1.05] text-gray-900 whitespace-nowrap"
+            className="lg:hidden order-1 text-[1.95rem] leading-[1.05] text-gray-900 whitespace-nowrap"
             style={{ fontFamily: 'var(--font-unna), Georgia, serif', fontWeight: 400 }}
           >
             <span
@@ -777,6 +803,7 @@ function CreationFlowSection() {
               width={1400}
               height={1100}
               sizes="(min-width: 1024px) 60vw, 100vw"
+              quality={92}
               className="w-full h-auto object-contain lg:scale-[1.32] origin-center"
             />
           </motion.div>
@@ -857,24 +884,108 @@ function CreationFlowSection() {
             Diffusez votre catalogue partout
           </h3>
 
-          <div className="flex flex-wrap items-start justify-center gap-x-6 gap-y-6 lg:gap-x-10">
-            {DIFFUSION_CHANNELS.map(({ icon: Icon, label, iconClass, bgClass }) => (
-              <div key={label} className="flex flex-col items-center gap-2">
-                <div
-                  className={cn(
-                    'flex items-center justify-center w-14 h-14 rounded-2xl backdrop-blur-xl',
-                    bgClass,
-                    'border border-white/70',
-                    'shadow-[0_8px_24px_-8px_rgba(15,23,42,0.18),inset_0_1px_0_rgba(255,255,255,0.9)]',
-                    'ring-1 ring-gray-200/60',
-                    'transition-transform duration-200 hover:-translate-y-0.5',
-                  )}
-                >
-                  <Icon className={cn('w-5 h-5', iconClass)} strokeWidth={1.75} />
+          <div className="relative overflow-hidden">
+            {/* Edge fade masks */}
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white to-transparent z-10" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white to-transparent z-10" />
+
+            <div className="flex animate-marquee gap-6 lg:gap-10">
+              {[...DIFFUSION_CHANNELS, ...DIFFUSION_CHANNELS].map(({ icon: Icon, label, iconClass, bgClass }, idx) => (
+                <div key={idx} className="flex flex-col items-center gap-2 shrink-0">
+                  <div
+                    className={cn(
+                      'flex items-center justify-center w-14 h-14 rounded-2xl backdrop-blur-xl',
+                      bgClass,
+                      'border border-white/70',
+                      'shadow-[0_8px_24px_-8px_rgba(15,23,42,0.18),inset_0_1px_0_rgba(255,255,255,0.9)]',
+                      'ring-1 ring-gray-200/60',
+                    )}
+                  >
+                    <Icon className={cn('w-5 h-5', iconClass)} strokeWidth={1.75} />
+                  </div>
+                  <span className="text-[11px] text-gray-500 font-medium whitespace-nowrap">{label}</span>
                 </div>
-                <span className="text-[11px] text-gray-500 font-medium">{label}</span>
-              </div>
-            ))}
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Final CTA Section (Section 6) ────────────────────────────────────────────
+
+function FinalCtaSection() {
+  return (
+    <section className="relative bg-white pt-32 sm:pt-44 lg:pt-56 pb-12 lg:pb-16">
+      <div className="mx-auto max-w-7xl px-4 lg:px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.7, ease: 'easeOut' }}
+          className={cn(
+            'relative rounded-[2rem] lg:rounded-[2.5rem] overflow-visible',
+            'bg-gradient-to-br from-gray-100 via-white to-gray-50',
+            'border border-white/80',
+            'shadow-[0_20px_60px_-15px_rgba(15,23,42,0.18),inset_0_1px_0_rgba(255,255,255,1)]',
+          )}
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-12 items-center gap-6 lg:gap-0 px-6 lg:px-12 py-10 lg:py-14 min-h-[14rem] lg:min-h-[18rem]">
+            {/* Text — left */}
+            <div className="lg:col-span-6 order-2 lg:order-1 text-center lg:text-left">
+              <h2
+                className="text-[1.6rem] lg:text-[2.4rem] leading-[1.1] text-gray-900 mb-5 lg:mb-7"
+                style={{ fontFamily: 'var(--font-unna), Georgia, serif', fontWeight: 400, letterSpacing: '0' }}
+              >
+                <span
+                  className="inline-block"
+                  style={{ transform: 'scaleY(1.2)', transformOrigin: 'bottom left' }}
+                >
+                  Laissez vos clients vivre vos<br />
+                  produits avant de les acheter.
+                </span>
+              </h2>
+
+              <Link
+                href="/signup"
+                className={cn(
+                  'inline-flex items-center gap-2 px-5 py-3 rounded-xl text-[0.9rem] font-medium',
+                  'bg-gray-900 text-white',
+                  'shadow-md shadow-gray-900/15',
+                  'hover:bg-gray-800 hover:shadow-gray-900/25',
+                  'transition-all duration-200 group',
+                )}
+              >
+                Commencer en 3D
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+            </div>
+
+            {/* Image — right, overflows top for 3D pop */}
+            <div className="lg:col-span-6 order-1 lg:order-2 relative h-[14rem] sm:h-[16rem] lg:h-[16rem]">
+              <motion.div
+                initial={{ opacity: 0, y: 40, rotate: -2 }}
+                whileInView={{ opacity: 1, y: 0, rotate: 0 }}
+                viewport={{ once: true, margin: '-80px' }}
+                transition={{ duration: 0.9, ease: 'easeOut', delay: 0.15 }}
+                className="absolute inset-x-0 -top-24 sm:-top-32 lg:-top-44 -bottom-2 lg:-bottom-6"
+                style={{ filter: 'drop-shadow(0 30px 40px rgba(15,23,42,0.18))' }}
+              >
+                <div className="relative w-full h-full lg:scale-[1.4] origin-center">
+                  <Image
+                    src="/images/section/section6.png"
+                    alt="Aperçu d'un produit en réalité augmentée avec QR code"
+                    fill
+                    sizes="(min-width: 1024px) 70vw, 100vw"
+                    quality={92}
+                    className="object-contain object-center"
+                    priority={false}
+                  />
+                </div>
+              </motion.div>
+            </div>
           </div>
         </motion.div>
       </div>
@@ -1064,6 +1175,7 @@ export default function LandingPage() {
         <PipelineVisualSection />
         <CataloguesARSection />
         <CreationFlowSection />
+        <FinalCtaSection />
       </main>
       <Footer />
       <DemoModal isOpen={demoOpen} onClose={() => setDemoOpen(false)} />

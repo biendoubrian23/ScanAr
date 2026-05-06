@@ -120,9 +120,9 @@ export default function CataloguesPage() {
       )}
 
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-56 bg-gray-50 rounded-2xl animate-pulse" />
+        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-20 sm:h-44 bg-white/20 rounded-2xl animate-pulse" />
           ))}
         </div>
       ) : catalogues.length === 0 ? (
@@ -142,7 +142,7 @@ export default function CataloguesPage() {
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {catalogues.map((c) => (
             <CatalogueCard
               key={c.id}
@@ -230,59 +230,72 @@ function CatalogueCard({
     vertical:   'Linktree',
     horizontal: 'Carousel',
   };
+  const isOnline = catalogue.is_active && catalogue.is_public;
 
   return (
     <div
       className={cn(
-        'group relative bg-white/30 backdrop-blur-xl border border-white/50 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] overflow-hidden',
+        'group relative overflow-hidden rounded-2xl',
+        'bg-white/30 backdrop-blur-xl border border-white/50',
+        'shadow-[0_8px_32px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)]',
+        /* mobile: horizontal row — desktop: vertical column */
+        'flex flex-row sm:flex-col',
         'hover:bg-white/45 hover:shadow-[0_12px_40px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] transition-all',
         deleting && 'opacity-50 pointer-events-none',
       )}
     >
-      {/* Theme preview banner */}
+      {/* Theme swatch — narrow left strip on mobile, full banner on desktop */}
       <button
         type="button"
         onClick={onEdit}
         aria-label="Modifier le catalogue"
         className={cn(
-          'block w-full aspect-[16/9] relative',
+          'relative shrink-0 overflow-hidden',
+          /* mobile: fixed-width strip, stretches to row height */
+          'w-20 self-stretch',
+          /* desktop: full width with 2:1 banner */
+          'sm:w-full sm:self-auto sm:aspect-[2/1]',
           THEME_SWATCH[catalogue.theme],
         )}
       >
-        {/* Avatar floating in centre */}
+        {/* Avatar */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-16 h-16 rounded-full bg-white/80 backdrop-blur ring-1 ring-white/60 shadow-md flex items-center justify-center overflow-hidden">
+          <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white/80 backdrop-blur ring-1 ring-white/60 shadow-sm flex items-center justify-center overflow-hidden">
             {catalogue.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={catalogue.avatar_url} alt="" className="w-full h-full object-cover" />
             ) : (
-              <LayoutGrid className="w-6 h-6 text-gray-400" />
+              <LayoutGrid className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />
             )}
           </div>
         </div>
 
-        {/* Layout badge */}
-        <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/90 backdrop-blur text-[11px] font-medium text-gray-700 border border-white/60">
-          <Layout className="w-3 h-3" />
+        {/* Badges — desktop only */}
+        <div className="absolute top-2 left-2 hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-white/90 backdrop-blur text-[10px] font-medium text-gray-700 border border-white/60">
+          <Layout className="w-2.5 h-2.5" />
           {layoutLabel[catalogue.layout]}
         </div>
-
-        {/* Public/private dot */}
-        <div className="absolute top-3 right-3 inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/90 backdrop-blur text-[11px] font-medium text-gray-700 border border-white/60">
-          <span
-            className={cn(
-              'w-1.5 h-1.5 rounded-full',
-              catalogue.is_active && catalogue.is_public ? 'bg-emerald-500' : 'bg-gray-400',
-            )}
-          />
-          {catalogue.is_active && catalogue.is_public ? 'En ligne' : 'Hors ligne'}
+        <div className="absolute top-2 right-2 hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-white/90 backdrop-blur text-[10px] font-medium text-gray-700 border border-white/60">
+          <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', isOnline ? 'bg-emerald-500' : 'bg-gray-400')} />
+          {isOnline ? 'En ligne' : 'Hors ligne'}
         </div>
       </button>
 
       {/* Body */}
-      <div className="p-4">
-        <div className="flex items-start gap-2 mb-1">
-          <h3 className="text-sm font-semibold text-gray-900 truncate flex-1">
+      <div className="flex-1 min-w-0 p-2.5 sm:p-3 flex flex-col gap-1">
+        {/* Mobile only: layout type + status */}
+        <div className="flex items-center gap-1.5 text-[10px] text-gray-400 sm:hidden">
+          <Layout className="w-2.5 h-2.5 shrink-0" />
+          <span>{layoutLabel[catalogue.layout]}</span>
+          <span className="ml-auto flex items-center gap-1 shrink-0">
+            <span className={cn('w-1.5 h-1.5 rounded-full', isOnline ? 'bg-emerald-500' : 'bg-gray-400')} />
+            {isOnline ? 'En ligne' : 'Hors ligne'}
+          </span>
+        </div>
+
+        {/* Title + actions */}
+        <div className="flex items-center gap-1">
+          <h3 className="text-xs sm:text-sm font-semibold text-gray-900 truncate flex-1">
             {catalogue.title}
           </h3>
           <ActionsMenu
@@ -297,26 +310,28 @@ function CatalogueCard({
           />
         </div>
 
+        {/* Subtitle — desktop only */}
         {catalogue.subtitle && (
-          <p className="text-xs text-gray-500 truncate mb-3">{catalogue.subtitle}</p>
+          <p className="text-[10px] text-gray-500 truncate hidden sm:block">{catalogue.subtitle}</p>
         )}
 
-        <div className="flex items-center gap-3 text-xs text-gray-400">
+        {/* Slug + views */}
+        <div className="flex items-center gap-2 text-[10px] text-gray-400">
           <span className="font-mono truncate">/c/{catalogue.slug}</span>
-          <span className="flex items-center gap-1">
-            <Eye className="w-3 h-3" />
+          <span className="flex items-center gap-0.5 shrink-0">
+            <Eye className="w-2.5 h-2.5" />
             <span className="tabular-nums">{catalogue.view_count}</span>
           </span>
-          <span className="ml-auto shrink-0">{formatDate(catalogue.created_at)}</span>
+          <span className="ml-auto shrink-0 hidden sm:inline">{formatDate(catalogue.created_at)}</span>
         </div>
 
+        {/* Edit button — desktop only */}
         <button
           type="button"
           onClick={onEdit}
-          className="mt-4 w-full inline-flex items-center justify-center gap-1.5 h-9 rounded-full bg-white/30 backdrop-blur-md border border-white/60 text-gray-700 text-sm font-medium hover:bg-white/45 transition-all shadow-[0_4px_16px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.9)]"
+          className="hidden sm:inline-flex mt-auto items-center justify-center gap-1 h-7 w-full rounded-full bg-white/30 backdrop-blur-md border border-white/60 text-gray-700 text-xs font-medium hover:bg-white/45 transition-all shadow-[0_2px_8px_rgba(0,0,0,0.04),inset_0_1px_0_rgba(255,255,255,0.8)]"
         >
-          Modifier le catalogue
-          <ArrowRight className="w-3.5 h-3.5" />
+          Modifier <ArrowRight className="w-3 h-3" />
         </button>
       </div>
     </div>

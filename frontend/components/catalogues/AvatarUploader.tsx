@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { AlertCircle, Camera, CheckCircle2, Loader2, Trash2, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Catalogue } from '@/lib/types';
+import { AvatarCropModal } from './AvatarCropModal';
 
 interface AvatarUploaderProps {
   catalogueId: string;
@@ -19,16 +20,17 @@ export function AvatarUploader({
   catalogueId, avatarUrl, onChange, onError,
 }: AvatarUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [busy, setBusy]           = useState<'upload' | 'remove' | null>(null);
-  const [localError, setLocalError] = useState<string | null>(null);
+  const [busy, setBusy]                 = useState<'upload' | 'remove' | null>(null);
+  const [localError, setLocalError]     = useState<string | null>(null);
   const [justUploaded, setJustUploaded] = useState(false);
+  const [pendingFile, setPendingFile]   = useState<File | null>(null);
 
   const pickFile = () => {
     setLocalError(null);
     inputRef.current?.click();
   };
 
-  const handleFile = async (file: File) => {
+  const handleFile = (file: File) => {
     setLocalError(null);
     setJustUploaded(false);
 
@@ -45,9 +47,18 @@ export function AvatarUploader({
       return;
     }
 
+    setPendingFile(file);
+  };
+
+  const closeCropModal = () => {
+    setPendingFile(null);
+    if (inputRef.current) inputRef.current.value = '';
+  };
+
+  const handleCropConfirm = async (cropped: Blob) => {
+    if (!pendingFile) return;
     setBusy('upload');
     try {
-      const cropped = await squareCropToBlob(file, OUTPUT_SIZE);
       const fd = new FormData();
       fd.append('file', cropped, `avatar.${cropped.type === 'image/png' ? 'png' : 'webp'}`);
 
@@ -57,13 +68,13 @@ export function AvatarUploader({
       onChange(body.data as Catalogue);
       setJustUploaded(true);
       setTimeout(() => setJustUploaded(false), 3000);
+      closeCropModal();
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Erreur upload.';
       setLocalError(msg);
       onError(msg);
     } finally {
       setBusy(null);
-      if (inputRef.current) inputRef.current.value = '';
     }
   };
 
@@ -183,48 +194,18 @@ export function AvatarUploader({
         className="hidden"
         onChange={(e) => {
           const f = e.target.files?.[0];
-          if (f) void handleFile(f);
+          if (f) handleFile(f);
         }}
       />
+
+      {pendingFile && (
+        <AvatarCropModal
+          file={pendingFile}
+          outputSize={OUTPUT_SIZE}
+          onConfirm={handleCropConfirm}
+          onCancel={closeCropModal}
+        />
+      )}
     </div>
   );
-}
-
-// ─── Client-side square center-crop + downscale via canvas ───────────────────
-async function squareCropToBlob(file: File, size: number): Promise<Blob> {
-  const url = URL.createObjectURL(file);
-  try {
-    const img  = await loadImage(url);
-    const side = Math.min(img.width, img.height);
-    const sx   = (img.width  - side) / 2;
-    const sy   = (img.height - side) / 2;
-
-    const canvas       = document.createElement('canvas');
-    canvas.width       = size;
-    canvas.height      = size;
-    const ctx          = canvas.getContext('2d');
-    if (!ctx) throw new Error('Canvas non supporté.');
-    ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(img, sx, sy, side, side, 0, 0, size, size);
-
-    const mime    = file.type === 'image/png' ? 'image/png' : 'image/webp';
-    const quality = mime === 'image/webp' ? 0.9 : undefined;
-
-    const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob(resolve, mime, quality),
-    );
-    if (!blob) throw new Error('Conversion échouée.');
-    return blob;
-  } finally {
-    URL.revokeObjectURL(url);
-  }
-}
-
-function loadImage(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img    = new Image();
-    img.onload   = () => resolve(img);
-    img.onerror  = () => reject(new Error('Image illisible.'));
-    img.src      = src;
-  });
 }

@@ -32,7 +32,7 @@ export function DashboardShell({
           with the sidebar logo divider (same fixed height there). */}
       <header
         className={cn(
-          'flex items-center gap-3 shrink-0',
+          'relative z-30 flex items-center gap-3 shrink-0',
           'px-3 lg:px-8 h-[81px] border-b border-white/30',
           'bg-white/40 backdrop-blur-xl shadow-[0_1px_0_rgba(255,255,255,0.5)]',
         )}

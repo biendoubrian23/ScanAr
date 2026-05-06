@@ -81,7 +81,7 @@ function DateRangePicker({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="inline-flex items-center gap-2 h-10 px-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+        className="inline-flex items-center gap-2 h-10 px-3 rounded-full bg-white/40 backdrop-blur-md border border-white/60 text-sm text-gray-700 hover:bg-white/55 transition-colors shadow-[0_4px_16px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.9)]"
       >
         <Calendar className="w-4 h-4 text-gray-400" />
         {label}
@@ -89,7 +89,7 @@ function DateRangePicker({
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-72 z-30 bg-white rounded-xl border border-gray-200 shadow-lg p-3 space-y-3">
+        <div className="absolute right-0 top-full mt-2 w-72 z-30 bg-white/50 backdrop-blur-2xl rounded-2xl border border-white/60 shadow-[0_20px_60px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.9)] p-3 space-y-3">
           <div className="space-y-0.5">
             {(['today', '7d', '30d', '90d'] as const).map((p) => (
               <button
@@ -99,8 +99,8 @@ function DateRangePicker({
                 className={cn(
                   'w-full text-left px-2 py-1.5 rounded-md text-sm transition-colors',
                   range.preset === p
-                    ? 'bg-brand-50 text-brand-700 font-medium'
-                    : 'text-gray-700 hover:bg-gray-50',
+                    ? 'bg-brand-500/15 text-brand-700 font-medium'
+                    : 'text-gray-700 hover:bg-white/60',
                 )}
               >
                 {PRESET_LABELS[p]}
@@ -108,7 +108,7 @@ function DateRangePicker({
             ))}
           </div>
 
-          <div className="border-t border-gray-100 pt-3 space-y-2">
+          <div className="border-t border-white/30 pt-3 space-y-2">
             <p className="text-xs font-medium text-gray-500">Plage personnalisée</p>
             <div className="grid grid-cols-2 gap-2">
               <input
@@ -118,7 +118,7 @@ function DateRangePicker({
                 value={customFrom}
                 max={customTo}
                 onChange={(e) => setCustomFrom(e.target.value)}
-                className="h-8 rounded-md border border-gray-200 px-2 text-xs text-gray-900 focus:outline-none focus:border-brand-500"
+                className="h-8 rounded-lg bg-white/60 border border-white/70 px-2 text-xs text-gray-900 focus:outline-none focus:border-brand-500"
               />
               <input
                 type="date"
@@ -128,7 +128,7 @@ function DateRangePicker({
                 min={customFrom}
                 max={isoDay(new Date())}
                 onChange={(e) => setCustomTo(e.target.value)}
-                className="h-8 rounded-md border border-gray-200 px-2 text-xs text-gray-900 focus:outline-none focus:border-brand-500"
+                className="h-8 rounded-lg bg-white/60 border border-white/70 px-2 text-xs text-gray-900 focus:outline-none focus:border-brand-500"
               />
             </div>
             <button
@@ -137,7 +137,7 @@ function DateRangePicker({
                 onChange({ preset: 'custom', from: customFrom, to: customTo });
                 setOpen(false);
               }}
-              className="w-full mt-1 inline-flex items-center justify-center h-8 rounded-md bg-brand-600 hover:bg-brand-700 text-white text-xs font-medium"
+              className="w-full mt-1 inline-flex items-center justify-center h-8 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-xs font-medium shadow-[0_4px_14px_rgba(13,148,136,0.35)]"
             >
               Appliquer
             </button>
@@ -157,6 +157,31 @@ function niceMax(raw: number): number {
   const n = raw / pow;
   const nice = n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10;
   return nice * pow;
+}
+
+/**
+ * Catmull–Rom → cubic Bezier path. Produces a smooth curve passing through
+ * every point with no sharp corners. `tension` ~0.5 gives soft, organic shapes.
+ */
+function smoothPath(pts: { x: number; y: number }[], tension = 0.5): string {
+  if (pts.length === 0) return '';
+  if (pts.length === 1) return `M ${pts[0].x},${pts[0].y}`;
+
+  const segs: string[] = [`M ${pts[0].x},${pts[0].y}`];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] ?? pts[i];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[i + 2] ?? p2;
+
+    const c1x = p1.x + ((p2.x - p0.x) / 6) * tension;
+    const c1y = p1.y + ((p2.y - p0.y) / 6) * tension;
+    const c2x = p2.x - ((p3.x - p1.x) / 6) * tension;
+    const c2y = p2.y - ((p3.y - p1.y) / 6) * tension;
+
+    segs.push(`C ${c1x},${c1y} ${c2x},${c2y} ${p2.x},${p2.y}`);
+  }
+  return segs.join(' ');
 }
 
 function TimeSeriesChart({ data }: { data: { date: string; count: number }[] }) {
@@ -187,7 +212,8 @@ function TimeSeriesChart({ data }: { data: { date: string; count: number }[] }) 
   const yAt = (v: number): number =>
     PAD.top + innerH - (v / yMax) * innerH;
 
-  const points  = data.map((d, i) => `${xAt(i)},${yAt(d.count)}`);
+  const pts = data.map((d, i) => ({ x: xAt(i), y: yAt(d.count) }));
+  const smoothD = smoothPath(pts, 0.6);
   const baselineY = yAt(0);
 
   // X-axis labels: aim for ~6–8 visible labels max.
@@ -247,7 +273,7 @@ function TimeSeriesChart({ data }: { data: { date: string; count: number }[] }) 
       {/* ── Area fill (only meaningful when data.length >= 2) ────────── */}
       {data.length > 1 && (
         <path
-          d={`M ${xAt(0)},${baselineY} L ${points.join(' L ')} L ${xAt(data.length - 1)},${baselineY} Z`}
+          d={`${smoothD} L ${pts[pts.length - 1].x},${baselineY} L ${pts[0].x},${baselineY} Z`}
           fill="url(#chart-area-gradient)"
         />
       )}
@@ -255,10 +281,10 @@ function TimeSeriesChart({ data }: { data: { date: string; count: number }[] }) 
       {/* ── Line ─────────────────────────────────────────────────────── */}
       {data.length > 1 && (
         <path
-          d={`M ${points.join(' L ')}`}
+          d={smoothD}
           fill="none"
           stroke="#3b82f6"
-          strokeWidth="2"
+          strokeWidth="2.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
@@ -303,7 +329,7 @@ function Kpi({ label, value, icon }: {
   icon: React.ReactNode;
 }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-6 sm:min-h-[130px] flex flex-col gap-1.5 sm:gap-3">
+    <div className="bg-white/30 backdrop-blur-xl border border-white/50 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] p-4 sm:p-6 sm:min-h-[130px] flex flex-col gap-1.5 sm:gap-3">
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs sm:text-sm text-gray-500">{label}</p>
         <span className="text-gray-400 shrink-0" aria-hidden="true">{icon}</span>
@@ -446,7 +472,7 @@ export default function AnalyticsPage() {
           {/* Chart — order-1 on mobile (above KPIs), order-2 on desktop. On
               mobile we shrink the vertical footprint so the chart reads as a
               wide horizontal panel rather than dominating the fold. */}
-          <section className="order-1 lg:order-2 lg:col-span-7 bg-white border border-gray-200 rounded-2xl p-4 sm:p-5 flex flex-col">
+          <section className="order-1 lg:order-2 lg:col-span-7 bg-white/30 backdrop-blur-xl border border-white/50 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] p-4 sm:p-5 flex flex-col">
             <div className="flex items-center justify-between mb-3 sm:mb-5">
               <div>
                 <h2 className="text-sm font-semibold text-gray-900">Vues dans le temps</h2>
@@ -467,8 +493,8 @@ export default function AnalyticsPage() {
           {/* RIGHT — Top produits stacked above Répartition par appareil */}
           <div className="order-3 lg:col-span-5 flex flex-col gap-5">
 
-            <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-gray-100">
+            <section className="bg-white/30 backdrop-blur-xl border border-white/50 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] overflow-hidden">
+              <div className="px-5 py-4 border-b border-white/30">
                 <h2 className="text-sm font-semibold text-gray-900">Top produits les plus consultés</h2>
               </div>
               {topProducts.length === 0 ? (
@@ -476,7 +502,7 @@ export default function AnalyticsPage() {
                   Aucun scan enregistré pour le moment
                 </div>
               ) : (
-                <div className="divide-y divide-gray-100">
+                <div className="divide-y divide-white/30">
                   {topProducts.map((p, i) => {
                     const max = topProducts[0]?.scans || 1;
                     const pct = Math.round((p.scans / max) * 100);
@@ -503,7 +529,7 @@ export default function AnalyticsPage() {
               )}
             </section>
 
-            <section className="bg-white border border-gray-200 rounded-2xl p-5">
+            <section className="bg-white/30 backdrop-blur-xl border border-white/50 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] p-5">
               <div className="flex items-center gap-2 mb-4">
                 <Smartphone className="w-4 h-4 text-brand-600" />
                 <h2 className="text-sm font-semibold text-gray-900">Répartition par appareil</h2>
@@ -562,8 +588,8 @@ function CataloguesBlock({
   const socialEntries = Object.entries(social).sort((a, b) => b[1] - a[1]);
 
   return (
-    <section className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-      <header className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+    <section className="bg-white/30 backdrop-blur-xl border border-white/50 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] overflow-hidden">
+      <header className="px-5 py-4 border-b border-white/30 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <LayoutGrid className="w-4 h-4 text-brand-600" />
           <h2 className="text-sm font-semibold text-gray-900">Catalogues</h2>
@@ -603,8 +629,8 @@ function CataloguesBlock({
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {/* Top catalogues */}
-          <div className="bg-gray-50/60 border border-gray-100 rounded-xl overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-100">
+          <div className="bg-white/25 backdrop-blur-xl border border-white/50 rounded-xl shadow-[0_4px_16px_rgba(0,0,0,0.05),inset_0_1px_0_rgba(255,255,255,0.85)] overflow-hidden">
+            <div className="px-4 py-3 border-b border-white/30">
               <h3 className="text-sm font-semibold text-gray-900">Top catalogues</h3>
               <p className="text-xs text-gray-500 mt-0.5">Vues sur la période sélectionnée</p>
             </div>
@@ -619,7 +645,7 @@ function CataloguesBlock({
                 Aucune vue enregistrée
               </div>
             ) : (
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-white/30">
                 {top.map((c, i) => {
                   const max = top[0]?.view_count || 1;
                   const pct = Math.round((c.view_count / max) * 100);
@@ -651,8 +677,8 @@ function CataloguesBlock({
 
           {/* Top items + Social breakdown */}
           <div className="space-y-4">
-            <div className="bg-gray-50/60 border border-gray-100 rounded-xl overflow-hidden">
-              <div className="px-4 py-3 border-b border-gray-100">
+            <div className="bg-white/25 backdrop-blur-xl border border-white/50 rounded-xl shadow-[0_4px_16px_rgba(0,0,0,0.05),inset_0_1px_0_rgba(255,255,255,0.85)] overflow-hidden">
+              <div className="px-4 py-3 border-b border-white/30">
                 <h3 className="text-sm font-semibold text-gray-900">Top produits AR</h3>
                 <p className="text-xs text-gray-500 mt-0.5">Ouvertures AR sur la période</p>
               </div>
@@ -667,7 +693,7 @@ function CataloguesBlock({
                   Aucune ouverture AR
                 </div>
               ) : (
-                <div className="divide-y divide-gray-100">
+                <div className="divide-y divide-white/30">
                   {items.map((it, i) => (
                     <div key={it.id} className="px-4 py-3 flex items-center gap-3">
                       <span className="text-xs font-mono text-gray-400 w-4 shrink-0">#{i + 1}</span>
@@ -698,8 +724,8 @@ function CataloguesBlock({
             </div>
 
             {socialEntries.length > 0 && (
-              <div className="bg-gray-50/60 border border-gray-100 rounded-xl overflow-hidden">
-                <div className="px-4 py-3 border-b border-gray-100">
+              <div className="bg-white/25 backdrop-blur-xl border border-white/50 rounded-xl shadow-[0_4px_16px_rgba(0,0,0,0.05),inset_0_1px_0_rgba(255,255,255,0.85)] overflow-hidden">
+                <div className="px-4 py-3 border-b border-white/30">
                   <h3 className="text-sm font-semibold text-gray-900">Clics par réseau</h3>
                 </div>
                 <div className="p-4 grid grid-cols-2 gap-x-4 gap-y-2">

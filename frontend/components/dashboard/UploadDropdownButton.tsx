@@ -62,7 +62,7 @@ export function UploadDropdownButton({ onSelectImage, className }: UploadDropdow
         <div
           role="menu"
           className={cn(
-            'absolute top-full right-0 mt-2 w-64 z-30',
+            'absolute top-full right-0 mt-2 w-64 z-50',
             'bg-white/50 backdrop-blur-2xl rounded-2xl border border-white/60 shadow-[0_20px_60px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.9)] overflow-hidden',
           )}
         >

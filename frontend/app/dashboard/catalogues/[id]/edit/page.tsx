@@ -434,7 +434,10 @@ export default function CatalogueEditPage() {
               <AvatarUploader
                 catalogueId={catalogue.id}
                 avatarUrl={catalogue.avatar_url}
-                onChange={(updated) => setCatalogue(updated)}
+                onChange={(updated) => {
+                  setCatalogue(updated);
+                  patchCatalogue(updated.id, updated);
+                }}
                 onError={(msg) => showToast('error', msg)}
               />
             </div>
