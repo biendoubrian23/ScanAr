@@ -61,12 +61,12 @@ HEALTHCHECK --interval=30s --timeout=15s --start-period=300s --retries=5 \
 
 # Launch the API server with:
 #   - Hunyuan3D-2mv (multi-view shape model — supports 1-4 input images)
-#   - Subfolder hunyuan3d-dit-v2-mv-turbo for fast inference
+#   - Subfolder hunyuan3d-dit-v2-mv (FULL quality variant, no -turbo / -fast)
 #   - Hunyuan3D-2 for texture painting (unchanged)
 CMD ["python", "api_server.py", \
      "--host", "0.0.0.0", \
      "--port", "8080", \
      "--model_path", "tencent/Hunyuan3D-2mv", \
-     "--subfolder", "hunyuan3d-dit-v2-mv-turbo", \
+     "--subfolder", "hunyuan3d-dit-v2-mv", \
      "--enable_tex", \
      "--device", "cuda"]

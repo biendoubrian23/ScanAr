@@ -13,6 +13,7 @@ export const PIPELINE_STEPS: { id: PipelineStepId; label: string; sublabel: stri
   { id: 'uploading',          label: 'Upload image',     sublabel: 'Sending to storage' },
   { id: 'queued',             label: 'Queued',           sublabel: 'Waiting for worker' },
   { id: 'downloading_image',  label: 'Fetching image',   sublabel: 'Worker downloads source' },
+  { id: 'enhancing_image',    label: 'Amélioration IA',  sublabel: 'gpt-image-1 — nettoyage & fond' },
   { id: 'generating_shape',   label: 'Shape',            sublabel: 'Hunyuan3D — geometry' },
   { id: 'generating_texture', label: 'Texture',          sublabel: 'Hunyuan3D — colors' },
   { id: 'compressing',        label: 'Compress',         sublabel: 'Draco optimization' },

@@ -1,20 +1,24 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Image as ImageIcon,
   Loader2,
   RotateCw,
   MousePointer2,
   Box,
+  Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+type ViewMode = '3d' | 'original' | 'enhanced';
 
 interface Model3DPreviewProps {
   glbUrl: string | null;
   usdzUrl?: string | null;
   imageUrl: string | null;
   imageUrls?: string[] | null;
+  enhancedImageUrls?: (string | null)[] | null;
   alt: string;
   className?: string;
 }
@@ -35,24 +39,40 @@ export function Model3DPreview({
   usdzUrl,
   imageUrl,
   imageUrls,
+  enhancedImageUrls,
   alt,
   className,
 }: Model3DPreviewProps) {
   const has3D = Boolean(glbUrl);
   const viewerRef = useRef<HTMLElement | null>(null);
 
-  // Build the gallery: prefer imageUrls (multi-view) and fall back to imageUrl.
-  const gallery = (imageUrls && imageUrls.length > 0)
-    ? imageUrls
-    : (imageUrl ? [imageUrl] : []);
-  const hasMultiple = gallery.length > 1;
+  // Build the original gallery: prefer imageUrls (multi-view), fall back to imageUrl.
+  const originalGallery = useMemo(
+    () => ((imageUrls && imageUrls.length > 0)
+      ? imageUrls
+      : (imageUrl ? [imageUrl] : [])),
+    [imageUrls, imageUrl],
+  );
 
-  const [showImage, setShowImage]     = useState(!has3D);
+  // Enhanced gallery may contain nulls at indices where GPT failed —
+  // we substitute the original at those positions so the strip stays aligned.
+  const enhancedGallery = useMemo(() => {
+    if (!enhancedImageUrls || enhancedImageUrls.length === 0) return [];
+    return enhancedImageUrls.map((u, i) => u ?? originalGallery[i] ?? null);
+  }, [enhancedImageUrls, originalGallery]);
+
+  const hasEnhanced = enhancedGallery.some((u) => Boolean(u));
+
+  const [mode, setMode]               = useState<ViewMode>(has3D ? '3d' : 'original');
   const [mvLoaded, setMvLoaded]       = useState(false);
   const [hintVisible, setHintVisible] = useState(true);
   const [yaw, setYaw]                 = useState(0);     // degrees, 0 = facing camera
   const [activeIdx, setActiveIdx]     = useState(0);
-  const activeImage = gallery[activeIdx] ?? null;
+
+  const showImage = mode !== '3d';
+  const activeGallery = mode === 'enhanced' ? enhancedGallery : originalGallery;
+  const hasMultiple = activeGallery.length > 1;
+  const activeImage = activeGallery[activeIdx] ?? activeGallery[0] ?? null;
 
   // Lazy-load model-viewer once, only if a GLB is available
   useEffect(() => {
@@ -130,13 +150,13 @@ export function Model3DPreview({
           are multiple source views (multi-view 3D reconstruction). */}
       {showImage && hasMultiple && (
         <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 rounded-xl bg-white/90 backdrop-blur border border-gray-200 p-1.5 shadow-sm max-w-[calc(100%-1.5rem)] overflow-x-auto scrollbar-thin">
-          {gallery.map((url, i) => (
+          {activeGallery.map((url, i) => (
             <button
-              key={url}
+              key={`${i}-${url}`}
               type="button"
               onClick={() => setActiveIdx(i)}
               aria-label={`Image source ${i + 1}`}
-              aria-pressed={i === activeIdx ? 'true' : 'false'}
+              aria-pressed={i === activeIdx}
               className={cn(
                 'relative w-14 h-14 rounded-lg overflow-hidden shrink-0 border transition-all',
                 i === activeIdx
@@ -144,8 +164,10 @@ export function Model3DPreview({
                   : 'border-gray-200 hover:border-gray-300 opacity-80 hover:opacity-100',
               )}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={url} alt="" className="w-full h-full object-cover" />
+              {url && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={url} alt="" className="w-full h-full object-cover" />
+              )}
               <span className="absolute top-0.5 left-0.5 text-[9px] font-bold text-white bg-black/60 rounded px-1 leading-tight">
                 {i + 1}
               </span>
@@ -193,15 +215,15 @@ export function Model3DPreview({
         </div>
       )}
 
-      {/* Top-right toggle (3D ⇄ Image) — visible only when 3D is available */}
+      {/* Top-right toggle (3D ⇄ Image ⇄ Enhanced) — visible when 3D is available */}
       {has3D && (
         <div className="absolute top-3 right-3 z-10 flex items-center gap-1 rounded-lg bg-white/90 border border-gray-200 backdrop-blur p-0.5 shadow-sm">
           <button
             type="button"
-            onClick={() => setShowImage(false)}
+            onClick={() => { setMode('3d'); setActiveIdx(0); }}
             className={cn(
               'inline-flex items-center gap-1.5 px-2.5 h-7 rounded-md text-xs font-medium transition-colors',
-              !showImage ? 'bg-brand-600 text-white' : 'text-gray-600 hover:text-gray-900',
+              mode === '3d' ? 'bg-brand-600 text-white' : 'text-gray-600 hover:text-gray-900',
             )}
           >
             <Box className="w-3.5 h-3.5" />
@@ -209,15 +231,29 @@ export function Model3DPreview({
           </button>
           <button
             type="button"
-            onClick={() => setShowImage(true)}
+            onClick={() => { setMode('original'); setActiveIdx(0); }}
             className={cn(
               'inline-flex items-center gap-1.5 px-2.5 h-7 rounded-md text-xs font-medium transition-colors',
-              showImage ? 'bg-brand-600 text-white' : 'text-gray-600 hover:text-gray-900',
+              mode === 'original' ? 'bg-brand-600 text-white' : 'text-gray-600 hover:text-gray-900',
             )}
           >
             <ImageIcon className="w-3.5 h-3.5" />
             Image
           </button>
+          {hasEnhanced && (
+            <button
+              type="button"
+              onClick={() => { setMode('enhanced'); setActiveIdx(0); }}
+              title="Image améliorée par IA (gpt-image-1)"
+              className={cn(
+                'inline-flex items-center gap-1.5 px-2.5 h-7 rounded-md text-xs font-medium transition-colors',
+                mode === 'enhanced' ? 'bg-brand-600 text-white' : 'text-gray-600 hover:text-gray-900',
+              )}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              Améliorée
+            </button>
+          )}
         </div>
       )}
 

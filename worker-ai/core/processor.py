@@ -12,11 +12,13 @@ from utils.supabase_client import get_admin_client
 SUPABASE_URL = os.getenv("NEXT_PUBLIC_SUPABASE_URL", "")
 GLB_BUCKET = "models-glb"
 USDZ_BUCKET = "models-usdz"
+ENHANCED_BUCKET = "images-enhanced"
 ENABLE_DRACO = os.getenv("ENABLE_DRACO", "true").lower() == "true"
 
 
 # Pipeline step definitions — kept in sync with frontend PIPELINE_STEPS
 STEP_DOWNLOAD = "downloading_image"
+STEP_ENHANCE  = "enhancing_image"
 STEP_SHAPE    = "generating_shape"
 STEP_TEXTURE  = "generating_texture"
 STEP_COMPRESS = "compressing"
@@ -106,6 +108,50 @@ async def process_images_to_3d(
     logger.info(f"Images downloaded: {len(image_blobs)} files, {total_bytes} bytes total")
     await emit(STEP_DOWNLOAD, 10, "done")
 
+    # ── 1bis. AI enhancement via gpt-image-1 (parallel, original-on-failure) ─
+    await emit(STEP_ENHANCE, 11, "started")
+    from core.image_enhance import enhance_images
+    enhance_results = await enhance_images(image_blobs)
+    enhanced_count = sum(1 for r in enhance_results if r.enhanced)
+    fallback_count = sum(1 for r in enhance_results if r.used_fallback)
+    image_blobs = [r.image_bytes for r in enhance_results]
+    logger.info(
+        f"Enhancement: {enhanced_count}/{len(enhance_results)} enhanced "
+        f"(fallback key used on {fallback_count})"
+    )
+
+    # Persist successfully enhanced images to the public bucket so the dashboard
+    # can show a before/after toggle. Failed-enhancement entries (originals)
+    # are NOT uploaded — the frontend simply shows the original at that index.
+    enhanced_paths: list[str | None] = []
+    enhanced_urls: list[str | None] = []
+    for idx, r in enumerate(enhance_results):
+        if not r.enhanced:
+            enhanced_paths.append(None)
+            enhanced_urls.append(None)
+            continue
+        path = f"{user_id}/{model_id}/{idx}.png"
+        try:
+            supabase.storage.from_(ENHANCED_BUCKET).upload(
+                path=path,
+                file=r.image_bytes,
+                file_options={"content-type": "image/png", "upsert": "true"},
+            )
+            url = f"{SUPABASE_URL}/storage/v1/object/public/{ENHANCED_BUCKET}/{path}"
+            enhanced_paths.append(path)
+            enhanced_urls.append(url)
+            logger.info(f"Enhanced image #{idx} uploaded: {path} ({len(r.image_bytes)} bytes)")
+        except Exception as e:
+            logger.warning(f"Enhanced image #{idx} upload failed: {e}")
+            enhanced_paths.append(None)
+            enhanced_urls.append(None)
+
+    await emit(
+        STEP_ENHANCE, 14, "done",
+        f"{enhanced_count}/{len(enhance_results)} images améliorées"
+        + (f" ({fallback_count} via clé fallback)" if fallback_count else ""),
+    )
+
     # ── 2. Shape generation (Hunyuan3D shape model) ─────────────────────
     await emit(STEP_SHAPE, 15, "started")
     from core.hunyuan import generate_3d_with_usdz
@@ -163,6 +209,8 @@ async def process_images_to_3d(
         "polygons": meta.get("polygons"),
         "materials_count": meta.get("materials_count"),
         "dimensions_mm": meta.get("dimensions_mm"),
+        "enhanced_image_paths": enhanced_paths,
+        "enhanced_image_urls": enhanced_urls,
     }
 
 

@@ -10,7 +10,9 @@ import httpx
 from utils.logger import logger
 
 HUNYUAN3D_API_URL = os.getenv("HUNYUAN3D_API_URL", "http://hunyuan3d:8080")
-REQUEST_TIMEOUT = int(os.getenv("HUNYUAN3D_TIMEOUT", "300"))
+# Full-quality model + 30 steps + octree 256 + 100k faces takes well over 5 min.
+# Default 15 min — override via HUNYUAN3D_TIMEOUT env var if needed.
+REQUEST_TIMEOUT = int(os.getenv("HUNYUAN3D_TIMEOUT", "900"))
 
 
 async def check_health() -> bool:

@@ -14,3 +14,6 @@ numpy>=1.26,<2
 
 # Mesh processing (USDZ fallback, Draco)
 trimesh[easy]>=4.0
+
+# OpenAI (gpt-image-1 image enhancement before 3D reconstruction)
+openai>=1.40

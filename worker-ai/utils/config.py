@@ -15,6 +15,9 @@ class Config:
     webhook_secret: str
     hunyuan3d_api_url: str
     hunyuan3d_enabled: bool
+    openai_api_key: str
+    openai_api_key_fallback: str
+    openai_enhance_enabled: bool
 
 
 def get_config() -> Config:
@@ -28,4 +31,7 @@ def get_config() -> Config:
         webhook_secret=os.getenv("WEBHOOK_SECRET", "scanar_webhook_secret_dev_2024"),
         hunyuan3d_api_url=os.getenv("HUNYUAN3D_API_URL", "http://hunyuan3d:8080"),
         hunyuan3d_enabled=os.getenv("HUNYUAN3D_ENABLED", "true").lower() == "true",
+        openai_api_key=os.getenv("OPENAI_API_KEY", ""),
+        openai_api_key_fallback=os.getenv("OPENAI_API_KEY_FALLBACK", ""),
+        openai_enhance_enabled=os.getenv("OPENAI_ENHANCE_ENABLED", "true").lower() == "true",
     )

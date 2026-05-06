@@ -219,8 +219,9 @@ class ModelWorker:
         else:
             seed = params.get("seed", 1234)
             params['generator'] = torch.Generator(self.device).manual_seed(seed)
-            params['octree_resolution'] = params.get("octree_resolution", 128)
-            params['num_inference_steps'] = params.get("num_inference_steps", 5)
+            # Quality-tuned defaults (was: octree=128, steps=5, faces=40k for turbo)
+            params['octree_resolution'] = params.get("octree_resolution", 256)
+            params['num_inference_steps'] = params.get("num_inference_steps", 30)
             params['guidance_scale'] = params.get('guidance_scale', 5.0)
             params['mc_algo'] = 'mc'
             import time
@@ -231,7 +232,7 @@ class ModelWorker:
         if params.get('texture', False):
             mesh = FloaterRemover()(mesh)
             mesh = DegenerateFaceRemover()(mesh)
-            mesh = FaceReducer()(mesh, max_facenum=params.get('face_count', 40000))
+            mesh = FaceReducer()(mesh, max_facenum=params.get('face_count', 100000))
             mesh = self.pipeline_tex(mesh, image)
 
         type = params.get('type', 'glb')

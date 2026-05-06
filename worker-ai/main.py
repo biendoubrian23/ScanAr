@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 
 from core.processor import process_images_to_3d
 from core.hunyuan import check_health
+from core.image_enhance import verify_openai_keys
 from utils.config import get_config
 from utils.logger import logger
 from utils.supabase_client import get_admin_client
@@ -130,6 +131,8 @@ async def process_job(job_data: dict):
             "polygons": result.get("polygons"),
             "materialsCount": result.get("materials_count"),
             "dimensionsMm": result.get("dimensions_mm"),
+            "enhancedImageUrls": result.get("enhanced_image_urls"),
+            "enhancedImagePaths": result.get("enhanced_image_paths"),
         })
 
         logger.info(f"Job {model_id} completed in {processing_time_ms}ms")
@@ -164,6 +167,9 @@ async def worker_loop():
 
     if config.hunyuan3d_enabled:
         await wait_for_hunyuan3d()
+
+    if config.openai_enhance_enabled:
+        await verify_openai_keys()
 
     r = redis.from_url(config.redis_url, decode_responses=True)
     logger.info("Listening on 'scanar:jobs'...")
