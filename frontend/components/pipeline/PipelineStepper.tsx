@@ -6,18 +6,53 @@ import { cn } from '@/lib/utils';
 import type { Model3D, PipelineStepId } from '@/lib/types';
 
 /**
- * Ordered list of pipeline steps shown to the user.
+ * Ordered list of pipeline steps reported by the backend.
  * Keep in sync with worker-ai/core/processor.py constants.
+ * Used elsewhere (e.g. FloatingProgressWidget) to map a current_step id to a
+ * human label. The visible stepper groups these into PIPELINE_GROUPS below.
  */
 export const PIPELINE_STEPS: { id: PipelineStepId; label: string; sublabel: string }[] = [
-  { id: 'uploading',          label: 'Upload image',     sublabel: 'Sending to storage' },
-  { id: 'queued',             label: 'Queued',           sublabel: 'Waiting for worker' },
-  { id: 'downloading_image',  label: 'Fetching image',   sublabel: 'Worker downloads source' },
-  { id: 'enhancing_image',    label: 'Amélioration IA',  sublabel: 'gpt-image-1 — nettoyage & fond' },
-  { id: 'generating_shape',   label: 'Shape',            sublabel: 'Hunyuan3D — geometry' },
-  { id: 'generating_texture', label: 'Texture',          sublabel: 'Hunyuan3D — colors' },
-  { id: 'compressing',        label: 'Compress',         sublabel: 'Draco optimization' },
-  { id: 'uploading_assets',   label: 'Publish',          sublabel: 'GLB + USDZ to storage' },
+  { id: 'uploading',          label: 'Upload image',      sublabel: 'Sending to storage' },
+  { id: 'queued',             label: 'Queued',            sublabel: 'Waiting for worker' },
+  { id: 'downloading_image',  label: 'Fetching image',    sublabel: 'Worker downloads source' },
+  { id: 'enhancing_image',    label: 'Amélioration IA',   sublabel: 'gpt-image-1 — nettoyage & fond' },
+  { id: 'completing_views',   label: 'Vues manquantes',   sublabel: 'gpt-4o + gpt-image-1 — angles' },
+  { id: 'generating_shape',   label: 'Shape',             sublabel: 'Hunyuan3D — geometry' },
+  { id: 'generating_texture', label: 'Texture',           sublabel: 'Hunyuan3D — colors' },
+  { id: 'cleaning_mesh',      label: 'Nettoyage mesh',    sublabel: 'Outliers + lissage Taubin' },
+  { id: 'compressing',        label: 'Compress',          sublabel: 'Draco optimization' },
+  { id: 'uploading_assets',   label: 'Publish',           sublabel: 'GLB + USDZ to storage' },
+];
+
+/**
+ * High-level groups shown to the user. Each group bundles several backend
+ * step ids into a single visible row. The backend pipeline itself is unchanged.
+ */
+const PIPELINE_GROUPS: {
+  label: string;
+  sublabel: string;
+  steps: PipelineStepId[];
+}[] = [
+  {
+    label: 'Préparation',
+    sublabel: "Envoi & récupération de l'image",
+    steps: ['uploading', 'queued', 'downloading_image'],
+  },
+  {
+    label: 'Amélioration IA',
+    sublabel: 'Nettoyage, fond & vues manquantes',
+    steps: ['enhancing_image', 'completing_views'],
+  },
+  {
+    label: 'Génération 3D',
+    sublabel: 'Hunyuan3D — geometry, texture & mesh',
+    steps: ['generating_shape', 'generating_texture', 'cleaning_mesh'],
+  },
+  {
+    label: 'Publication',
+    sublabel: 'Compression & stockage',
+    steps: ['compressing', 'uploading_assets'],
+  },
 ];
 
 type StepUiState = 'pending' | 'active' | 'done' | 'failed';
@@ -33,39 +68,40 @@ interface Props {
   className?: string;
 }
 
-function stateOf(
-  stepId: PipelineStepId,
+function groupStateOf(
+  groupIdx: number,
   current: PipelineStepId | null,
   status: Model3D['status'] | undefined,
   failedStep: PipelineStepId | null,
   clientUploading: boolean,
 ): StepUiState {
-  // Special-case the client upload step
-  if (stepId === 'uploading') {
-    if (status === 'completed' || status === 'processing') return 'done';
-    if (clientUploading) return 'active';
-    return current ? 'done' : 'pending';
+  const group = PIPELINE_GROUPS[groupIdx];
+  const order = PIPELINE_STEPS.map((s) => s.id);
+  const groupStepIdxs = group.steps.map((id) => order.indexOf(id));
+  const groupStart = Math.min(...groupStepIdxs);
+  const groupEnd   = Math.max(...groupStepIdxs);
+
+  // Client-side upload is the very first backend step ('uploading') and lives
+  // in the first group. Surface it as active before the worker takes over.
+  if (clientUploading && groupIdx === 0 && status !== 'completed' && status !== 'failed') {
+    return 'active';
   }
 
   if (status === 'completed') return 'done';
 
   if (status === 'failed') {
-    if (failedStep === stepId) return 'failed';
-    // Steps before the failed one are done; after are pending
-    const order = PIPELINE_STEPS.map((s) => s.id);
     const failedIdx = failedStep ? order.indexOf(failedStep) : -1;
-    const idx = order.indexOf(stepId);
-    if (failedIdx >= 0 && idx < failedIdx) return 'done';
+    if (failedIdx < 0) return groupIdx === 0 ? 'failed' : 'pending';
+    if (failedIdx > groupEnd) return 'done';
+    if (failedIdx >= groupStart) return 'failed';
     return 'pending';
   }
 
-  // Processing
-  if (!current) return 'pending';
-  const order = PIPELINE_STEPS.map((s) => s.id);
+  // Processing (or pending with no current step yet)
+  if (!current) return groupIdx === 0 ? 'pending' : 'pending';
   const currentIdx = order.indexOf(current);
-  const idx = order.indexOf(stepId);
-  if (idx < currentIdx) return 'done';
-  if (idx === currentIdx) return 'active';
+  if (currentIdx > groupEnd)  return 'done';
+  if (currentIdx >= groupStart) return 'active';
   return 'pending';
 }
 
@@ -130,12 +166,12 @@ export function PipelineStepper({
 
   return (
     <ul className={cn('space-y-0.5', className)}>
-      {PIPELINE_STEPS.map((step) => (
+      {PIPELINE_GROUPS.map((group, idx) => (
         <StepRow
-          key={step.id}
-          label={step.label}
-          sublabel={step.sublabel}
-          state={stateOf(step.id, current, status, derivedFailed, clientUploading)}
+          key={group.label}
+          label={group.label}
+          sublabel={group.sublabel}
+          state={groupStateOf(idx, current, status, derivedFailed, clientUploading)}
         />
       ))}
     </ul>

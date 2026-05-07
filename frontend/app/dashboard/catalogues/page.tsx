@@ -255,20 +255,35 @@ function CatalogueCard({
           'w-20 self-stretch',
           /* desktop: full width with 2:1 banner */
           'sm:w-full sm:self-auto sm:aspect-[2/1]',
-          THEME_SWATCH[catalogue.theme],
+          !catalogue.cover_url && !catalogue.avatar_url && THEME_SWATCH[catalogue.theme],
         )}
       >
-        {/* Avatar */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white/80 backdrop-blur ring-1 ring-white/60 shadow-sm flex items-center justify-center overflow-hidden">
-            {catalogue.avatar_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
+        {/* Cover banner — cover_url takes priority, then avatar_url as fallback */}
+        {(catalogue.cover_url || catalogue.avatar_url) && (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={catalogue.cover_url ?? catalogue.avatar_url!}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        )}
+
+        {/* Avatar badge — only shown when a different cover image is set */}
+        {catalogue.cover_url && catalogue.avatar_url && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white/80 backdrop-blur ring-1 ring-white/60 shadow-sm flex items-center justify-center overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={catalogue.avatar_url} alt="" className="w-full h-full object-cover" />
-            ) : (
-              <LayoutGrid className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />
-            )}
+            </div>
           </div>
-        </div>
+        )}
+        {!catalogue.cover_url && !catalogue.avatar_url && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-white/80 backdrop-blur ring-1 ring-white/60 shadow-sm flex items-center justify-center overflow-hidden">
+              <LayoutGrid className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />
+            </div>
+          </div>
+        )}
 
         {/* Badges — desktop only */}
         <div className="absolute top-2 left-2 hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-white/90 backdrop-blur text-[10px] font-medium text-gray-700 border border-white/60">

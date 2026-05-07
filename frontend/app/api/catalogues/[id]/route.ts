@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import type {
   ApiResponse,
   Catalogue,
   CatalogueCategory,
+  CatalogueDesign,
   CatalogueSocials,
   CatalogueTheme,
   StatsConfig,
@@ -97,6 +99,7 @@ export async function PATCH(
     location?:      string | null;
     avatar_url?:    string | null;
     theme?:         CatalogueTheme;
+    design?:        Partial<CatalogueDesign>;
     categories?:    CatalogueCategory[];
     socials?:       CatalogueSocials;
     is_active?:     boolean;
@@ -119,6 +122,7 @@ export async function PATCH(
     location?:      string | null;
     avatar_url?:    string | null;
     theme?:         CatalogueTheme;
+    design?:        Partial<CatalogueDesign>;
     categories?:    CatalogueCategory[];
     socials?:       Record<string, string>;
     is_active?:     boolean;
@@ -133,6 +137,9 @@ export async function PATCH(
   if (body.location   !== undefined)        updates.location   = body.location;
   if (body.avatar_url !== undefined)        updates.avatar_url = body.avatar_url;
   if (body.theme && VALID_THEMES.includes(body.theme)) updates.theme = body.theme;
+  if (body.design && typeof body.design === 'object' && !Array.isArray(body.design)) {
+    updates.design = body.design;
+  }
   if (Array.isArray(body.categories))       updates.categories = body.categories;
   if (body.socials && typeof body.socials === 'object') updates.socials = body.socials as Record<string, string>;
   if (typeof body.is_active === 'boolean')      updates.is_active     = body.is_active;
@@ -172,6 +179,10 @@ export async function PATCH(
       { status: updateError ? 500 : 404 },
     );
   }
+
+  // Force-flush the ISR cache for this catalogue's public page so the owner
+  // sees their edits immediately instead of waiting for the 10-min revalidate.
+  try { revalidatePath(`/c/${data.slug}`); } catch { /* best-effort */ }
 
   return NextResponse.json({ data: data as Catalogue, error: null, success: true });
 }

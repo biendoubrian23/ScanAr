@@ -35,7 +35,9 @@ ENHANCE_PROMPT = (
 
 MODEL = "gpt-image-1"
 SIZE = "1024x1024"
-TIMEOUT_S = 90
+QUALITY = "high"          # low / medium / high — high = max detail, costlier
+INPUT_FIDELITY = "high"   # forces gpt-image-1 to preserve reference details
+TIMEOUT_S = 120
 
 
 @dataclass
@@ -62,6 +64,8 @@ async def _call_edit(api_key: str, image_bytes: bytes, mime: str) -> bytes:
         image=buf,
         prompt=ENHANCE_PROMPT,
         size=SIZE,
+        quality=QUALITY,
+        input_fidelity=INPUT_FIDELITY,
         n=1,
     )
     b64 = resp.data[0].b64_json
@@ -98,7 +102,10 @@ async def enhance_image(
     last_err: Optional[Exception] = None
     for label, key in keys:
         try:
-            logger.info(f"[enhance#{index}] calling gpt-image-1 ({label} key, {len(image_bytes)} bytes)")
+            logger.info(
+                f"[enhance#{index}] {MODEL} ({label} key, "
+                f"quality={QUALITY}, fidelity={INPUT_FIDELITY}, {len(image_bytes)} bytes)"
+            )
             out = await _call_edit(key, image_bytes, mime)
             logger.info(f"[enhance#{index}] OK ({label} key) → {len(out)} bytes")
             return EnhanceResult(

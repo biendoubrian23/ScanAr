@@ -3,8 +3,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
-  X,
-  ChevronDown,
   CheckCircle2,
   AlertCircle,
   Loader2,
@@ -57,9 +55,9 @@ export function FloatingProgressWidget() {
   const movedRef = useRef(false);
   const bubbleRef = useRef<HTMLButtonElement>(null);
 
-  // ── Auto-dismiss on success ────────────────────────────────────────────────
+  // ── Auto-dismiss on success or failure ────────────────────────────────────
   useEffect(() => {
-    if (phase !== 'completed') return;
+    if (phase !== 'completed' && phase !== 'failed') return;
     const t = setTimeout(() => dismiss(), 15_000);
     return () => clearTimeout(t);
   }, [phase, dismiss]);
@@ -243,14 +241,6 @@ export function FloatingProgressWidget() {
           className="p-1 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
         >
           <Minus className="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          onClick={dismiss}
-          aria-label="Fermer"
-          className="p-1 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-        >
-          <X className="w-4 h-4" />
         </button>
       </div>
 

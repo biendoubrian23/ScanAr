@@ -2,12 +2,38 @@ import io
 import os
 import subprocess
 import tempfile
+import time
 from typing import Callable, Optional
 
 import httpx
 
 from utils.logger import logger
 from utils.supabase_client import get_admin_client
+
+
+def _upload_with_retry(bucket: str, path: str, data: bytes, content_type: str, attempts: int = 3) -> None:
+    """Upload `data` to Supabase Storage at `bucket/path`, retrying on transient
+    network/timeout errors. Raises the last exception if all attempts fail."""
+    supabase = get_admin_client()
+    last_exc: Exception | None = None
+    for attempt in range(1, attempts + 1):
+        try:
+            supabase.storage.from_(bucket).upload(
+                path=path,
+                file=data,
+                file_options={"content-type": content_type},
+            )
+            return
+        except (httpx.ReadTimeout, httpx.WriteTimeout, httpx.ConnectTimeout, httpx.RemoteProtocolError) as e:
+            last_exc = e
+            logger.warning(f"Upload to {bucket}/{path} attempt {attempt}/{attempts} failed: {e}")
+            if attempt < attempts:
+                time.sleep(2 ** (attempt - 1))  # 1s, 2s, 4s
+        except Exception as e:
+            # Non-retryable (auth, validation, conflict) — fail fast
+            raise
+    assert last_exc is not None
+    raise last_exc
 
 SUPABASE_URL = os.getenv("NEXT_PUBLIC_SUPABASE_URL", "")
 GLB_BUCKET = "models-glb"
@@ -19,8 +45,10 @@ ENABLE_DRACO = os.getenv("ENABLE_DRACO", "true").lower() == "true"
 # Pipeline step definitions — kept in sync with frontend PIPELINE_STEPS
 STEP_DOWNLOAD = "downloading_image"
 STEP_ENHANCE  = "enhancing_image"
+STEP_VIEWS    = "completing_views"
 STEP_SHAPE    = "generating_shape"
 STEP_TEXTURE  = "generating_texture"
+STEP_CLEANUP  = "cleaning_mesh"
 STEP_COMPRESS = "compressing"
 STEP_UPLOAD   = "uploading_assets"
 
@@ -152,23 +180,68 @@ async def process_images_to_3d(
         + (f" ({fallback_count} via clé fallback)" if fallback_count else ""),
     )
 
+    # ── 1ter. Multi-view completion (gpt-4o vision + gpt-image-1) ───────
+    await emit(STEP_VIEWS, 15, "started")
+    from core.view_completion import complete_views
+    n_orig = len(image_blobs)
+    vc = await complete_views(image_blobs)
+    image_blobs = vc.images
+    if vc.generated_views:
+        msg = f"{len(vc.generated_views)} vue(s) générée(s) : {', '.join(vc.generated_views)}"
+    elif vc.analysis:
+        msg = "Vues complètes — pas de génération"
+    else:
+        msg = "Analyse ignorée"
+    logger.info(f"View completion done: {len(image_blobs)} total image(s) → Hunyuan3D")
+
+    # Persist GPT-generated views to the same bucket so the dashboard's
+    # "Améliorée" tab shows EVERY image fed to Hunyuan3D (cleaned originals
+    # + AI-generated angles).
+    for offset, view in enumerate(vc.generated_views):
+        idx = n_orig + offset
+        if idx >= len(image_blobs):
+            break
+        path = f"{user_id}/{model_id}/gen_{view}.png"
+        try:
+            supabase.storage.from_(ENHANCED_BUCKET).upload(
+                path=path,
+                file=image_blobs[idx],
+                file_options={"content-type": "image/png", "upsert": "true"},
+            )
+            url = f"{SUPABASE_URL}/storage/v1/object/public/{ENHANCED_BUCKET}/{path}"
+            enhanced_paths.append(path)
+            enhanced_urls.append(url)
+            logger.info(f"Generated view '{view}' uploaded: {path} ({len(image_blobs[idx])} bytes)")
+        except Exception as e:
+            logger.warning(f"Generated view '{view}' upload failed: {e}")
+            enhanced_paths.append(None)
+            enhanced_urls.append(None)
+
+    await emit(STEP_VIEWS, 17, "done", msg)
+
     # ── 2. Shape generation (Hunyuan3D shape model) ─────────────────────
-    await emit(STEP_SHAPE, 15, "started")
+    await emit(STEP_SHAPE, 18, "started")
     from core.hunyuan import generate_3d_with_usdz
 
     # ── 3. Texture generation happens inside generate_3d_with_usdz ─────
-    await emit(STEP_TEXTURE, 35, "started")
+    await emit(STEP_TEXTURE, 40, "started")
 
     result = await generate_3d_with_usdz(image_blobs)
     glb_bytes = result["glb_bytes"]
     usdz_bytes = result.get("usdz_bytes")
 
-    await emit(STEP_SHAPE,   70, "done")
-    await emit(STEP_TEXTURE, 75, "done")
+    await emit(STEP_SHAPE,   65, "done")
+    await emit(STEP_TEXTURE, 72, "done")
+
+    # ── 3bis. Mesh cleanup (outlier removal + Taubin smoothing) ─────────
+    await emit(STEP_CLEANUP, 74, "started")
+    from core.mesh_cleanup import cleanup_glb
+    glb_bytes = cleanup_glb(glb_bytes)
+    await emit(STEP_CLEANUP, 77, "done")
 
     # ── 4. Draco compression ────────────────────────────────────────────
     if ENABLE_DRACO:
-        await emit(STEP_COMPRESS, 78, "started")
+        await emit(STEP_COMPRESS, 79, "started")
         glb_bytes = _compress_draco(glb_bytes)
         await emit(STEP_COMPRESS, 82, "done")
 
@@ -176,11 +249,7 @@ async def process_images_to_3d(
     await emit(STEP_UPLOAD, 85, "started")
 
     glb_path = f"{user_id}/{model_id}.glb"
-    supabase.storage.from_(GLB_BUCKET).upload(
-        path=glb_path,
-        file=glb_bytes,
-        file_options={"content-type": "model/gltf-binary"},
-    )
+    _upload_with_retry(GLB_BUCKET, glb_path, glb_bytes, "model/gltf-binary")
     glb_url = f"{SUPABASE_URL}/storage/v1/object/public/{GLB_BUCKET}/{glb_path}"
     logger.info(f"GLB uploaded: {glb_path} ({len(glb_bytes)} bytes)")
 
@@ -188,11 +257,7 @@ async def process_images_to_3d(
     usdz_path = None
     if usdz_bytes:
         usdz_path = f"{user_id}/{model_id}.usdz"
-        supabase.storage.from_(USDZ_BUCKET).upload(
-            path=usdz_path,
-            file=usdz_bytes,
-            file_options={"content-type": "model/vnd.usdz+zip"},
-        )
+        _upload_with_retry(USDZ_BUCKET, usdz_path, usdz_bytes, "model/vnd.usdz+zip")
         usdz_url = f"{SUPABASE_URL}/storage/v1/object/public/{USDZ_BUCKET}/{usdz_path}"
         logger.info(f"USDZ uploaded: {usdz_path} ({len(usdz_bytes)} bytes)")
 

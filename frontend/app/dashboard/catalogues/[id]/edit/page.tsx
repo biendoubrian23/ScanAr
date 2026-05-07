@@ -15,7 +15,6 @@ import {
   EyeOff,
   Box as BoxIcon,
   Smartphone,
-  X,
   ChevronDown,
 } from 'lucide-react';
 import { DashboardShell } from '@/components/layout/DashboardShell';
@@ -26,9 +25,11 @@ import { cn } from '@/lib/utils';
 import { AvatarUploader } from '@/components/catalogues/AvatarUploader';
 import { CataloguePreview } from '@/components/catalogues/CataloguePreview';
 import { StatsConfigEditor } from '@/components/catalogues/StatsConfigEditor';
+import { DesignEditor, DesignEditorMobileLock } from '@/components/catalogues/DesignEditor';
 import type {
   Catalogue,
   CatalogueCategory,
+  CatalogueDesign,
   CatalogueItem,
   CatalogueItemWithModel,
   CatalogueSocials,
@@ -80,7 +81,6 @@ export default function CatalogueEditPage() {
   const [saving, setSaving]           = useState(false);
   const [notFound, setNotFound]       = useState(false);
   const [toast, setToast]             = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [phonePreviewOpen, setPhonePreviewOpen] = useState(false);
   const [openItemKeys, setOpenItemKeys] = useState<Set<string>>(new Set());
 
   const toggleItemExpand = (key: string) => {
@@ -170,6 +170,18 @@ export default function CatalogueEditPage() {
     );
   };
 
+  const toggleSocialHidden = (key: keyof CatalogueSocials) => {
+    setCatalogue((c) => {
+      if (!c) return c;
+      const prevDesign = (c.design ?? {}) as Partial<CatalogueDesign>;
+      const prevSocials = prevDesign.socials ?? {} as CatalogueDesign['socials'];
+      const hidden = [...((prevSocials as CatalogueDesign['socials']).hidden ?? [])] as (keyof CatalogueSocials)[];
+      const idx = hidden.indexOf(key);
+      if (idx >= 0) hidden.splice(idx, 1); else hidden.push(key);
+      return { ...c, design: { ...prevDesign, socials: { ...prevSocials, hidden } as CatalogueDesign['socials'] } as Partial<CatalogueDesign> };
+    });
+  };
+
   // ── Categories ───────────────────────────────────────────────────────────
   const addCategory = () => {
     if (!catalogue) return;
@@ -251,6 +263,7 @@ export default function CatalogueEditPage() {
           location:      catalogue.location,
           avatar_url:    catalogue.avatar_url,
           theme:         catalogue.theme,
+          design:        catalogue.design,
           categories:    catalogue.categories,
           socials:       catalogue.socials,
           is_active:     catalogue.is_active,
@@ -332,24 +345,25 @@ export default function CatalogueEditPage() {
       subtitle={`/c/${catalogue.slug}`}
       action={
         <div className="flex items-center gap-2">
-          {/* Aperçu — ouvre en plein écran dans un nouvel onglet sur mobile, modal sur desktop */}
+          {/* Aperçu — ouvre la page publique dans un nouvel onglet (mobile + desktop) */}
           <a
             href={`/c/${catalogue.slug}`}
             target="_blank"
             rel="noopener noreferrer"
             className="sm:hidden inline-flex items-center justify-center w-10 h-10 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
-            title="Voir l'aperçu"
+            title="Voir la page"
           >
             <Smartphone className="w-4 h-4" />
           </a>
-          <button
-            type="button"
-            onClick={() => setPhonePreviewOpen(true)}
+          <a
+            href={`/c/${catalogue.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
             className="hidden sm:inline-flex items-center gap-1.5 h-10 px-3 rounded-xl border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
           >
             <Smartphone className="w-4 h-4" />
             Voir la page
-          </button>
+          </a>
           {/* Sauvegarder — icon-only sur mobile, icon+texte sur desktop */}
           <button
             type="button"
@@ -435,8 +449,15 @@ export default function CatalogueEditPage() {
                 catalogueId={catalogue.id}
                 avatarUrl={catalogue.avatar_url}
                 onChange={(updated) => {
-                  setCatalogue(updated);
-                  patchCatalogue(updated.id, updated);
+                  setCatalogue((c) => c ? {
+                    ...c,
+                    avatar_url:  updated.avatar_url,
+                    avatar_path: updated.avatar_path,
+                  } : c);
+                  patchCatalogue(updated.id, {
+                    avatar_url:  updated.avatar_url,
+                    avatar_path: updated.avatar_path,
+                  });
                 }}
                 onError={(msg) => showToast('error', msg)}
               />
@@ -450,7 +471,19 @@ export default function CatalogueEditPage() {
                 <button
                   key={t}
                   type="button"
-                  onClick={() => updateField('theme', t)}
+                  onClick={() => {
+                    setCatalogue((c) => {
+                      if (!c) return c;
+                      // Update legacy theme + sync design.background to preset mode and
+                      // clear any explicit design.background.preset so the resolver
+                      // falls back to the freshly-clicked catalogue.theme live.
+                      const prevDesign = (c.design ?? {}) as Partial<CatalogueDesign>;
+                      const prevBg = prevDesign.background ?? {};
+                      const nextBg: Partial<CatalogueDesign['background']> = { ...prevBg, mode: 'preset' };
+                      delete (nextBg as Record<string, unknown>).preset;
+                      return { ...c, theme: t, design: { ...prevDesign, background: nextBg as CatalogueDesign['background'] } };
+                    });
+                  }}
                   className={cn(
                     'relative aspect-square rounded-xl border-2 overflow-hidden transition-all',
                     catalogue.theme === t
@@ -469,6 +502,21 @@ export default function CatalogueEditPage() {
               ))}
             </div>
             <p className="mt-2 text-xs text-gray-500">{CATALOGUE_THEME_LABELS[catalogue.theme]}</p>
+          </Section>
+
+          {/* Design editor — desktop only */}
+          <Section
+            title="Personnalisation"
+            description="Ajustez la mise en page, les tailles, les polices et les couleurs en temps réel."
+          >
+            <DesignEditorMobileLock />
+            <div className="hidden lg:block">
+              <DesignEditor
+                catalogue={catalogue}
+                onDesignChange={(design) => setCatalogue((c) => (c ? { ...c, design } : c))}
+                onError={(msg) => showToast('error', msg)}
+              />
+            </div>
           </Section>
 
           {/* Categories */}
@@ -652,20 +700,35 @@ export default function CatalogueEditPage() {
           {/* Socials */}
           <Section
             title="Liens sociaux"
-            description="Affichés en haut du catalogue (linktree) ou dans le footer (carousel)."
+            description="Affichés dans le catalogue. L'œil masque/affiche l'icône sur la page publique."
           >
             <div className="grid sm:grid-cols-2 gap-3">
-              {SOCIAL_FIELDS.map((f) => (
-                <Field key={f.key} label={f.label}>
-                  <input
-                    type="text"
-                    value={catalogue.socials[f.key] ?? ''}
-                    onChange={(e) => updateSocial(f.key, e.target.value)}
-                    placeholder={f.placeholder}
-                    className="input"
-                  />
-                </Field>
-              ))}
+              {SOCIAL_FIELDS.map((f) => {
+                const isHidden = ((catalogue.design?.socials?.hidden ?? []) as (keyof CatalogueSocials)[]).includes(f.key);
+                return (
+                  <div key={f.key} className="space-y-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-medium text-gray-600">{f.label}</span>
+                      <button
+                        type="button"
+                        onClick={() => toggleSocialHidden(f.key)}
+                        title={isHidden ? 'Masqué — cliquer pour afficher' : 'Visible — cliquer pour masquer'}
+                        aria-label={isHidden ? `Afficher ${f.label}` : `Masquer ${f.label}`}
+                        className={cn('p-1 rounded transition-colors', isHidden ? 'text-gray-300 hover:text-gray-500' : 'text-gray-500 hover:text-gray-700')}
+                      >
+                        {isHidden ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      value={catalogue.socials[f.key] ?? ''}
+                      onChange={(e) => updateSocial(f.key, e.target.value)}
+                      placeholder={f.placeholder}
+                      className={cn('input', isHidden && 'opacity-40')}
+                    />
+                  </div>
+                );
+              })}
             </div>
           </Section>
 
@@ -776,14 +839,6 @@ export default function CatalogueEditPage() {
           padding: 0.5rem 0.625rem;
         }
       `}</style>
-
-      {/* Phone preview modal */}
-      {phonePreviewOpen && catalogue && (
-        <PhonePreviewModal
-          url={`${APP_URL}/c/${catalogue.slug}`}
-          onClose={() => setPhonePreviewOpen(false)}
-        />
-      )}
 
       {/* Model picker modal */}
       <ModelPickerModal
@@ -904,56 +959,6 @@ function ToggleRow({
   );
 }
 
-// ─── Phone preview modal ─────────────────────────────────────────────────────
-function PhonePreviewModal({ url, onClose }: { url: string; onClose: () => void }) {
-  return (
-    <div
-      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      <div className="relative flex flex-col items-center gap-4">
-        {/* Close */}
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute -top-3 -right-3 z-10 w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
-          aria-label="Fermer l'aperçu"
-        >
-          <X className="w-4 h-4" />
-        </button>
-
-        {/* iPhone frame */}
-        <div className="relative bg-black rounded-[3rem] p-3 w-[344px] shadow-[0_30px_80px_rgba(0,0,0,0.7)] ring-[3px] ring-white/10">
-          {/* Notch */}
-          <div className="absolute top-[14px] left-1/2 -translate-x-1/2 w-28 h-7 bg-black rounded-full z-10" />
-
-          {/* Screen */}
-          <div className="rounded-[2.4rem] overflow-hidden w-[320px] h-[660px]">
-            <iframe
-              src={url}
-              className="w-full h-full border-none"
-              title="Aperçu du catalogue"
-            />
-          </div>
-
-          {/* Home indicator */}
-          <div className="flex justify-center mt-2">
-            <div className="w-24 h-1 rounded-full bg-white/25" />
-          </div>
-        </div>
-
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs text-white/60 hover:text-white underline underline-offset-2 transition-colors"
-        >
-          Ouvrir dans le navigateur →
-        </a>
-      </div>
-    </div>
-  );
-}
 
 // ─── Model picker modal ──────────────────────────────────────────────────────
 function ModelPickerModal({

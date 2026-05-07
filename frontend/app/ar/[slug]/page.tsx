@@ -64,13 +64,18 @@ export default async function ARPage({ params }: Props) {
     notFound();
   }
 
+  // Route GLB/USDZ through our caching proxy instead of hitting Supabase
+  // Storage on every visit — see frontend/app/api/models/[id]/asset/route.ts.
+  const glbUrl  = `/api/models/${model.id}/asset?type=glb`;
+  const usdzUrl = model.usdz_url ? `/api/models/${model.id}/asset?type=usdz` : undefined;
+
   return (
     <ARViewerClient
       arLinkId={arLink.id}
       slug={arLink.slug}
       title={arLink.title ?? model.name}
-      glbUrl={model.glb_url!}
-      usdzUrl={model.usdz_url ?? undefined}
+      glbUrl={glbUrl}
+      usdzUrl={usdzUrl}
       posterUrl={model.image_url ?? undefined}
     />
   );

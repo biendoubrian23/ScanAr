@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   Box as BoxIcon,
   Globe,
@@ -16,14 +17,13 @@ import {
   Image as ImageIcon,
   Sparkles,
   ScanLine,
-  Eye,
-  TrendingUp,
+  MapPin,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { trackCatalogueEvent } from '@/lib/catalogueTracking';
-import type { Catalogue, CatalogueItemWithModel, CatalogueSocials } from '@/lib/types';
-import { THEME_TOKENS, type ThemeTokens } from './theme';
-import { PublicStatsPanel } from './PublicStatsPanel';
+import type { Catalogue, CatalogueDesign, CatalogueItemWithModel, CatalogueSocials } from '@/lib/types';
+import { type ThemeTokens } from './theme';
+import { resolveCatalogueStyles, radiusToCss, socialsRadiusToCss } from './resolveDesign';
 
 interface VerticalCatalogueViewProps {
   catalogue:    Catalogue;
@@ -46,106 +46,203 @@ const SOCIAL_ORDER: (keyof CatalogueSocials)[] = [
 ];
 
 export function VerticalCatalogueView({ catalogue, items, previewMode = false }: VerticalCatalogueViewProps) {
-  const t = THEME_TOKENS[catalogue.theme];
+  const styles = resolveCatalogueStyles(catalogue);
+  const { tokens: t, design, pageBgStyle, accentInline, titleFont, subtitleFont } = styles;
+  const presetKey = design.background.preset ?? catalogue.theme;
 
   useEffect(() => {
     if (previewMode) return;
     trackCatalogueEvent(catalogue.slug, 'catalogue_view');
   }, [previewMode, catalogue.slug]);
 
-  const socials = SOCIAL_ORDER
-    .map((k) => ({ key: k, value: catalogue.socials[k] }))
-    .filter((s) => !!s.value);
+  const hiddenSocials = new Set<keyof CatalogueSocials>(design.socials.hidden ?? []);
+  const socials = SOCIAL_ORDER.filter((k) => !hiddenSocials.has(k));
 
-  const outerCardShadow = catalogue.theme === 'dark'
+  const outerCardShadow = presetKey === 'dark'
     ? '0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04)'
     : '0 8px 32px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.7)';
 
+  // Header layout helpers
+  const headerAlignClass =
+    design.header.align === 'left'  ? 'items-start text-left' :
+    design.header.align === 'right' ? 'items-end text-right' :
+                                      'items-center text-center';
+
+  const isHorizHeader = design.header.layout === 'avatar-left' || design.header.layout === 'avatar-right';
+  const showAvatar    = design.header.avatar.show;
+  const showSubtitle  = design.header.subtitle.show && !!catalogue.subtitle;
+  const showLocation  = design.header.location.show && !!catalogue.location;
+
+  // Cover banner: shown in cover mode (replaces page bg) or as an opt-in banner above header
+  const showCoverBanner = design.background.mode === 'cover' && !!design.background.cover?.url;
+
+  // Socials radius
+  const socialsRadius = socialsRadiusToCss(design.socials.radius);
+  const socialsAlignJustify =
+    design.socials.align === 'left'  ? 'justify-start' :
+    design.socials.align === 'right' ? 'justify-end' :
+                                       'justify-center';
+
   return (
-    <main className={cn('min-h-screen w-full relative overflow-x-hidden', t.pageBg)}>
-      {/* Decorative orbs */}
-      <div className={cn('pointer-events-none absolute -top-32 -left-32 w-96 h-96 rounded-full blur-3xl opacity-70', t.orbColor)} />
-      <div className={cn('pointer-events-none absolute -top-20 right-[-6rem] w-72 h-72 rounded-full blur-3xl opacity-70', t.orbColor)} />
+    <main
+      className={cn('min-h-screen w-full relative overflow-x-hidden', !pageBgStyle && t.pageBg)}
+      style={pageBgStyle ?? undefined}
+    >
+      {/* Decorative orbs (only over preset/gradient bg, not over a cover image) */}
+      {!showCoverBanner && (
+        <>
+          <div className={cn('pointer-events-none absolute -top-32 -left-32 w-96 h-96 rounded-full blur-3xl opacity-70', t.orbColor)} />
+          <div className={cn('pointer-events-none absolute -top-20 right-[-6rem] w-72 h-72 rounded-full blur-3xl opacity-70', t.orbColor)} />
+        </>
+      )}
 
-      <div className="relative max-w-[34rem] mx-auto px-4 sm:px-6 pt-10 pb-16">
+      <div
+        className="relative max-w-[34rem] mx-auto pt-10 pb-16"
+        style={{ paddingLeft: `${design.products.outerInset}px`, paddingRight: `${design.products.outerInset}px` }}
+      >
         {/* Header */}
-        <header className="flex flex-col items-center text-center mb-8">
-          <div className="relative mb-7">
-            <div className="rounded-full p-[3px] bg-gradient-to-tr from-fuchsia-400 via-indigo-400 to-blue-400 shadow-[0_8px_30px_-6px_rgba(99,102,241,0.45)]">
-              <div className="w-28 h-28 rounded-full bg-white overflow-hidden flex items-center justify-center">
-                {catalogue.avatar_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={catalogue.avatar_url} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <Sparkles className={cn('w-10 h-10', t.mutedColor)} />
-                )}
+        <header
+          className={cn(
+            'mb-8',
+            isHorizHeader
+              ? cn(
+                  'flex',
+                  design.header.layout === 'avatar-right' ? 'flex-row-reverse' : 'flex-row',
+                  'items-center gap-4',
+                )
+              : cn('flex flex-col', headerAlignClass),
+          )}
+        >
+          {showAvatar && (
+            <div className={cn('relative shrink-0', isHorizHeader ? '' : 'mb-7')}>
+              <div className="rounded-full p-[3px] bg-gradient-to-tr from-fuchsia-400 via-indigo-400 to-blue-400 shadow-[0_8px_30px_-6px_rgba(99,102,241,0.45)]"
+                   style={{ borderRadius: radiusToCss(design.header.avatar.radius) }}>
+                <div
+                  className="relative bg-white overflow-hidden flex items-center justify-center"
+                  style={{
+                    width:        `${design.header.avatar.size}px`,
+                    height:       `${design.header.avatar.size}px`,
+                    borderRadius: radiusToCss(design.header.avatar.radius),
+                  }}
+                >
+                  {catalogue.avatar_url ? (
+                    <Image
+                      src={catalogue.avatar_url}
+                      alt=""
+                      fill
+                      sizes="200px"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <Sparkles className={cn('w-10 h-10', t.mutedColor)} />
+                  )}
+                </div>
               </div>
-            </div>
-            <span
-              className={cn(
-                'absolute -bottom-2 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold shadow-md ring-2 ring-white',
-                t.badgeBg,
-                t.badgeText,
+              {!isHorizHeader && (
+                <span
+                  className={cn(
+                    'absolute -bottom-2 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold shadow-md ring-2 ring-white',
+                    t.badgeBg,
+                    t.badgeText,
+                  )}
+                >
+                  <BoxIcon className="w-3 h-3" />
+                  AR
+                </span>
               )}
-            >
-              <BoxIcon className="w-3 h-3" />
-              AR
-            </span>
-          </div>
+            </div>
+          )}
 
-          <h1 className={cn('text-3xl font-bold tracking-tight flex items-center justify-center gap-2', t.titleColor)}>
-            {catalogue.title}
-            <CheckCircle2 className="w-5 h-5 text-blue-500 fill-blue-500/15" aria-hidden="true" />
-          </h1>
-          {catalogue.subtitle && (
-            <p className={cn('text-sm mt-2', t.bodyColor)}>{catalogue.subtitle}</p>
-          )}
-          {catalogue.location && (
-            <p className={cn('text-xs mt-2 inline-flex items-center gap-1', t.mutedColor)}>
-              <span aria-hidden="true">📍</span>
-              {catalogue.location}
-            </p>
-          )}
+          <div className={cn(isHorizHeader ? 'flex-1 min-w-0' : 'w-full')}>
+            <h1
+              className={cn('font-bold tracking-tight flex items-center gap-2', t.titleColor,
+                isHorizHeader ? '' : (
+                  design.header.align === 'center' ? 'justify-center' :
+                  design.header.align === 'right'  ? 'justify-end' : 'justify-start'
+                ),
+              )}
+              style={{
+                fontFamily: titleFont,
+                fontSize:   `${design.header.title.size}px`,
+                fontWeight: design.header.title.weight,
+              }}
+            >
+              {design.header.title.emoji && <span aria-hidden="true">{design.header.title.emoji}</span>}
+              {catalogue.title}
+              <CheckCircle2 className="w-5 h-5 text-blue-500 fill-blue-500/15 shrink-0" aria-hidden="true" />
+            </h1>
+            {showSubtitle && (
+              <p
+                className={cn(t.bodyColor)}
+                style={{
+                  fontFamily: subtitleFont,
+                  fontSize:   `${design.header.subtitle.size}px`,
+                  marginTop:  `${design.header.spacing.titleToSubtitle}px`,
+                }}
+              >
+                {catalogue.subtitle}
+              </p>
+            )}
+            {showLocation && (
+              <p
+                className={cn('text-xs inline-flex items-center gap-1', t.mutedColor)}
+                style={{ marginTop: `${design.header.spacing.subtitleToLocation}px` }}
+              >
+                <MapPin className="w-3 h-3 shrink-0" strokeWidth={1.5} aria-hidden="true" />
+                {catalogue.location}
+              </p>
+            )}
+          </div>
         </header>
 
-        {/* Socials — neumorphic pill buttons, no scrollbar visible */}
-        {socials.length > 0 && (
-          <div
-            className="overflow-x-auto mb-7"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
+        {/* Socials — pill / icons / compact */}
+        {design.socials.show && socials.length > 0 && (
+          <div className="overflow-x-auto mb-7 py-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             <nav
               aria-label="Liens sociaux"
-              className="flex gap-3 w-max mx-auto min-w-full justify-center px-1"
+              className={cn('flex w-max mx-auto min-w-full px-1', socialsAlignJustify)}
+              style={{ gap: `${design.socials.gap}px` }}
             >
-              {socials.map(({ key, value }) => {
+              {socials.map((key) => {
                 const Icon = SOCIAL_ICONS[key];
+                const value = catalogue.socials[key];
+                const isEmpty = !value;
+                const iconSize = Math.round(design.socials.size * 0.35);
+
+                if (isEmpty) {
+                  return (
+                    <div key={key} className="flex flex-col items-center gap-1.5">
+                      <div
+                        className={cn('flex items-center justify-center opacity-35', t.socialBtnBg)}
+                        style={{ width: `${design.socials.size}px`, height: `${design.socials.size}px`, borderRadius: socialsRadius, boxShadow: t.neuShadow }}
+                      >
+                        <Icon className={cn(t.bodyColor)} style={{ width: `${iconSize}px`, height: `${iconSize}px` }} strokeWidth={1.5} />
+                      </div>
+                      {design.socials.layout !== 'icons' && (
+                        <span className={cn('text-[10px] font-medium opacity-35', t.mutedColor)}>{labelFor(key)}</span>
+                      )}
+                    </div>
+                  );
+                }
+
                 return (
                   <a
                     key={key}
                     href={ensureUrl(key, value!)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    onClick={() => {
-                      if (!previewMode) {
-                        trackCatalogueEvent(catalogue.slug, 'social_click', { metadata: { key } });
-                      }
-                    }}
+                    onClick={() => { if (!previewMode) trackCatalogueEvent(catalogue.slug, 'social_click', { metadata: { key } }); }}
                     className="flex flex-col items-center gap-1.5 group"
                   >
                     <div
-                      className={cn(
-                        'w-[4.25rem] h-[4.25rem] rounded-[1.25rem] flex items-center justify-center',
-                        'transition-all duration-200 group-hover:-translate-y-1 group-active:scale-95',
-                        t.socialBtnBg,
-                      )}
-                      style={{ boxShadow: t.neuShadow }}
+                      className={cn('flex items-center justify-center transition-all duration-200 group-hover:-translate-y-1 group-active:scale-95', t.socialBtnBg)}
+                      style={{ width: `${design.socials.size}px`, height: `${design.socials.size}px`, borderRadius: socialsRadius, boxShadow: t.neuShadow }}
                     >
-                      <Icon className={cn('w-6 h-6', t.bodyColor)} strokeWidth={1.5} />
+                      <Icon className={cn(t.bodyColor)} style={{ width: `${iconSize}px`, height: `${iconSize}px` }} strokeWidth={1.5} />
                     </div>
-                    <span className={cn('text-[10px] font-medium', t.mutedColor)}>
-                      {labelFor(key)}
-                    </span>
+                    {design.socials.layout !== 'icons' && (
+                      <span className={cn('text-[10px] font-medium', t.mutedColor)}>{labelFor(key)}</span>
+                    )}
                   </a>
                 );
               })}
@@ -174,53 +271,29 @@ export function VerticalCatalogueView({ catalogue, items, previewMode = false }:
               <p className={cn('text-sm', t.mutedColor)}>Aucun produit pour le moment.</p>
             </div>
           ) : (
-            <div className="px-3 pb-3 flex flex-col gap-2.5">
+            <div
+              className="flex flex-col"
+              style={{
+                paddingLeft:   `${design.products.inset}px`,
+                paddingRight:  `${design.products.inset}px`,
+                paddingBottom: `${design.products.inset}px`,
+                gap:           `${design.products.gap}px`,
+              }}
+            >
               {items.map((it) => (
                 <ProductCard
                   key={it.id}
                   catalogueSlug={catalogue.slug}
                   item={it}
                   tokens={t}
+                  design={design}
+                  accentInline={accentInline}
                   previewMode={previewMode}
                 />
               ))}
             </div>
           )}
         </section>
-
-        {/* Optional configurable stats panel */}
-        <PublicStatsPanel catalogue={catalogue} items={items} tokens={t} />
-
-        {/* QR + analytics row */}
-        <div className="grid grid-cols-2 gap-3 mt-4">
-          <div
-            className={cn('rounded-2xl p-3.5', t.glassCard)}
-            style={{ boxShadow: outerCardShadow }}
-          >
-            <p className={cn('text-xs font-semibold mb-0.5', t.titleColor)}>Scan to Explore</p>
-            <p className={cn('text-[10px] mb-2', t.mutedColor)}>Ouvrir ce profil en AR</p>
-            <div className="rounded-lg p-1.5 bg-white border border-gray-100">
-              {catalogue.qr_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={catalogue.qr_url} alt="QR code du catalogue" className="w-full h-auto" />
-              ) : (
-                <div className="aspect-square flex items-center justify-center text-xs text-gray-400">QR…</div>
-              )}
-            </div>
-          </div>
-
-          <div
-            className={cn('rounded-2xl p-3.5', t.glassCard)}
-            style={{ boxShadow: outerCardShadow }}
-          >
-            <p className={cn('text-xs font-semibold mb-3', t.titleColor)}>Live Analytics</p>
-            <div className="space-y-2">
-              <Stat icon={<Eye className="w-3.5 h-3.5" />} label="Vues" value={catalogue.view_count} tokens={t} />
-              <Stat icon={<BoxIcon className="w-3.5 h-3.5" />} label="Produits" value={items.length} tokens={t} />
-              <Stat icon={<TrendingUp className="w-3.5 h-3.5" />} label="Catégories" value={catalogue.categories.length} tokens={t} />
-            </div>
-          </div>
-        </div>
 
         {/* Footer */}
         <footer className="text-center mt-10">
@@ -246,11 +319,15 @@ function ProductCard({
   catalogueSlug,
   item,
   tokens,
+  design,
+  accentInline,
   previewMode,
 }: {
   catalogueSlug: string;
   item:          CatalogueItemWithModel;
   tokens:        ThemeTokens;
+  design:        CatalogueDesign;
+  accentInline:  React.CSSProperties;
   previewMode:   boolean;
 }) {
   const t = tokens;
@@ -263,27 +340,36 @@ function ProductCard({
     WebkitBackdropFilter: 'blur(10px)',
     border:               `1px solid ${t.miniCardGlassBorder}`,
     boxShadow:            t.miniCardNeuShadow,
+    borderRadius:         `${design.products.radius}px`,
   };
 
   const arPillStyle: React.CSSProperties = {
-    background:           t.glassArBg,
+    ...accentInline,
     backdropFilter:       'blur(12px)',
     WebkitBackdropFilter: 'blur(12px)',
-    border:               `1px solid ${t.glassArBorder}`,
+    border:               `1px solid rgba(255,255,255,0.25)`,
     boxShadow:            '0 3px 10px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.4)',
   };
 
   return (
     <div
-      className="rounded-2xl px-3 py-3 flex items-center gap-3"
+      className="px-3 py-3 flex items-center gap-3"
       style={miniCardStyle}
     >
       {/* Thumb */}
       <div className="relative shrink-0">
-        <div className="w-14 h-14 rounded-xl overflow-hidden bg-white/60 flex items-center justify-center">
+        <div
+          className="relative rounded-xl overflow-hidden bg-white/60 flex items-center justify-center"
+          style={{ width: `${design.products.thumbSize}px`, height: `${design.products.thumbSize}px` }}
+        >
           {item.model.image_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={item.model.image_url} alt="" className="w-full h-full object-cover" />
+            <Image
+              src={item.model.image_url}
+              alt=""
+              fill
+              sizes="120px"
+              className="object-cover"
+            />
           ) : (
             <BoxIcon className={cn('w-5 h-5', t.mutedColor)} />
           )}
@@ -301,22 +387,34 @@ function ProductCard({
 
       {/* Body */}
       <div className="flex-1 min-w-0">
-        <p className={cn('text-sm font-semibold truncate', t.titleColor)}>{label}</p>
+        <p
+          className={cn('font-semibold truncate', t.titleColor)}
+          style={{ fontSize: `${design.products.titleSize}px` }}
+        >
+          {label}
+        </p>
         {description && (
-          <p className={cn('text-xs mt-0.5 line-clamp-2', t.mutedColor)}>{description}</p>
+          <p
+            className={cn('mt-0.5 line-clamp-2', t.mutedColor)}
+            style={{ fontSize: `${design.products.descSize}px` }}
+          >
+            {description}
+          </p>
         )}
         {item.price && (
-          <p className={cn('text-sm font-semibold mt-1', t.titleColor)}>{item.price}</p>
+          <p
+            className={cn('font-semibold mt-1', t.titleColor)}
+            style={{ fontSize: `${design.products.priceSize}px` }}
+          >
+            {item.price}
+          </p>
         )}
       </div>
 
       {/* AR pill button */}
       {previewMode ? (
         <span
-          className={cn(
-            'shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-semibold',
-            t.arButtonText,
-          )}
+          className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-semibold"
           style={arPillStyle}
         >
           <ScanSearch className="w-3 h-3" />
@@ -326,37 +424,13 @@ function ProductCard({
         <Link
           href={`/c/${catalogueSlug}/ar/${item.id}`}
           onClick={() => trackCatalogueEvent(catalogueSlug, 'item_ar_open', { itemId: item.id })}
-          className={cn(
-            'shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-semibold',
-            'transition-all duration-200 active:scale-95',
-            t.arButtonText,
-          )}
+          className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all duration-200 active:scale-95"
           style={arPillStyle}
         >
           <ScanSearch className="w-3 h-3" />
           Voir en AR
         </Link>
       )}
-    </div>
-  );
-}
-
-// ─── Mini stat row ────────────────────────────────────────────────────────────
-function Stat({
-  icon, label, value, tokens,
-}: {
-  icon:   React.ReactNode;
-  label:  string;
-  value:  number;
-  tokens: ThemeTokens;
-}) {
-  return (
-    <div className="flex items-center justify-between text-xs">
-      <span className={cn('inline-flex items-center gap-1.5', tokens.mutedColor)}>
-        {icon}
-        {label}
-      </span>
-      <span className={cn('font-bold tabular-nums', tokens.titleColor)}>{value}</span>
     </div>
   );
 }

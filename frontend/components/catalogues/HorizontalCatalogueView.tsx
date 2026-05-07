@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   Search,
   ShoppingBag,
@@ -13,12 +14,56 @@ import {
   Image as ImageIcon,
   ScanLine,
   Hand,
+  Globe,
+  Mail,
+  Instagram,
+  Facebook,
+  MessageCircle,
+  Music2,
+  Store,
+  MapPin,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { trackCatalogueEvent } from '@/lib/catalogueTracking';
-import type { Catalogue, CatalogueItemWithModel } from '@/lib/types';
-import { THEME_TOKENS, type ThemeTokens } from './theme';
-import { PublicStatsPanel } from './PublicStatsPanel';
+import type { Catalogue, CatalogueDesign, CatalogueItemWithModel, CatalogueSocials } from '@/lib/types';
+import { type ThemeTokens } from './theme';
+import { resolveCatalogueStyles, socialsRadiusToCss, FONT_STACK } from './resolveDesign';
+
+const SOCIAL_ICONS: Record<keyof CatalogueSocials, React.ElementType> = {
+  instagram: Instagram,
+  website:   Globe,
+  email:     Mail,
+  store:     Store,
+  whatsapp:  MessageCircle,
+  tiktok:    Music2,
+  facebook:  Facebook,
+};
+
+const SOCIAL_ORDER: (keyof CatalogueSocials)[] = [
+  'instagram', 'website', 'email', 'store', 'whatsapp', 'tiktok', 'facebook',
+];
+
+function ensureUrl(key: keyof CatalogueSocials, raw: string): string {
+  if (key === 'email')    return raw.startsWith('mailto:') ? raw : `mailto:${raw}`;
+  if (key === 'whatsapp') {
+    if (raw.startsWith('http')) return raw;
+    return `https://wa.me/${raw.replace(/[^0-9]/g, '')}`;
+  }
+  if (raw.startsWith('http')) return raw;
+  return `https://${raw}`;
+}
+
+function labelFor(key: keyof CatalogueSocials): string {
+  switch (key) {
+    case 'instagram': return 'Instagram';
+    case 'website':   return 'Site web';
+    case 'email':     return 'Email';
+    case 'store':     return 'Boutique';
+    case 'whatsapp':  return 'WhatsApp';
+    case 'tiktok':    return 'TikTok';
+    case 'facebook':  return 'Facebook';
+  }
+}
 
 interface HorizontalCatalogueViewProps {
   catalogue:    Catalogue;
@@ -29,7 +74,8 @@ interface HorizontalCatalogueViewProps {
 const ALL_TAB = '__all__';
 
 export function HorizontalCatalogueView({ catalogue, items, previewMode = false }: HorizontalCatalogueViewProps) {
-  const t = THEME_TOKENS[catalogue.theme];
+  const styles = resolveCatalogueStyles(catalogue);
+  const { tokens: t, design, pageBgStyle, accentInline, titleFont, subtitleFont } = styles;
 
   // Fire `catalogue_view` once per public mount.
   useEffect(() => {
@@ -109,25 +155,70 @@ export function HorizontalCatalogueView({ catalogue, items, previewMode = false 
     el.scrollBy({ left: step * dir, behavior: 'smooth' });
   };
 
-  return (
-    <main className={cn('min-h-screen w-full relative overflow-x-hidden', t.pageBg)}>
-      <div className={cn('absolute inset-0 pointer-events-none opacity-60')}>
-        <div className={cn('absolute -top-24 -left-24 w-72 h-72 rounded-full blur-3xl', t.orbColor)} />
-        <div className={cn('absolute -top-12 right-[-4rem] w-56 h-56 rounded-full blur-3xl', t.orbColor)} />
-      </div>
+  const showCoverBg = design.background.mode === 'cover' && !!design.background.cover?.url;
 
-      <div className="relative max-w-[40rem] mx-auto px-4 sm:px-6 pt-8 pb-24">
+  return (
+    <main
+      className={cn('min-h-screen w-full relative overflow-x-hidden', !pageBgStyle && t.pageBg)}
+      style={pageBgStyle ?? undefined}
+    >
+      {!showCoverBg && (
+        <div className={cn('absolute inset-0 pointer-events-none opacity-60')}>
+          <div className={cn('absolute -top-24 -left-24 w-72 h-72 rounded-full blur-3xl', t.orbColor)} />
+          <div className={cn('absolute -top-12 right-[-4rem] w-56 h-56 rounded-full blur-3xl', t.orbColor)} />
+        </div>
+      )}
+
+      <div
+        className="relative max-w-[40rem] mx-auto pb-24"
+        style={{
+          paddingLeft:  `${design.products.outerInset}px`,
+          paddingRight: `${design.products.outerInset}px`,
+          paddingTop:   `${design.header.spacing.topInset}px`,
+        }}
+      >
         {/* ── Header ──────────────────────────────────────────────────────── */}
         <header className="flex items-start justify-between mb-5">
-          <div className="min-w-0">
-            <h1 className={cn('text-3xl font-bold tracking-tight', t.titleColor)}>
+          <div className="min-w-0 flex-1">
+            <h1
+              className={cn('font-bold tracking-tight', t.titleColor)}
+              style={{
+                fontFamily:  titleFont,
+                fontSize:    `${design.header.title.size}px`,
+                fontWeight:  design.header.title.weight,
+                marginLeft:  `${design.header.title.marginX}px`,
+              }}
+            >
+              {design.header.title.emoji && <span aria-hidden="true">{design.header.title.emoji} </span>}
               {catalogue.title}
             </h1>
-            {catalogue.subtitle && (
-              <p className={cn('text-sm mt-1', t.bodyColor)}>{catalogue.subtitle}</p>
+            {design.header.subtitle.show && catalogue.subtitle && (
+              <p
+                className={cn('mt-1', t.bodyColor)}
+                style={{
+                  fontFamily:  subtitleFont,
+                  fontSize:    `${design.header.subtitle.size}px`,
+                  marginLeft:  `${design.header.subtitle.marginX}px`,
+                }}
+              >
+                {catalogue.subtitle}
+              </p>
+            )}
+            {design.header.location.show && catalogue.location && (
+              <p
+                className={cn('mt-1 inline-flex items-center gap-1', t.mutedColor)}
+                style={{
+                  fontFamily:  subtitleFont,
+                  fontSize:    `${Math.max(11, design.header.subtitle.size - 2)}px`,
+                  marginLeft:  `${design.header.subtitle.marginX}px`,
+                }}
+              >
+                <MapPin className="w-3 h-3 shrink-0" strokeWidth={1.5} />
+                {catalogue.location}
+              </p>
             )}
           </div>
-          <div className="flex items-center gap-2 shrink-0 ml-3">
+          <div className="flex items-center gap-2 shrink-0 ml-3 mr-3">
             <button
               type="button"
               aria-label="Rechercher"
@@ -155,7 +246,14 @@ export function HorizontalCatalogueView({ catalogue, items, previewMode = false 
         {tabs.length > 1 && (
           <nav
             aria-label="Catégories"
-            className="flex items-center gap-2 overflow-x-auto pb-2 mb-4 -mx-4 px-4 scrollbar-thin"
+            className="flex items-center overflow-x-auto -mx-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            style={{
+              marginTop:     `${design.tabs.marginTop}px`,
+              marginBottom:  '16px',
+              paddingLeft:   `${design.tabs.marginX}px`,
+              paddingRight:  `${design.tabs.marginX}px`,
+              gap:           `${design.tabs.gap}px`,
+            }}
           >
             {tabs.map((tab) => {
               const active = tab.id === activeTab;
@@ -165,11 +263,19 @@ export function HorizontalCatalogueView({ catalogue, items, previewMode = false 
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    'shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors',
+                    'shrink-0 px-4 py-2 rounded-full transition-colors',
                     active
-                      ? cn(t.activeTabBg, t.activeTabText)
-                      : cn(t.inactiveTabText, 'hover:opacity-80'),
+                      ? cn(!design.tabs.activeBg && t.activeTabBg, !design.tabs.activeText && t.activeTabText)
+                      : cn(!design.tabs.inactiveText && t.inactiveTabText, 'hover:opacity-80'),
                   )}
+                  style={{
+                    fontFamily: FONT_STACK[design.tabs.font],
+                    fontSize:   `${design.tabs.size}px`,
+                    fontWeight: design.tabs.weight,
+                    ...(active && design.tabs.activeBg   ? { backgroundColor: design.tabs.activeBg }   : {}),
+                    ...(active && design.tabs.activeText ? { color: design.tabs.activeText }            : {}),
+                    ...(!active && design.tabs.inactiveText ? { color: design.tabs.inactiveText }       : {}),
+                  }}
                 >
                   {tab.label}
                 </button>
@@ -191,14 +297,23 @@ export function HorizontalCatalogueView({ catalogue, items, previewMode = false 
             {/* Coverflow scroller — native horizontal scroll + JS-driven 3D transforms */}
             <div
               ref={scrollerRef}
-              className={cn(
-                'coverflow-scroller flex gap-3 overflow-x-auto snap-x snap-mandatory',
-                'scrollbar-none -mx-4 px-[15%] py-8',
-                '[scroll-padding-inline:15%] [perspective:1200px]',
-              )}
+              className="coverflow-scroller flex gap-3 overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden -mx-4 py-8 [perspective:1200px]"
+              style={{
+                paddingLeft:         `${(100 - design.products.cardWidth) / 2}%`,
+                paddingRight:        `${(100 - design.products.cardWidth) / 2}%`,
+                scrollPaddingInline: `${(100 - design.products.cardWidth) / 2}%`,
+              }}
             >
               {visibleItems.map((it) => (
-                <Card key={it.id} catalogueSlug={catalogue.slug} item={it} tokens={t} previewMode={previewMode} />
+                <Card
+                  key={it.id}
+                  catalogueSlug={catalogue.slug}
+                  item={it}
+                  tokens={t}
+                  design={design}
+                  accentInline={accentInline}
+                  previewMode={previewMode}
+                />
               ))}
             </div>
 
@@ -244,8 +359,70 @@ export function HorizontalCatalogueView({ catalogue, items, previewMode = false 
           </div>
         )}
 
-        {/* ── Optional configurable stats panel (owner-controlled) ───────── */}
-        <PublicStatsPanel catalogue={catalogue} items={items} tokens={t} />
+        {/* ── Socials at the bottom ───────────────────────────────────────── */}
+        {(() => {
+          const hiddenSocials = new Set<keyof CatalogueSocials>(design.socials.hidden ?? []);
+          const visibleSocials = SOCIAL_ORDER.filter((k) => !hiddenSocials.has(k));
+          const socialsRadius = socialsRadiusToCss(design.socials.radius);
+          const socialsAlignJustify =
+            design.socials.align === 'left'  ? 'justify-start' :
+            design.socials.align === 'right' ? 'justify-end' :
+                                               'justify-center';
+          if (!design.socials.show || visibleSocials.length === 0) return null;
+          return (
+            <div className="overflow-x-auto mt-10 py-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+              <nav
+                aria-label="Liens sociaux"
+                className={cn('flex w-max mx-auto min-w-full px-1', socialsAlignJustify)}
+                style={{ gap: `${design.socials.gap}px` }}
+              >
+                {visibleSocials.map((key) => {
+                  const Icon = SOCIAL_ICONS[key];
+                  const value = catalogue.socials[key];
+                  const isEmpty = !value;
+                  const iconSize = Math.round(design.socials.size * 0.35);
+
+                  if (isEmpty) {
+                    return (
+                      <div key={key} className="flex flex-col items-center gap-1.5">
+                        <div
+                          className={cn('flex items-center justify-center opacity-35', t.socialBtnBg)}
+                          style={{ width: `${design.socials.size}px`, height: `${design.socials.size}px`, borderRadius: socialsRadius, boxShadow: t.neuShadow }}
+                        >
+                          <Icon className={cn(t.bodyColor)} style={{ width: `${iconSize}px`, height: `${iconSize}px` }} strokeWidth={1.5} />
+                        </div>
+                        {design.socials.layout !== 'icons' && (
+                          <span className={cn('text-[10px] font-medium opacity-35', t.mutedColor)}>{labelFor(key)}</span>
+                        )}
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <a
+                      key={key}
+                      href={ensureUrl(key, value!)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => { if (!previewMode) trackCatalogueEvent(catalogue.slug, 'social_click', { metadata: { key } }); }}
+                      className="flex flex-col items-center gap-1.5 group"
+                    >
+                      <div
+                        className={cn('flex items-center justify-center transition-all duration-200 group-hover:-translate-y-1 group-active:scale-95', t.socialBtnBg)}
+                        style={{ width: `${design.socials.size}px`, height: `${design.socials.size}px`, borderRadius: socialsRadius, boxShadow: t.neuShadow }}
+                      >
+                        <Icon className={cn(t.bodyColor)} style={{ width: `${iconSize}px`, height: `${iconSize}px` }} strokeWidth={1.5} />
+                      </div>
+                      {design.socials.layout !== 'icons' && (
+                        <span className={cn('text-[10px] font-medium', t.mutedColor)}>{labelFor(key)}</span>
+                      )}
+                    </a>
+                  );
+                })}
+              </nav>
+            </div>
+          );
+        })()}
 
         {/* ── Footer credit ──────────────────────────────────────────────── */}
         <footer className="text-center mt-12">
@@ -271,11 +448,15 @@ function Card({
   catalogueSlug,
   item,
   tokens,
+  design,
+  accentInline,
   previewMode,
 }: {
   catalogueSlug: string;
   item:          CatalogueItemWithModel;
   tokens:        ThemeTokens;
+  design:        CatalogueDesign;
+  accentInline:  React.CSSProperties;
   previewMode:   boolean;
 }) {
   const t = tokens;
@@ -286,22 +467,32 @@ function Card({
     <article
       data-card
       className={cn(
-        'snap-center shrink-0 basis-[70%] sm:basis-[60%] md:basis-[52%] max-w-md',
-        'rounded-3xl border shadow-xl overflow-hidden flex flex-col',
+        'snap-center shrink-0 max-w-md',
+        'border overflow-hidden flex flex-col',
         '[transform-origin:center_center] [will-change:transform,opacity]',
         '[backface-visibility:hidden]',
-        t.cardBg,
+        t.glassCard,
         t.cardBorder,
       )}
+      style={{
+        flexBasis:    `${design.products.cardWidth}%`,
+        height:       `${design.products.cardHeight}px`,
+        borderRadius: `${design.products.radius + 8}px`,
+        boxShadow:    `0 30px 60px -15px rgba(0,0,0,0.25), 0 8px 20px -8px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.5)`,
+      }}
     >
       {/* Image area */}
-      <div className="relative aspect-[3/4] bg-gray-100">
+      <div
+        className="relative bg-gray-100 shrink-0"
+        style={{ height: `${design.products.imageHeight}px` }}
+      >
         {item.model.image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={item.model.image_url}
             alt={label}
-            className="w-full h-full object-cover"
+            fill
+            sizes="(max-width: 640px) 90vw, 400px"
+            className="object-cover"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
@@ -333,39 +524,46 @@ function Card({
       </div>
 
       {/* Body */}
-      <div className="p-4 flex flex-col flex-1">
-        <h3 className={cn('text-base font-semibold leading-snug mb-0.5', t.titleColor)}>
+      <div className="p-3.5 flex flex-col flex-1">
+        <h3
+          className={cn('font-semibold leading-snug mb-0.5 truncate', t.titleColor)}
+          style={{ fontSize: `${design.products.titleSize}px` }}
+        >
           {label}
         </h3>
         {description && (
-          <p className={cn('text-xs line-clamp-2 mb-2', t.mutedColor)}>{description}</p>
+          <p
+            className={cn('leading-snug line-clamp-2 mb-2', t.mutedColor)}
+            style={{ fontSize: `${design.products.descSize}px` }}
+          >
+            {description}
+          </p>
         )}
         {item.price && (
-          <p className={cn('text-base font-semibold mb-3', t.titleColor)}>{item.price}</p>
+          <p
+            className={cn('font-semibold mb-2.5', t.titleColor)}
+            style={{ fontSize: `${design.products.priceSize}px` }}
+          >
+            {item.price}
+          </p>
         )}
 
         {previewMode ? (
           <span
-            className={cn(
-              'mt-auto inline-flex items-center justify-center gap-1.5 w-full h-11 rounded-full text-sm font-semibold shadow-sm',
-              t.accent,
-              t.accentText,
-            )}
+            className="mt-auto inline-flex items-center justify-center gap-1 w-full h-9 rounded-full text-xs font-semibold shadow-sm whitespace-nowrap"
+            style={accentInline}
           >
-            <ScanSearch className="w-4 h-4" />
+            <ScanSearch className="w-3.5 h-3.5" />
             Voir en AR
           </span>
         ) : (
           <Link
             href={`/c/${catalogueSlug}/ar/${item.id}`}
             onClick={() => trackCatalogueEvent(catalogueSlug, 'item_ar_open', { itemId: item.id })}
-            className={cn(
-              'mt-auto inline-flex items-center justify-center gap-1.5 w-full h-11 rounded-full text-sm font-semibold shadow-sm transition-all',
-              t.accent,
-              t.accentText,
-            )}
+            style={accentInline}
+            className="mt-auto inline-flex items-center justify-center gap-1 w-full h-9 rounded-full text-xs font-semibold shadow-sm transition-all whitespace-nowrap"
           >
-            <ScanSearch className="w-4 h-4" />
+            <ScanSearch className="w-3.5 h-3.5" />
             Voir en AR
           </Link>
         )}

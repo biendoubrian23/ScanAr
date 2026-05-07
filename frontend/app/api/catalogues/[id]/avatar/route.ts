@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import type { ApiResponse, Catalogue } from '@/lib/types';
 
-const BUCKET = 'images';
+const BUCKET = 'catalogue-avatars';
 const MAX_BYTES = 3 * 1024 * 1024;
 const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp'];
 
@@ -119,6 +120,8 @@ export async function POST(
     await supabaseAdmin.storage.from(BUCKET).remove([existing.avatar_path]);
   }
 
+  try { revalidatePath(`/c/${(updated as Catalogue).slug}`); } catch { /* best-effort */ }
+
   return NextResponse.json({ data: updated as Catalogue, error: null, success: true });
 }
 
@@ -174,6 +177,8 @@ export async function DELETE(
       { status: 500 },
     );
   }
+
+  try { revalidatePath(`/c/${(updated as Catalogue).slug}`); } catch { /* best-effort */ }
 
   return NextResponse.json({ data: updated as Catalogue, error: null, success: true });
 }

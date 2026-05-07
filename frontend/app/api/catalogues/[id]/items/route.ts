@@ -1,7 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { supabaseAdmin } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import type { ApiResponse, CatalogueItem, CatalogueItemWithModel, Model3D } from '@/lib/types';
+
+async function revalidatePublicSlug(catalogueId: string) {
+  const { data } = await supabaseAdmin
+    .from('catalogues')
+    .select('slug')
+    .eq('id', catalogueId)
+    .maybeSingle();
+  if (data?.slug) {
+    try { revalidatePath(`/c/${data.slug}`); } catch { /* best-effort */ }
+  }
+}
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -148,6 +160,7 @@ export async function PUT(
       .from('catalogues')
       .update({ updated_at: new Date().toISOString() })
       .eq('id', catalogueId);
+    await revalidatePublicSlug(catalogueId);
     return NextResponse.json({ data: [], error: null, success: true });
   }
 
@@ -179,6 +192,8 @@ export async function PUT(
     .from('catalogues')
     .update({ updated_at: new Date().toISOString() })
     .eq('id', catalogueId);
+
+  await revalidatePublicSlug(catalogueId);
 
   return NextResponse.json({ data: inserted as CatalogueItem[], error: null, success: true });
 }

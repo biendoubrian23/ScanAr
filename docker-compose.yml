@@ -97,6 +97,10 @@ services:
       - HUNYUAN3D_API_URL=http://hunyuan3d:8080
       - HUNYUAN3D_ENABLED=true
       - ENABLE_DRACO=true
+      # Job-level safety: kill any single job exceeding this many seconds
+      - JOB_TIMEOUT_SECONDS=1800
+      # Recovery: at boot, mark stale processing jobs as failed if older than this
+      - STALE_JOB_MINUTES=25
     depends_on:
       redis:
         condition: service_healthy
@@ -107,8 +111,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "2"
-          memory: 2G
+          cpus: "4"
+          memory: 6G
 
   # ── Cloudflare Quick Tunnel (trycloudflare.com, no account needed) ───
   cloudflared:

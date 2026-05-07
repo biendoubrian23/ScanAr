@@ -242,7 +242,7 @@ export default function ModelDetailPage() {
             usdzUrl={model.usdz_url}
             imageUrl={model.image_url}
             imageUrls={model.image_urls}
-            // enhancedImageUrls={model.enhanced_image_urls}
+            enhancedImageUrls={model.enhanced_image_urls}
             alt={model.name}
           />
         </div>

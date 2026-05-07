@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 import time
 import traceback
 from datetime import datetime, timezone
@@ -11,12 +12,18 @@ from dotenv import load_dotenv
 from core.processor import process_images_to_3d
 from core.hunyuan import check_health
 from core.image_enhance import verify_openai_keys
+from core.recovery import recover_stale_jobs
 from utils.config import get_config
 from utils.logger import logger
 from utils.supabase_client import get_admin_client
 
 load_dotenv()
 config = get_config()
+
+# Hard cap per job — protects against any runaway step (Hunyuan hang, OpenAI
+# timeout chain, infinite trimesh loop). After this, the job is marked failed
+# and the worker keeps polling Redis.
+JOB_TIMEOUT_SECONDS = int(os.getenv("JOB_TIMEOUT_SECONDS", "1800"))
 
 
 async def update_step(model_id: str, step: str, progress: int, status: str = "started", message: str = None):
@@ -74,9 +81,30 @@ async def wait_for_hunyuan3d():
         await asyncio.sleep(5)
 
 
-async def process_job(job_data: dict):
+CURRENT_JOB_KEY = "scanar:current_job"
+
+
+def _set_current_job(redis_client, model_id: str):
+    """Mark this model as in-flight in Redis. If the worker dies, the boot
+    recovery sees this key and immediately fails the orphan job."""
+    try:
+        redis_client.set(CURRENT_JOB_KEY, model_id)
+    except Exception as e:
+        logger.warning(f"Could not set current_job marker: {e}")
+
+
+def _clear_current_job(redis_client):
+    try:
+        redis_client.delete(CURRENT_JOB_KEY)
+    except Exception as e:
+        logger.warning(f"Could not clear current_job marker: {e}")
+
+
+async def process_job(job_data: dict, redis_client=None):
     model_id = job_data["id"]
     user_id = job_data["user_id"]
+    if redis_client is not None:
+        _set_current_job(redis_client, model_id)
 
     # Multi-view: prefer the new image_urls array, fall back to legacy single image_url
     image_urls = job_data.get("image_urls")
@@ -109,12 +137,15 @@ async def process_job(job_data: dict):
         async def step_cb(step, progress, status, message):
             await update_step(model_id, step, progress, status, message)
 
-        result = await process_images_to_3d(
-            model_id=model_id,
-            user_id=user_id,
-            image_urls=image_urls,
-            image_paths=image_paths,
-            step_callback=step_cb,
+        result = await asyncio.wait_for(
+            process_images_to_3d(
+                model_id=model_id,
+                user_id=user_id,
+                image_urls=image_urls,
+                image_paths=image_paths,
+                step_callback=step_cb,
+            ),
+            timeout=JOB_TIMEOUT_SECONDS,
         )
 
         processing_time_ms = int((time.time() - start_time) * 1000)
@@ -136,6 +167,19 @@ async def process_job(job_data: dict):
         })
 
         logger.info(f"Job {model_id} completed in {processing_time_ms}ms")
+
+    except asyncio.TimeoutError:
+        logger.error(f"Job {model_id} TIMEOUT after {JOB_TIMEOUT_SECONDS}s")
+        failed_step = "timeout"
+        try:
+            existing = supabase.table("models_3d").select("current_step").eq("id", model_id).single().execute()
+            failed_step = (existing.data or {}).get("current_step") or "timeout"
+        except Exception:
+            pass
+        msg = f"Délai dépassé ({JOB_TIMEOUT_SECONDS}s) à l'étape {failed_step}"
+        await update_step(model_id, failed_step, 0, "failed", msg)
+        await update_model_status(model_id, "failed", 0)
+        await notify_webhook({"jobId": model_id, "status": "failed", "errorMessage": msg})
 
     except Exception as e:
         logger.error(f"Job {model_id} failed: {e}")
@@ -172,6 +216,39 @@ async def worker_loop():
         await verify_openai_keys()
 
     r = redis.from_url(config.redis_url, decode_responses=True)
+
+    # Instant recovery: if the worker crashed mid-job, the model_id was
+    # written to Redis under CURRENT_JOB_KEY and never cleared. Mark it
+    # failed immediately (no 25-min wait) so the widget unblocks now.
+    try:
+        orphan = r.get(CURRENT_JOB_KEY)
+    except Exception as e:
+        logger.warning(f"Could not read {CURRENT_JOB_KEY}: {e}")
+        orphan = None
+    if orphan:
+        logger.warning(f"Instant recovery: orphan in-flight job {orphan} found in Redis")
+        try:
+            sb = get_admin_client()
+            existing = sb.table("models_3d").select("status,current_step").eq("id", orphan).single().execute()
+            row = existing.data or {}
+            if row.get("status") == "processing":
+                step = row.get("current_step") or "unknown"
+                msg = f"[{step}] Worker crashé pendant le traitement. Réessayez l'upload."
+                sb.table("models_3d").update({
+                    "status": "failed", "progress": 0, "error_message": msg,
+                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                }).eq("id", orphan).execute()
+                logger.warning(f"Instant recovery: {orphan} marked failed at step '{step}'")
+        except Exception as e:
+            logger.error(f"Instant recovery DB update failed: {e}")
+        finally:
+            _clear_current_job(r)
+
+    # Time-based recovery: catches anything older than STALE_JOB_MINUTES
+    # that wasn't tagged in Redis (defense in depth).
+    recover_stale_jobs()
+
+    logger.info(f"Job timeout cap: {JOB_TIMEOUT_SECONDS}s")
     logger.info("Listening on 'scanar:jobs'...")
 
     while True:
@@ -184,7 +261,12 @@ async def worker_loop():
             _, raw_job = result
             job_data = json.loads(raw_job)
 
-            await process_job(job_data)
+            try:
+                await process_job(job_data, redis_client=r)
+            finally:
+                # Always clear, even on success / handled exception. The only
+                # case it stays set is a hard crash — exactly what we want.
+                _clear_current_job(r)
 
         except redis.ConnectionError:
             logger.warning("Redis connection lost, retrying in 5s...")

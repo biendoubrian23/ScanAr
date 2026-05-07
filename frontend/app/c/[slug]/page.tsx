@@ -6,6 +6,11 @@ import { VerticalCatalogueView } from '@/components/catalogues/VerticalCatalogue
 import { HorizontalCatalogueView } from '@/components/catalogues/HorizontalCatalogueView';
 import type { Catalogue, CatalogueItemWithModel, Model3D } from '@/lib/types';
 
+// ISR — la page est cachée 10 min côté Next.js (Vercel ou node). Les modifs
+// de design apparaissent au plus tard ~10 min après la sauvegarde. Le owner
+// peut forcer un refresh immédiat via /api/catalogues/[id]/revalidate.
+export const revalidate = 600;
+
 interface Props {
   params: Promise<{ slug: string }>;
 }

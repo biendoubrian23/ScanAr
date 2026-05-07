@@ -49,13 +49,18 @@ export default async function CatalogueARPage({ params }: Props) {
 
   const title = item.custom_label || model.name || 'Modèle 3D';
 
+  // Route GLB/USDZ through our caching proxy — same Supabase egress for 1
+  // visitor as for 1000 (after 1st warm-up). See `/api/models/[id]/asset`.
+  const glbUrl  = `/api/models/${model.id}/asset?type=glb`;
+  const usdzUrl = model.usdz_url ? `/api/models/${model.id}/asset?type=usdz` : undefined;
+
   return (
     <ARViewerClient
       // arLinkId omitted on purpose: catalogue analytics live on `catalogues.view_count`
       slug={`${slug}/${item.id}`}
       title={title}
-      glbUrl={model.glb_url}
-      usdzUrl={model.usdz_url ?? undefined}
+      glbUrl={glbUrl}
+      usdzUrl={usdzUrl}
       posterUrl={model.image_url ?? undefined}
     />
   );
