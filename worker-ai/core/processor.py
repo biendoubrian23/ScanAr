@@ -46,6 +46,7 @@ ENABLE_DRACO = os.getenv("ENABLE_DRACO", "true").lower() == "true"
 STEP_DOWNLOAD = "downloading_image"
 STEP_ENHANCE  = "enhancing_image"
 STEP_VIEWS    = "completing_views"
+STEP_SIZE     = "estimating_size"
 STEP_SHAPE    = "generating_shape"
 STEP_TEXTURE  = "generating_texture"
 STEP_CLEANUP  = "cleaning_mesh"
@@ -110,15 +111,24 @@ async def process_images_to_3d(
     image_urls: list[str],
     image_paths: Optional[list[str]] = None,
     step_callback: Optional[Callable] = None,
+    gpt_enhance_enabled: bool = True,
+    use_tripo: bool = True,
 ) -> dict:
     """
     Process 1..4 images into a 3D GLB+USDZ asset (multi-view reconstruction).
 
     The first URL is the front view (driver image); additional images become
-    back/left/right views fed to Hunyuan3D-2mv via `mv_image_dict`.
+    back/left/right views fed to the generator via multiview.
 
     `step_callback(step, progress, status="started"|"done"|"failed", message=None)`
     is invoked at every phase boundary so the frontend can render a live stepper.
+
+    `gpt_enhance_enabled` (per-user) gates the gpt-image-1 enhancement + gpt-4o
+    view completion. Size estimation always runs.
+
+    `use_tripo` (per-user) routes the actual 3D generation:
+      - True  → Tripo3D cloud API (P1 model, image_to_model or multiview_to_model)
+      - False → local Hunyuan3D Docker service (legacy/dev path)
     """
     supabase = get_admin_client()
 
@@ -136,108 +146,174 @@ async def process_images_to_3d(
     logger.info(f"Images downloaded: {len(image_blobs)} files, {total_bytes} bytes total")
     await emit(STEP_DOWNLOAD, 10, "done")
 
-    # ── 1bis. AI enhancement via gpt-image-1 (parallel, original-on-failure) ─
-    await emit(STEP_ENHANCE, 11, "started")
-    from core.image_enhance import enhance_images
-    enhance_results = await enhance_images(image_blobs)
-    enhanced_count = sum(1 for r in enhance_results if r.enhanced)
-    fallback_count = sum(1 for r in enhance_results if r.used_fallback)
-    image_blobs = [r.image_bytes for r in enhance_results]
-    logger.info(
-        f"Enhancement: {enhanced_count}/{len(enhance_results)} enhanced "
-        f"(fallback key used on {fallback_count})"
-    )
-
-    # Persist successfully enhanced images to the public bucket so the dashboard
-    # can show a before/after toggle. Failed-enhancement entries (originals)
-    # are NOT uploaded — the frontend simply shows the original at that index.
     enhanced_paths: list[str | None] = []
     enhanced_urls: list[str | None] = []
-    for idx, r in enumerate(enhance_results):
-        if not r.enhanced:
-            enhanced_paths.append(None)
-            enhanced_urls.append(None)
-            continue
-        path = f"{user_id}/{model_id}/{idx}.png"
-        try:
-            supabase.storage.from_(ENHANCED_BUCKET).upload(
-                path=path,
-                file=r.image_bytes,
-                file_options={"content-type": "image/png", "upsert": "true"},
-            )
-            url = f"{SUPABASE_URL}/storage/v1/object/public/{ENHANCED_BUCKET}/{path}"
-            enhanced_paths.append(path)
-            enhanced_urls.append(url)
-            logger.info(f"Enhanced image #{idx} uploaded: {path} ({len(r.image_bytes)} bytes)")
-        except Exception as e:
-            logger.warning(f"Enhanced image #{idx} upload failed: {e}")
-            enhanced_paths.append(None)
-            enhanced_urls.append(None)
 
-    await emit(
-        STEP_ENHANCE, 14, "done",
-        f"{enhanced_count}/{len(enhance_results)} images améliorées"
-        + (f" ({fallback_count} via clé fallback)" if fallback_count else ""),
-    )
+    if gpt_enhance_enabled:
+        # ── 1bis. AI enhancement via gpt-image-1 (parallel, original-on-failure) ─
+        await emit(STEP_ENHANCE, 11, "started")
+        from core.image_enhance import enhance_images
+        enhance_results = await enhance_images(image_blobs)
+        enhanced_count = sum(1 for r in enhance_results if r.enhanced)
+        fallback_count = sum(1 for r in enhance_results if r.used_fallback)
+        image_blobs = [r.image_bytes for r in enhance_results]
+        logger.info(
+            f"Enhancement: {enhanced_count}/{len(enhance_results)} enhanced "
+            f"(fallback key used on {fallback_count})"
+        )
 
-    # ── 1ter. Multi-view completion (gpt-4o vision + gpt-image-1) ───────
-    await emit(STEP_VIEWS, 15, "started")
-    from core.view_completion import complete_views
-    n_orig = len(image_blobs)
-    vc = await complete_views(image_blobs)
-    image_blobs = vc.images
-    if vc.generated_views:
-        msg = f"{len(vc.generated_views)} vue(s) générée(s) : {', '.join(vc.generated_views)}"
-    elif vc.analysis:
-        msg = "Vues complètes — pas de génération"
+        # Persist successfully enhanced images to the public bucket so the dashboard
+        # can show a before/after toggle. Failed-enhancement entries (originals)
+        # are NOT uploaded — the frontend simply shows the original at that index.
+        for idx, r in enumerate(enhance_results):
+            if not r.enhanced:
+                enhanced_paths.append(None)
+                enhanced_urls.append(None)
+                continue
+            path = f"{user_id}/{model_id}/{idx}.png"
+            try:
+                supabase.storage.from_(ENHANCED_BUCKET).upload(
+                    path=path,
+                    file=r.image_bytes,
+                    file_options={"content-type": "image/png", "upsert": "true"},
+                )
+                url = f"{SUPABASE_URL}/storage/v1/object/public/{ENHANCED_BUCKET}/{path}"
+                enhanced_paths.append(path)
+                enhanced_urls.append(url)
+                logger.info(f"Enhanced image #{idx} uploaded: {path} ({len(r.image_bytes)} bytes)")
+            except Exception as e:
+                logger.warning(f"Enhanced image #{idx} upload failed: {e}")
+                enhanced_paths.append(None)
+                enhanced_urls.append(None)
+
+        await emit(
+            STEP_ENHANCE, 14, "done",
+            f"{enhanced_count}/{len(enhance_results)} images améliorées"
+            + (f" ({fallback_count} via clé fallback)" if fallback_count else ""),
+        )
+
+        # ── 1ter. Multi-view completion (gpt-4o vision + gpt-image-1) ───────
+        await emit(STEP_VIEWS, 15, "started")
+        from core.view_completion import complete_views
+        n_orig = len(image_blobs)
+        vc = await complete_views(image_blobs)
+        image_blobs = vc.images
+        if vc.generated_views:
+            msg = f"{len(vc.generated_views)} vue(s) générée(s) : {', '.join(vc.generated_views)}"
+        elif vc.analysis:
+            msg = "Vues complètes — pas de génération"
+        else:
+            msg = "Analyse ignorée"
+        logger.info(f"View completion done: {len(image_blobs)} total image(s) → Hunyuan3D")
+
+        # Persist GPT-generated views to the same bucket so the dashboard's
+        # "Améliorée" tab shows EVERY image fed to Hunyuan3D (cleaned originals
+        # + AI-generated angles).
+        for offset, view in enumerate(vc.generated_views):
+            idx = n_orig + offset
+            if idx >= len(image_blobs):
+                break
+            path = f"{user_id}/{model_id}/gen_{view}.png"
+            try:
+                supabase.storage.from_(ENHANCED_BUCKET).upload(
+                    path=path,
+                    file=image_blobs[idx],
+                    file_options={"content-type": "image/png", "upsert": "true"},
+                )
+                url = f"{SUPABASE_URL}/storage/v1/object/public/{ENHANCED_BUCKET}/{path}"
+                enhanced_paths.append(path)
+                enhanced_urls.append(url)
+                logger.info(f"Generated view '{view}' uploaded: {path} ({len(image_blobs[idx])} bytes)")
+            except Exception as e:
+                logger.warning(f"Generated view '{view}' upload failed: {e}")
+                enhanced_paths.append(None)
+                enhanced_urls.append(None)
+
+        await emit(STEP_VIEWS, 17, "done", msg)
     else:
-        msg = "Analyse ignorée"
-    logger.info(f"View completion done: {len(image_blobs)} total image(s) → Hunyuan3D")
+        # User disabled GPT enhancement — feed originals straight to Hunyuan3D.
+        # The "Améliorée" gallery in the dashboard simply shows nothing.
+        logger.info("GPT enhancement DISABLED by user — using originals only")
+        await emit(STEP_ENHANCE, 14, "done", "Amélioration IA désactivée")
+        await emit(STEP_VIEWS,   17, "done", "Génération de vues désactivée")
 
-    # Persist GPT-generated views to the same bucket so the dashboard's
-    # "Améliorée" tab shows EVERY image fed to Hunyuan3D (cleaned originals
-    # + AI-generated angles).
-    for offset, view in enumerate(vc.generated_views):
-        idx = n_orig + offset
-        if idx >= len(image_blobs):
-            break
-        path = f"{user_id}/{model_id}/gen_{view}.png"
-        try:
-            supabase.storage.from_(ENHANCED_BUCKET).upload(
-                path=path,
-                file=image_blobs[idx],
-                file_options={"content-type": "image/png", "upsert": "true"},
-            )
-            url = f"{SUPABASE_URL}/storage/v1/object/public/{ENHANCED_BUCKET}/{path}"
-            enhanced_paths.append(path)
-            enhanced_urls.append(url)
-            logger.info(f"Generated view '{view}' uploaded: {path} ({len(image_blobs[idx])} bytes)")
-        except Exception as e:
-            logger.warning(f"Generated view '{view}' upload failed: {e}")
-            enhanced_paths.append(None)
-            enhanced_urls.append(None)
+    # ── 1quater. Real-world size estimation (gpt-4o-mini, ALWAYS on) ─────
+    # Estimates dimensions in cm for AR fixed-scale display. Runs on the first
+    # available image — enhanced if available (cleaner = better identification),
+    # original otherwise. Returns None on failure; pipeline continues unscaled.
+    await emit(STEP_SIZE, 17, "started")
+    from core.size_estimation import estimate_real_size
+    size_estimate = await estimate_real_size(image_blobs[0])
+    real_dimensions_cm = size_estimate.to_dict() if size_estimate else None
+    if size_estimate:
+        size_msg = (
+            f"{size_estimate.object_label} : "
+            f"{size_estimate.width_cm:.0f}×{size_estimate.height_cm:.0f}×"
+            f"{size_estimate.depth_cm:.0f} cm"
+        )
+    else:
+        size_msg = "Estimation indisponible — affichage AR auto-scale"
+    await emit(STEP_SIZE, 18, "done", size_msg)
 
-    await emit(STEP_VIEWS, 17, "done", msg)
-
-    # ── 2. Shape generation (Hunyuan3D shape model) ─────────────────────
+    # ── 2. Shape generation (Tripo3D cloud OR local Hunyuan3D) ──────────
     await emit(STEP_SHAPE, 18, "started")
-    from core.hunyuan import generate_3d_with_usdz
-
-    # ── 3. Texture generation happens inside generate_3d_with_usdz ─────
     await emit(STEP_TEXTURE, 40, "started")
 
-    result = await generate_3d_with_usdz(image_blobs)
-    glb_bytes = result["glb_bytes"]
-    usdz_bytes = result.get("usdz_bytes")
+    tripo_credits_used = 0
+    tripo_task_id: Optional[str] = None
+
+    if use_tripo:
+        # Tripo handles geometry + texture in one call. Progress is polled.
+        from core.tripo import generate_3d_with_usdz as tripo_generate
+
+        async def _tripo_progress(p: int):
+            # Map Tripo 0-100 to our pipeline range 18-72 (between shape start and texture done)
+            mapped = 18 + int(p * 0.54)
+            await emit(STEP_SHAPE, max(19, min(64, mapped)), "started")
+
+        result = await tripo_generate(image_blobs, progress_cb=_tripo_progress)
+        glb_bytes = result["glb_bytes"]
+        usdz_bytes = result.get("usdz_bytes")  # Tripo client returns None — we generate USDZ post-hoc
+        tripo_credits_used = int(result.get("consumed_credits", 0) or 0)
+        tripo_task_id = result.get("task_id")
+        logger.info(f"[processor] Tripo done — credits={tripo_credits_used} task={tripo_task_id}")
+    else:
+        from core.hunyuan import generate_3d_with_usdz as hunyuan_generate
+        result = await hunyuan_generate(image_blobs)
+        glb_bytes = result["glb_bytes"]
+        usdz_bytes = result.get("usdz_bytes")
 
     await emit(STEP_SHAPE,   65, "done")
     await emit(STEP_TEXTURE, 72, "done")
 
+    # Tripo doesn't bundle USDZ — convert via Blender like the Hunyuan path does.
+    if use_tripo and usdz_bytes is None:
+        try:
+            from core.hunyuan import _local_usdz_convert
+            usdz_bytes = _local_usdz_convert(glb_bytes)
+        except Exception as e:
+            logger.warning(f"[processor] USDZ conversion skipped: {e}")
+
     # ── 3bis. Mesh cleanup (outlier removal + Taubin smoothing) ─────────
+    # Tripo P1 produces clean low-poly topology by design and HD-textured GLBs
+    # can cause trimesh native segfaults during cleanup. Skip the step entirely
+    # when generation came from Tripo — only Hunyuan3D's noisy output needs it.
     await emit(STEP_CLEANUP, 74, "started")
-    from core.mesh_cleanup import cleanup_glb
-    glb_bytes = cleanup_glb(glb_bytes)
-    await emit(STEP_CLEANUP, 77, "done")
+    if use_tripo:
+        logger.info("Mesh cleanup: skipped (Tripo output is already clean)")
+        await emit(STEP_CLEANUP, 77, "done", "Skipped — Tripo mesh already clean")
+    else:
+        from core.mesh_cleanup import cleanup_glb
+        glb_bytes = cleanup_glb(glb_bytes)
+        await emit(STEP_CLEANUP, 77, "done")
+
+    # ── 3ter. Apply real-world scale (silent — no separate UI step) ──────
+    # The GLB now has correct geometry but arbitrary units. Scale uniformly so
+    # its longest extent matches the longest GPT-estimated real dimension —
+    # required for <model-viewer ar-scale="fixed"> to render at real size.
+    if real_dimensions_cm:
+        from core.glb_scaling import apply_real_scale
+        glb_bytes = apply_real_scale(glb_bytes, real_dimensions_cm)
 
     # ── 4. Draco compression ────────────────────────────────────────────
     if ENABLE_DRACO:
@@ -274,8 +350,11 @@ async def process_images_to_3d(
         "polygons": meta.get("polygons"),
         "materials_count": meta.get("materials_count"),
         "dimensions_mm": meta.get("dimensions_mm"),
+        "real_dimensions_cm": real_dimensions_cm,
         "enhanced_image_paths": enhanced_paths,
         "enhanced_image_urls": enhanced_urls,
+        "tripo_credits_used": tripo_credits_used,
+        "tripo_task_id": tripo_task_id,
     }
 
 

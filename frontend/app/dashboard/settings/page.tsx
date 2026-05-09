@@ -5,6 +5,8 @@ import {
   User,
   CreditCard,
   Shield,
+  Sparkles,
+  Cloud,
   AlertCircle,
   CheckCircle2,
   Loader2,
@@ -12,12 +14,13 @@ import {
 import { DashboardShell } from '@/components/layout/DashboardShell';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { Toggle } from '@/components/ui/Toggle';
 import { useAuth } from '@/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
 
 export default function SettingsPage() {
-  const { user, profile, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading, refreshProfile } = useAuth();
   const supabase = createClient();
 
   const [fullName, setFullName] = useState('');
@@ -28,8 +31,19 @@ export default function SettingsPage() {
   const [newPassword, setNewPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
 
+  // Optimistic local state so the toggle responds immediately while the
+  // Supabase update runs. Synced from `profile` whenever auth refreshes.
+  const [gptEnhance, setGptEnhance] = useState(true);
+  const [savingGpt,  setSavingGpt]  = useState(false);
+  const [useTripo,   setUseTripo]   = useState(true);
+  const [savingTripo, setSavingTripo] = useState(false);
+
   useEffect(() => {
     if (profile?.full_name) setFullName(profile.full_name);
+    if (profile) {
+      setGptEnhance(profile.gpt_enhance_enabled ?? true);
+      setUseTripo(profile.use_tripo ?? true);
+    }
   }, [profile]);
 
   const showToast = (type: 'success' | 'error', text: string) => {
@@ -52,6 +66,50 @@ export default function SettingsPage() {
       showToast('error', error.message);
     } else {
       showToast('success', 'Profile updated');
+    }
+  };
+
+  const handleToggleGptEnhance = async (next: boolean) => {
+    if (!user) return;
+    const previous = gptEnhance;
+    setGptEnhance(next);              // optimistic
+    setSavingGpt(true);
+
+    const { error } = await supabase
+      .from('users')
+      .update({ gpt_enhance_enabled: next })
+      .eq('id', user.id);
+
+    setSavingGpt(false);
+
+    if (error) {
+      setGptEnhance(previous);        // rollback
+      showToast('error', error.message);
+    } else {
+      await refreshProfile();
+      showToast('success', next ? 'Amélioration IA activée' : 'Amélioration IA désactivée');
+    }
+  };
+
+  const handleToggleTripo = async (next: boolean) => {
+    if (!user) return;
+    const previous = useTripo;
+    setUseTripo(next);                 // optimistic
+    setSavingTripo(true);
+
+    const { error } = await supabase
+      .from('users')
+      .update({ use_tripo: next })
+      .eq('id', user.id);
+
+    setSavingTripo(false);
+
+    if (error) {
+      setUseTripo(previous);           // rollback
+      showToast('error', error.message);
+    } else {
+      await refreshProfile();
+      showToast('success', next ? 'Tripo3D (cloud) activé' : 'Modèle local activé');
     }
   };
 
@@ -152,6 +210,68 @@ export default function SettingsPage() {
               >
                 Save changes
               </Button>
+            </div>
+          </div>
+        </section>
+
+        {/* AI Preferences Section */}
+        <section className="bg-white/30 backdrop-blur-xl border border-white/50 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] overflow-hidden">
+          <div className="flex items-center gap-2.5 px-6 py-4 border-b border-white/30">
+            <Sparkles className="w-4 h-4 text-brand-400" />
+            <h2 className="text-sm font-semibold text-gray-900">Préférences IA</h2>
+          </div>
+
+          <div className="p-6 space-y-6">
+            {/* GPT enhancement toggle */}
+            <div className="flex items-start justify-between gap-6">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-900">
+                  Améliorer mes images avec l&apos;IA
+                </p>
+                <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                  Lorsque activé, GPT nettoie chaque photo (fond uni, isolation
+                  de l&apos;objet) et génère les vues manquantes pour améliorer la
+                  reconstruction 3D. Désactivez pour économiser sur les coûts
+                  OpenAI — les photos originales seront envoyées telles quelles
+                  au générateur 3D. <span className="text-gray-400">L&apos;estimation
+                  automatique de la taille reste toujours active.</span>
+                </p>
+              </div>
+              <div className="shrink-0 pt-0.5">
+                <Toggle
+                  checked={gptEnhance}
+                  onChange={handleToggleGptEnhance}
+                  disabled={authLoading || savingGpt}
+                  label="Améliorer mes images avec l'IA"
+                />
+              </div>
+            </div>
+
+            {/* Tripo3D vs local Hunyuan3D toggle */}
+            <div className="flex items-start justify-between gap-6 pt-5 border-t border-white/40">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <Cloud className="w-3.5 h-3.5 text-brand-500" />
+                  <p className="text-sm font-medium text-gray-900">
+                    Utiliser Tripo3D (cloud)
+                  </p>
+                </div>
+                <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                  Activé par défaut : la génération 3D passe par l&apos;API Tripo3D
+                  cloud (plus rapide, qualité optimisée AR/mobile, ~60 crédits ≈
+                  $0.60 par modèle). Désactivez pour utiliser le modèle Hunyuan3D
+                  hébergé localement (gratuit mais lent, dépend de la machine
+                  locale).
+                </p>
+              </div>
+              <div className="shrink-0 pt-0.5">
+                <Toggle
+                  checked={useTripo}
+                  onChange={handleToggleTripo}
+                  disabled={authLoading || savingTripo}
+                  label="Utiliser Tripo3D (cloud)"
+                />
+              </div>
             </div>
           </div>
         </section>

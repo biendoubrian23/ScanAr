@@ -79,3 +79,10 @@ dump.rdb
 # Supabase local
 supabase/.branches
 supabase/.temp
+
+# Bible PDF + generated assets (Canva-bound, kept local only)
+ScanAR_Bible.pdf
+scripts/_bible_assets/
+
+# Tripo3D doc scrape (kept local — see tripo-recap/ for the focused summaries)
+Doc Tripo/

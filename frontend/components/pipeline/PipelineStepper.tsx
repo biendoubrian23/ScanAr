@@ -17,6 +17,7 @@ export const PIPELINE_STEPS: { id: PipelineStepId; label: string; sublabel: stri
   { id: 'downloading_image',  label: 'Fetching image',    sublabel: 'Worker downloads source' },
   { id: 'enhancing_image',    label: 'Amélioration IA',   sublabel: 'gpt-image-1 — nettoyage & fond' },
   { id: 'completing_views',   label: 'Vues manquantes',   sublabel: 'gpt-4o + gpt-image-1 — angles' },
+  { id: 'estimating_size',    label: 'Taille réelle',     sublabel: 'gpt-4o-mini — dimensions cm' },
   { id: 'generating_shape',   label: 'Shape',             sublabel: 'Hunyuan3D — geometry' },
   { id: 'generating_texture', label: 'Texture',           sublabel: 'Hunyuan3D — colors' },
   { id: 'cleaning_mesh',      label: 'Nettoyage mesh',    sublabel: 'Outliers + lissage Taubin' },
@@ -40,8 +41,8 @@ const PIPELINE_GROUPS: {
   },
   {
     label: 'Amélioration IA',
-    sublabel: 'Nettoyage, fond & vues manquantes',
-    steps: ['enhancing_image', 'completing_views'],
+    sublabel: 'Nettoyage, vues manquantes & taille réelle',
+    steps: ['enhancing_image', 'completing_views', 'estimating_size'],
   },
   {
     label: 'Génération 3D',

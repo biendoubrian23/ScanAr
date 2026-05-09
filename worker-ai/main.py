@@ -13,6 +13,7 @@ from core.processor import process_images_to_3d
 from core.hunyuan import check_health
 from core.image_enhance import verify_openai_keys
 from core.recovery import recover_stale_jobs
+from core.tripo import verify_api_key as verify_tripo_key
 from utils.config import get_config
 from utils.logger import logger
 from utils.supabase_client import get_admin_client
@@ -119,8 +120,26 @@ async def process_job(job_data: dict, redis_client=None):
     logger.info(f"Processing job {model_id} for user {user_id} ({len(image_urls)} image(s))")
     start_time = time.time()
 
-    # Reset steps_log for this run + mark as processing
     supabase = get_admin_client()
+
+    # Per-user preferences:
+    # - gpt_enhance_enabled : when False, skip gpt-image-1 enhance + gpt-4o view completion
+    # - use_tripo           : when True, use Tripo3D cloud API; when False, fall back to local Hunyuan3D
+    # Size estimation (gpt-4o-mini) always runs regardless.
+    gpt_enhance_enabled = True
+    use_tripo = config.tripo_enabled  # env-level kill switch
+    try:
+        pref = supabase.table("users").select("gpt_enhance_enabled, use_tripo").eq("id", user_id).single().execute()
+        row = pref.data or {}
+        gpt_enhance_enabled = bool(row.get("gpt_enhance_enabled", True))
+        # Per-user override only narrows the env kill switch — never widens it.
+        if config.tripo_enabled:
+            use_tripo = bool(row.get("use_tripo", True))
+    except Exception as e:
+        logger.warning(f"Could not read prefs for {user_id}: {e} — defaulting (gpt_enhance=True, use_tripo={use_tripo})")
+    logger.info(f"User {user_id} gpt_enhance_enabled={gpt_enhance_enabled} use_tripo={use_tripo}")
+
+    # Reset steps_log for this run + mark as processing
     supabase.table("models_3d").update({
         "status": "processing",
         "progress": 5,
@@ -144,6 +163,8 @@ async def process_job(job_data: dict, redis_client=None):
                 image_urls=image_urls,
                 image_paths=image_paths,
                 step_callback=step_cb,
+                gpt_enhance_enabled=gpt_enhance_enabled,
+                use_tripo=use_tripo,
             ),
             timeout=JOB_TIMEOUT_SECONDS,
         )
@@ -162,6 +183,7 @@ async def process_job(job_data: dict, redis_client=None):
             "polygons": result.get("polygons"),
             "materialsCount": result.get("materials_count"),
             "dimensionsMm": result.get("dimensions_mm"),
+            "realDimensionsCm": result.get("real_dimensions_cm"),
             "enhancedImageUrls": result.get("enhanced_image_urls"),
             "enhancedImagePaths": result.get("enhanced_image_paths"),
         })
@@ -214,6 +236,9 @@ async def worker_loop():
 
     if config.openai_enhance_enabled:
         await verify_openai_keys()
+
+    if config.tripo_enabled:
+        await verify_tripo_key()
 
     r = redis.from_url(config.redis_url, decode_responses=True)
 

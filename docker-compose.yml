@@ -97,6 +97,11 @@ services:
       - HUNYUAN3D_API_URL=http://hunyuan3d:8080
       - HUNYUAN3D_ENABLED=true
       - ENABLE_DRACO=true
+      # Tripo3D cloud — primary 3D generation backend.
+      # TRIPO_API_KEY is loaded from .env (never commit it).
+      # TRIPO_ENABLED=false makes the worker fall back to Hunyuan3D for ALL users
+      # (env-level kill switch — overrides per-user `users.use_tripo`).
+      - TRIPO_ENABLED=true
       # Job-level safety: kill any single job exceeding this many seconds
       - JOB_TIMEOUT_SECONDS=1800
       # Recovery: at boot, mark stale processing jobs as failed if older than this

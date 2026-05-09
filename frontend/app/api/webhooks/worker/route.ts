@@ -35,6 +35,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     polygons,
     materialsCount,
     dimensionsMm,
+    realDimensionsCm,
     enhancedImageUrls,
     enhancedImagePaths,
   } = payload;
@@ -68,6 +69,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           polygons: polygons ?? null,
           materials_count: materialsCount ?? null,
           dimensions_mm: dimensionsMm ?? null,
+          real_dimensions_cm: realDimensionsCm ?? null,
           enhanced_image_urls:  enhancedImageUrls  ?? null,
           enhanced_image_paths: enhancedImagePaths ?? null,
           updated_at: new Date().toISOString(),

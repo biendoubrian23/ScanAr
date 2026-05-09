@@ -1,11 +1,10 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ScanLine, Smartphone, Box, Share2, Lock, Unlock } from 'lucide-react';
+import { ScanLine, Smartphone, Box, Share2 } from 'lucide-react';
 import { cn, getDeviceType } from '@/lib/utils';
 
 type ARPlacement = 'floor' | 'wall';
-type ARScale     = 'fixed' | 'auto';
 
 interface ARViewerClientProps {
   /** When omitted, analytics tracking is skipped (catalogue AR launcher case). */
@@ -16,6 +15,9 @@ interface ARViewerClientProps {
   usdzUrl?: string;
   posterUrl?: string;
   placement?: ARPlacement;
+  /** Present when the worker has scaled the GLB to real-world units.
+   *  Forces ar-scale="fixed" so the model renders at real size in AR. */
+  hasRealScale?: boolean;
 }
 
 export function ARViewerClient({
@@ -26,11 +28,11 @@ export function ARViewerClient({
   usdzUrl,
   posterUrl,
   placement = 'floor',
+  hasRealScale = false,
 }: ARViewerClientProps) {
   const analyticsLogged = useRef(false);
   const [shared, setShared] = useState(false);
   const [arPlacement, setArPlacement] = useState<ARPlacement>(placement);
-  const [arScale, setArScale]         = useState<ARScale>('fixed');
   const [mvLoaded, setMvLoaded] = useState(false);
 
   // Load model-viewer custom element (browser-only, side-effect import)
@@ -109,23 +111,6 @@ export function ARViewerClient({
             </button>
           </div>
 
-          {/* Scale lock toggle — fixed = real size, auto = pinch-to-scale */}
-          <button
-            type="button"
-            onClick={() => setArScale((s) => (s === 'fixed' ? 'auto' : 'fixed'))}
-            title={arScale === 'fixed' ? 'Taille réelle verrouillée' : 'Échelle libre (pinch pour zoom)'}
-            aria-pressed={arScale === 'fixed' ? 'true' : 'false'}
-            className={cn(
-              'flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-medium border transition-colors',
-              arScale === 'fixed'
-                ? 'bg-brand-50 border-brand-200 text-brand-700'
-                : 'bg-white border-gray-200 text-gray-500 hover:text-gray-800',
-            )}
-          >
-            {arScale === 'fixed' ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
-            Taille réelle
-          </button>
-
           <button
             type="button"
             onClick={handleShare}
@@ -173,7 +158,7 @@ export function ARViewerClient({
             ar
             ar-modes="scene-viewer webxr quick-look"
             ar-placement={arPlacement}
-            ar-scale={arScale}
+            ar-scale={hasRealScale ? 'fixed' : 'auto'}
             camera-controls
             touch-action="pan-y"
             auto-rotate

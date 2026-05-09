@@ -18,6 +18,8 @@ class Config:
     openai_api_key: str
     openai_api_key_fallback: str
     openai_enhance_enabled: bool
+    tripo_api_key: str
+    tripo_enabled: bool
 
 
 def get_config() -> Config:
@@ -34,4 +36,6 @@ def get_config() -> Config:
         openai_api_key=os.getenv("OPENAI_API_KEY", ""),
         openai_api_key_fallback=os.getenv("OPENAI_API_KEY_FALLBACK", ""),
         openai_enhance_enabled=os.getenv("OPENAI_ENHANCE_ENABLED", "true").lower() == "true",
+        tripo_api_key=os.getenv("TRIPO_API_KEY", ""),
+        tripo_enabled=os.getenv("TRIPO_ENABLED", "true").lower() == "true",
     )

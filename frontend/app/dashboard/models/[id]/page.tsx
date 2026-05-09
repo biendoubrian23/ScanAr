@@ -148,13 +148,21 @@ export default function ModelDetailPage() {
     ? `${model.dimensions_mm.x} × ${model.dimensions_mm.y} × ${model.dimensions_mm.z} mm`
     : '—';
 
+  // Real-world size estimated by GPT vision on the source image — drives
+  // the AR fixed-scale display.
+  const realDims = model.real_dimensions_cm;
+  const realLabel = realDims
+    ? `${Math.round(realDims.width_cm)} × ${Math.round(realDims.height_cm)} × ${Math.round(realDims.depth_cm)} cm`
+    : '—';
+
   const details: Array<[string, string]> = [
-    ['Créé',         formatDateShort(model.created_at, true)],
-    ['Taille',       model.file_size_bytes ? formatBytes(model.file_size_bytes) : '—'],
-    ['Polygones',    model.polygons ? `${(model.polygons / 1000).toFixed(1)}k` : '—'],
-    ['Matériaux',    model.materials_count?.toString() ?? '—'],
-    ['Format',       model.format ?? 'glTF'],
-    ['Dimensions',   dimsLabel],
+    ['Créé',          formatDateShort(model.created_at, true)],
+    ['Taille fichier', model.file_size_bytes ? formatBytes(model.file_size_bytes) : '—'],
+    ['Polygones',     model.polygons ? `${(model.polygons / 1000).toFixed(1)}k` : '—'],
+    ['Matériaux',     model.materials_count?.toString() ?? '—'],
+    ['Format',        model.format ?? 'glTF'],
+    ['Bbox GLB',      dimsLabel],
+    ['Taille réelle estimée', realLabel],
   ];
 
   return (
@@ -271,6 +279,35 @@ export default function ModelDetailPage() {
               )}
             </dl>
           </section>
+
+          {realDims && (
+            <section className="border-t border-gray-100 pt-4">
+              <h3 className="text-xs uppercase tracking-wide font-semibold text-gray-400 mb-3">
+                Estimation IA (GPT vision)
+              </h3>
+              <dl className="space-y-2 text-sm">
+                <div className="flex items-baseline justify-between gap-3">
+                  <dt className="text-gray-500 shrink-0">Objet identifié</dt>
+                  <dd className="text-gray-900 text-right capitalize">{realDims.object_label}</dd>
+                </div>
+                <div className="flex items-baseline justify-between gap-3">
+                  <dt className="text-gray-500 shrink-0">Dimensions estimées</dt>
+                  <dd className="text-gray-900 text-right tabular-nums font-medium">{realLabel}</dd>
+                </div>
+                <div className="flex items-baseline justify-between gap-3">
+                  <dt className="text-gray-500 shrink-0">Confiance</dt>
+                  <dd className="text-gray-900 text-right tabular-nums">
+                    {Math.round(realDims.confidence * 100)}%
+                  </dd>
+                </div>
+              </dl>
+              {realDims.reasoning && (
+                <p className="text-xs text-gray-500 leading-relaxed pt-2 mt-2 border-t border-gray-100 italic">
+                  « {realDims.reasoning} »
+                </p>
+              )}
+            </section>
+          )}
 
           <section className="border-t border-gray-100 pt-4">
             <div className="flex items-center justify-between">
